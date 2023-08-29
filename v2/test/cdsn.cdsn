@@ -1,0 +1,37 @@
+!>
+    A formal definition of Bali Wirth Syntax Notation™ (BWSN) using Bali Wirth
+    Syntax Notation™ itself. The token names are identified by all CAPITAL
+    characters and the rule names are identified by lowerCamelCase characters.
+    The starting rule is "$grammar".
+<!
+
+$COMMENT: "!>" EOL  {COMMENT | ~"<!"} EOL "<!"  ! Allows recursion.
+
+$EOL: "\n"  ! Standard POSIX definition.
+
+$IDENTIFIER: LETTER {LETTER | DIGIT}
+
+$INTRINSIC: "LETTER" | "DIGIT | EOF"  ! Language specific definitions.
+
+$NOTE: "! " {~EOL}
+
+$SYMBOL: "$" IDENTIFIER
+
+$factor: 
+    INTRINSIC              |
+    IDENTIFIER             |
+    literal [".." literal] |
+    "~" factor             |  ! Indicates NOT the factor.
+    "(" rule ")"           |  ! Indicates that the rule is evaluated first.
+    "[' rule "]"           |  ! Indicates zero or one repetitions of the rule.
+    "{" rule "}"           |  ! Indicates zero or more repetitions of the rule.
+    "<' rule ">"              ! Indicates one or more repetitions of the rule.
+
+$grammar: <production | COMMENT> EOF  ! EOF is the end-of-file marker.
+
+$literal: "'" <~"'"> "'" | '"' <~'"'> '"'
+
+$production: SYMBOL ":" rule [NOTE] <EOL>
+
+$rule: <factor> {"|" [[NOTE] EOL] <factor>}
+
