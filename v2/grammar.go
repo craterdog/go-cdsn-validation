@@ -34,10 +34,11 @@ var grammar = map[string]string{
     "[' rule "]"           |  ! Indicates zero or one repetitions of the rule.
     "{" rule "}"           |  ! Indicates zero or more repetitions of the rule.
     "<' rule ">"              ! Indicates one or more repetitions of the rule.`,
-	"$grammar": `<production> EOF  ! EOF is the end-of-file marker.`,
+	"$grammar": `<statement> EOF  ! EOF is the end-of-file marker.`,
 	"$literal": `"'" <~"'"> "'" | '"' <~'"'> '"'`,
-	"$production": `(COMMENT | SYMBOL ":" rule [NOTE]) <EOL>`,
+	"$production": `SYMBOL ":" rule [NOTE]`,
 	"$rule": `<factor> {"|" [[NOTE] EOL] <factor>}`,
+	"$statement": `(COMMENT | production) <EOL>`,
 }
 
 const header = `!>
