@@ -34,9 +34,9 @@ var grammar = map[string]string{
     "[' rule "]"           |  ! Indicates zero or one repetitions of the rule.
     "{" rule "}"           |  ! Indicates zero or more repetitions of the rule.
     "<' rule ">"              ! Indicates one or more repetitions of the rule.`,
-	"$grammar": `<production | COMMENT> EOF  ! EOF is the end-of-file marker.`,
+	"$grammar": `<production> EOF  ! EOF is the end-of-file marker.`,
 	"$literal": `"'" <~"'"> "'" | '"' <~'"'> '"'`,
-	"$production": `SYMBOL ":" rule [NOTE] <EOL>`,
+	"$production": `(COMMENT | SYMBOL ":" rule [NOTE]) <EOL>`,
 	"$rule": `<factor> {"|" [[NOTE] EOL] <factor>}`,
 }
 
