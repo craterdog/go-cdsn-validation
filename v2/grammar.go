@@ -19,12 +19,12 @@ import (
 // This map captures the syntax rules for Bali Wirth Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar = map[string]string{
-	"$INTRINSIC": `"LETTER" | "DIGIT | EOF"  ! Language specific definitions.`,
-	"$COMMENT": `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"  ! Allows recursion.`,
 	"$EOL": `"\n"  ! Standard POSIX definition.`,
 	"$IDENTIFIER": `LETTER {LETTER | DIGIT}`,
+	"$INTRINSIC": `"LETTER" | "DIGIT | EOF"  ! Language specific definitions.`,
 	"$NOTE": `"! " {~EOL}`,
 	"$SYMBOL": `"$" IDENTIFIER`,
+	"$comment": `"!>" EOL  {comment | ~"<!"} EOL "<!"  ! Allows nested comments.`,
 	"$factor": `
     INTRINSIC              |
     IDENTIFIER             |
@@ -38,7 +38,7 @@ var grammar = map[string]string{
 	"$literal": `"'" <~"'"> "'" | '"' <~'"'> '"'`,
 	"$production": `SYMBOL ":" rule [NOTE]`,
 	"$rule": `<factor> {"|" [[NOTE] EOL] <factor>}`,
-	"$statement": `(COMMENT | production) <EOL>`,
+	"$statement": `(comment | production) <EOL>`,
 }
 
 const header = `!>

@@ -5,8 +5,6 @@
     The starting rule is "$grammar".
 <!
 
-$COMMENT: "!>" EOL  {COMMENT | ~"<!"} EOL "<!"  ! Allows recursion.
-
 $EOL: "\n"  ! Standard POSIX definition.
 
 $IDENTIFIER: LETTER {LETTER | DIGIT}
@@ -16,6 +14,8 @@ $INTRINSIC: "LETTER" | "DIGIT | EOF"  ! Language specific definitions.
 $NOTE: "! " {~EOL}
 
 $SYMBOL: "$" IDENTIFIER
+
+$comment: "!>" EOL  {comment | ~"<!"} EOL "<!"  ! Allows nested comments.
 
 $factor: 
     INTRINSIC              |
@@ -35,5 +35,5 @@ $production: SYMBOL ":" rule [NOTE]
 
 $rule: <factor> {"|" [[NOTE] EOL] <factor>}
 
-$statement: (COMMENT | production) <EOL>
+$statement: (comment | production) <EOL>
 
