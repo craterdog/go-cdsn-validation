@@ -16,15 +16,15 @@ import (
 	sts "strings"
 )
 
-// This map captures the syntax rules for Bali Wirth Syntax Notation.
+// This map captures the syntax rules for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar = map[string]string{
+	"$COMMENT": `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"  ! Supports nested comments.`,
 	"$EOL": `"\n"  ! Standard POSIX definition.`,
 	"$IDENTIFIER": `LETTER {LETTER | DIGIT}`,
 	"$INTRINSIC": `"LETTER" | "DIGIT | EOF"  ! Language specific definitions.`,
 	"$NOTE": `"! " {~EOL}`,
 	"$SYMBOL": `"$" IDENTIFIER`,
-	"$comment": `"!>" EOL  {comment | ~"<!"} EOL "<!"  ! Allows nested comments.`,
 	"$factor": `
     INTRINSIC              |
     IDENTIFIER             |
@@ -38,11 +38,11 @@ var grammar = map[string]string{
 	"$literal": `"'" <~"'"> "'" | '"' <~'"'> '"'`,
 	"$production": `SYMBOL ":" rule [NOTE]`,
 	"$rule": `<factor> {"|" [[NOTE] EOL] <factor>}`,
-	"$statement": `(comment | production) <EOL>`,
+	"$statement": `(COMMENT | production) <EOL>`,
 }
 
 const header = `!>
-    A formal definition of Bali Wirth Syntax Notation™ (BWSN) using Bali Wirth
+    A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
     Syntax Notation™ itself. The token names are identified by all CAPITAL
     characters and the rule names are identified by lowerCamelCase characters.
     The starting rule is "$grammar".
