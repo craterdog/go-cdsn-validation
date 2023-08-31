@@ -32,9 +32,9 @@ var grammar = map[string]string{
     literal [".." literal] |
     "~" factor             |  ! Indicates the inverse of the factor.
     "(" rule ")"           |  ! Indicates that the rule is evaluated first.
-    "[' rule "]"           |  ! Indicates zero or one repetitions of the rule.
+    "[" rule "]"           |  ! Indicates zero or one repetitions of the rule.
     "{" rule "}"           |  ! Indicates zero or more repetitions of the rule.
-    "<' rule ">"              ! Indicates one or more repetitions of the rule.`,
+    "<" rule ">"              ! Indicates one or more repetitions of the rule.`,
 	"$grammar": `<statement> EOF  ! EOF is the end-of-file marker.`,
 	"$literal": `"'" <~"'"> "'" | '"' <~'"'> '"'`,
 	"$option": `<factor>`,
