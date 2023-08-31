@@ -25,20 +25,21 @@ var grammar = map[string]string{
 	"$INTRINSIC": `"LETTER" | "DIGIT" | "EOF"  ! Language specific definitions.`,
 	"$NOTE": `"! " {~EOL}`,
 	"$SYMBOL": `"$" IDENTIFIER`,
-	"$alternative": `<factor>`,
+	"$alternative": `[[NOTE] EOL] option`,
 	"$factor": `
     INTRINSIC              |
     IDENTIFIER             |
     literal [".." literal] |
-    "~" factor             |  ! Indicates NOT the factor.
+    "~" factor             |  ! Indicates the inverse of the factor.
     "(" rule ")"           |  ! Indicates that the rule is evaluated first.
     "[' rule "]"           |  ! Indicates zero or one repetitions of the rule.
     "{" rule "}"           |  ! Indicates zero or more repetitions of the rule.
     "<' rule ">"              ! Indicates one or more repetitions of the rule.`,
 	"$grammar": `<statement> EOF  ! EOF is the end-of-file marker.`,
 	"$literal": `"'" <~"'"> "'" | '"' <~'"'> '"'`,
+	"$option": `<factor>`,
 	"$production": `SYMBOL ":" rule [NOTE]`,
-	"$rule": `alternative {"|" [[NOTE] EOL] alternative}`,
+	"$rule": `option {"|" alternative}`,
 	"$statement": `(COMMENT | production) <EOL>`,
 }
 
