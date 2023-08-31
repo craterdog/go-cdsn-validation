@@ -17,6 +17,8 @@ $NOTE: "! " {~EOL}
 
 $SYMBOL: "$" IDENTIFIER
 
+$alternative: <factor>
+
 $factor: 
     INTRINSIC              |
     IDENTIFIER             |
@@ -33,7 +35,7 @@ $literal: "'" <~"'"> "'" | '"' <~'"'> '"'
 
 $production: SYMBOL ":" rule [NOTE]
 
-$rule: <factor> {"|" [[NOTE] EOL] <factor>}
+$rule: alternative {"|" [[NOTE] EOL] alternative}
 
 $statement: (COMMENT | production) <EOL>
 

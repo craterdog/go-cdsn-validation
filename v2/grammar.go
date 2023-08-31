@@ -25,6 +25,7 @@ var grammar = map[string]string{
 	"$INTRINSIC": `"LETTER" | "DIGIT" | "EOF"  ! Language specific definitions.`,
 	"$NOTE": `"! " {~EOL}`,
 	"$SYMBOL": `"$" IDENTIFIER`,
+	"$alternative": `<factor>`,
 	"$factor": `
     INTRINSIC              |
     IDENTIFIER             |
@@ -37,7 +38,7 @@ var grammar = map[string]string{
 	"$grammar": `<statement> EOF  ! EOF is the end-of-file marker.`,
 	"$literal": `"'" <~"'"> "'" | '"' <~'"'> '"'`,
 	"$production": `SYMBOL ":" rule [NOTE]`,
-	"$rule": `<factor> {"|" [[NOTE] EOL] <factor>}`,
+	"$rule": `alternative {"|" [[NOTE] EOL] alternative}`,
 	"$statement": `(COMMENT | production) <EOL>`,
 }
 
