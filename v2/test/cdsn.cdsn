@@ -11,7 +11,7 @@ $EOL: "\n"  ! Standard POSIX definition.
 
 $IDENTIFIER: LETTER {LETTER | DIGIT}
 
-$INTRINSIC: "LETTER" | "DIGIT | EOF"  ! Language specific definitions.
+$INTRINSIC: "LETTER" | "DIGIT" | "EOF"  ! Language specific definitions.
 
 $NOTE: "! " {~EOL}
 

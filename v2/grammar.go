@@ -22,7 +22,7 @@ var grammar = map[string]string{
 	"$COMMENT": `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"  ! Supports nested comments.`,
 	"$EOL": `"\n"  ! Standard POSIX definition.`,
 	"$IDENTIFIER": `LETTER {LETTER | DIGIT}`,
-	"$INTRINSIC": `"LETTER" | "DIGIT | EOF"  ! Language specific definitions.`,
+	"$INTRINSIC": `"LETTER" | "DIGIT" | "EOF"  ! Language specific definitions.`,
 	"$NOTE": `"! " {~EOL}`,
 	"$SYMBOL": `"$" IDENTIFIER`,
 	"$factor": `
