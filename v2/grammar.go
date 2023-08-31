@@ -35,11 +35,11 @@ var grammar = map[string]string{
     "[" rule "]"           |  ! Indicates zero or one repetitions of the rule.
     "{" rule "}"           |  ! Indicates zero or more repetitions of the rule.
     "<" rule ">"              ! Indicates one or more repetitions of the rule.`,
-	"$grammar": `<statement> EOF  ! EOF is the end-of-file marker.`,
 	"$literal": `"'" <~"'"> "'" | '"' <~'"'> '"'`,
 	"$option": `<factor>`,
 	"$production": `SYMBOL ":" rule [NOTE]`,
 	"$rule": `option {"|" alternative}`,
+	"$source": `<statement> EOF  ! EOF is the end-of-file marker.`,
 	"$statement": `(COMMENT | production) <EOL>`,
 }
 
@@ -47,7 +47,7 @@ const header = `!>
     A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
     Syntax Notation™ itself. The token names are identified by all CAPITAL
     characters and the rule names are identified by lowerCamelCase characters.
-    The starting rule is "$grammar".
+    The starting rule is "$source".
 <!
 
 `
