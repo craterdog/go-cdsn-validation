@@ -23,9 +23,9 @@ func Production(symbol Symbol, rule RuleLike, note Note) ProductionLike {
 
 // This type defines the structure and methods associated with a production.
 type production struct {
-	symbol  Symbol
-	rule    RuleLike
-	note    Note
+	symbol Symbol
+	rule   RuleLike
+	note   Note
 }
 
 // This method returns the symbol for this production.
@@ -35,7 +35,7 @@ func (v *production) GetSymbol() Symbol {
 
 // This method sets the symbol for this production.
 func (v *production) SetSymbol(symbol Symbol) {
-	if symbol == nil {
+	if len(symbol) == 0 {
 		panic("A production requires a symbol.")
 	}
 	v.symbol = symbol

@@ -27,7 +27,7 @@ var grammar = map[string]string{
 	"$NOTE":        `"! " {~EOL}`,
 	"$SYMBOL":      `"$" IDENTIFIER`,
 	"$alternative": `[[NOTE] EOL] option`,
-	"$factor":      `
+	"$factor": `
     INTRINSIC    |
     IDENTIFIER   |
     range        |

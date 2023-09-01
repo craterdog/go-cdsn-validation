@@ -12,7 +12,6 @@ package cdsn
 
 import (
 	fmt "fmt"
-	col "github.com/craterdog/go-collection-framework/v2"
 )
 
 // FACTOR IMPLEMENTATION

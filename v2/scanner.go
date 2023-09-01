@@ -32,6 +32,7 @@ const (
 	TokenEOF
 	TokenEOL
 	TokenIdentifier
+	TokenIntrinsic
 	TokenLiteral
 	TokenNote
 	TokenSymbol
@@ -47,6 +48,7 @@ func (v TokenType) String() string {
 		"EOF",
 		"EOL",
 		"Identifier",
+		"Intrinsic",
 		"Literal",
 		"Note",
 		"Symbol",
@@ -130,6 +132,7 @@ func (v *scanner) scanToken() bool {
 		// We are at the end of the source array.
 		return false
 	case v.foundIdentifier():
+	case v.foundIntrinsic():
 	case v.foundLiteral():
 	case v.foundNote():
 	case v.foundSymbol():
@@ -243,15 +246,15 @@ func (v *scanner) foundEOF() bool {
 	// The last byte in a POSIX standard file must be an EOL character.
 	var s = v.source[v.nextByte:]
 	if !byt.HasPrefix(s, []byte(EOL)) {
-	    return false
+		return false
 	}
 	v.nextByte++
 	v.line++
 	// Now make sure there are no more bytes.
 	if v.nextByte != len(v.source) {
-	    v.nextByte--
-	    v.line--
-	    return false
+		v.nextByte--
+		v.line--
+		return false
 	}
 	v.emitToken(TokenEOF)
 	return true
@@ -262,7 +265,7 @@ func (v *scanner) foundEOF() bool {
 func (v *scanner) foundEOL() bool {
 	var s = v.source[v.nextByte:]
 	if !byt.HasPrefix(s, []byte(EOL)) {
-	    return false
+		return false
 	}
 	v.nextByte++
 	v.emitToken(TokenEOL)
@@ -279,6 +282,19 @@ func (v *scanner) foundIdentifier() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenIdentifier)
+		return true
+	}
+	return false
+}
+
+// This method adds an intrinsic token with the current scanner information
+// to the token channel. It returns true if an intrinsic token was found.
+func (v *scanner) foundIntrinsic() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanIntrinsic(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenIntrinsic)
 		return true
 	}
 	return false
@@ -403,6 +419,16 @@ func scanIdentifier(v []byte) []string {
 	return bytesToStrings(identifierScanner.FindSubmatch(v))
 }
 
+// This scanner is used for matching intrinsic tokens.
+var intrinsicScanner = reg.MustCompile(`^(?:` + intrinsic + `)`)
+
+// This function returns for the specified string an array of the matching
+// subgroups for an intrinsic token. The first string in the array is the
+// entire matched string.
+func scanIntrinsic(v []byte) []string {
+	return bytesToStrings(intrinsicScanner.FindSubmatch(v))
+}
+
 // This scanner is used for matching literal tokens.
 var literalScanner = reg.MustCompile(`^(?:` + literal + `)`)
 
@@ -437,7 +463,7 @@ func scanSymbol(v []byte) []string {
 
 // These constants define the POSIX standard representations.
 const (
-	EOF = "\n"  // Must be last byte in a file.
+	EOF = "\n" // Must be last byte in a file.
 	EOL = "\n"
 )
 
@@ -447,6 +473,7 @@ const (
 	digit      = `\pN` // All unicode digits.
 	eol        = `\n`
 	identifier = letter + `(?:` + letter + `|` + digit + `)*`
+	intrinsic  = `LETTER|DIGIT|EOF`
 	letter     = `\pL` // All unicode letters and connectors like underscores.
 	literal    = `['][^']+[']|["][^"]+["]`
 	note       = `! [^` + eol + `]*`
@@ -461,8 +488,6 @@ var delimiters = [][]byte{
 	[]byte(`~`),
 	[]byte(`:`),
 	[]byte(`|`),
-	[]byte(`'`),
-	[]byte(`"`),
 	[]byte(`(`),
 	[]byte(`)`),
 	[]byte(`[`),

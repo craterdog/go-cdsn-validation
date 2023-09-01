@@ -22,7 +22,7 @@ func Statement(comment Comment, production ProductionLike) StatementLike {
 
 // This type defines the structure and methods associated with a statement.
 type statement struct {
-	comment   Comment
+	comment    Comment
 	production ProductionLike
 }
 
@@ -43,7 +43,7 @@ func (v *statement) GetProduction() ProductionLike {
 
 // This method sets the production for this statement.
 func (v *statement) SetProduction(production ProductionLike) {
-	if comment == nil && production == nil {
+	if len(v.comment) == 0 && production == nil {
 		panic("A statement requires either a comment or a production.")
 	}
 	v.production = production

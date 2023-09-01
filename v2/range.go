@@ -33,7 +33,7 @@ func (v *range_) GetFirstLiteral() Literal {
 
 // This method sets the first literal for this range.
 func (v *range_) SetFirstLiteral(first Literal) {
-	if first == nil {
+	if len(first) == 0 {
 		panic("A range requires at least one literal.")
 	}
 	v.first = first
