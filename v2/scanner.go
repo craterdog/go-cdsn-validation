@@ -32,6 +32,7 @@ const (
 	TokenEOF
 	TokenEOL
 	TokenIdentifier
+	TokenLiteral
 	TokenNote
 	TokenSymbol
 )
@@ -46,6 +47,7 @@ func (v TokenType) String() string {
 		"EOF",
 		"EOL",
 		"Identifier",
+		"Literal",
 		"Note",
 		"Symbol",
 	}[v]
@@ -120,16 +122,17 @@ func (v *scanner) scanTokens() {
 func (v *scanner) scanToken() bool {
 	v.skipSpaces()
 	switch {
-	case v.foundEOL():
 	case v.foundCatagory():
 	case v.foundComment():
 	case v.foundDelimiter():
-	case v.foundIdentifier():
-	case v.foundNote():
-	case v.foundSymbol():
-	case v.foundEOF():      // Must be last.
+	case v.foundEOL():
+	case v.foundEOF():
 		// We are at the end of the source array.
 		return false
+	case v.foundIdentifier():
+	case v.foundLiteral():
+	case v.foundNote():
+	case v.foundSymbol():
 	default:
 		// No valid token was found.
 		v.foundError()
@@ -139,7 +142,7 @@ func (v *scanner) scanToken() bool {
 }
 
 // This method scans through any spaces in the source array and sets the next
-// byte index to the next non-white-space rune.
+// byte index to the next non-space rune.
 func (v *scanner) skipSpaces() {
 	if v.nextByte < len(v.source) {
 		for {
@@ -237,25 +240,35 @@ func (v *scanner) foundError() {
 // This method adds an EOF token with the current scanner information to the
 // token channel. It returns true if an EOF token was found.
 func (v *scanner) foundEOF() bool {
-	if v.nextByte == len(v.source) {
-		v.emitToken(TokenEOF)
-		return true
+	// The last byte in a POSIX standard file must be an EOL character.
+	var s = v.source[v.nextByte:]
+	if !byt.HasPrefix(s, []byte(EOL)) {
+	    return false
 	}
-	return false
+	v.nextByte++
+	v.line++
+	// Now make sure there are no more bytes.
+	if v.nextByte != len(v.source) {
+	    v.nextByte--
+	    v.line--
+	    return false
+	}
+	v.emitToken(TokenEOF)
+	return true
 }
 
 // This method adds an EOL token with the current scanner information to the
 // token channel. It returns true if an EOL token was found.
 func (v *scanner) foundEOL() bool {
 	var s = v.source[v.nextByte:]
-	if byt.HasPrefix(s, []byte(EOL)) {
-		v.nextByte++
-		v.emitToken(TokenEOL)
-		v.line++
-		v.position = 1
-		return true
+	if !byt.HasPrefix(s, []byte(EOL)) {
+	    return false
 	}
-	return false
+	v.nextByte++
+	v.emitToken(TokenEOL)
+	v.line++
+	v.position = 1
+	return true
 }
 
 // This method adds an identifier token with the current scanner information
@@ -266,6 +279,19 @@ func (v *scanner) foundIdentifier() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenIdentifier)
+		return true
+	}
+	return false
+}
+
+// This method adds a literal token with the current scanner information to the
+// token channel. It returns true if a literal token was found.
+func (v *scanner) foundLiteral() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanLiteral(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenLiteral)
 		return true
 	}
 	return false
@@ -377,6 +403,16 @@ func scanIdentifier(v []byte) []string {
 	return bytesToStrings(identifierScanner.FindSubmatch(v))
 }
 
+// This scanner is used for matching literal tokens.
+var literalScanner = reg.MustCompile(`^(?:` + literal + `)`)
+
+// This function returns for the specified string an array of the matching
+// subgroups for a literal token. The first string in the array is the
+// entire matched string.
+func scanLiteral(v []byte) []string {
+	return bytesToStrings(literalScanner.FindSubmatch(v))
+}
+
 // This scanner is used for matching note tokens.
 var noteScanner = reg.MustCompile(`^(?:` + note + `)`)
 
@@ -399,8 +435,11 @@ func scanSymbol(v []byte) []string {
 
 // CONSTANT DEFINITIONS
 
-// This is the POSIX standard end-of-line character constant.
-const EOL = "\n"
+// These constants define the POSIX standard representations.
+const (
+	EOF = "\n"  // Must be last byte in a file.
+	EOL = "\n"
+)
 
 // These constant definitions capture regular expression subpatterns.
 const (
@@ -409,6 +448,7 @@ const (
 	eol        = `\n`
 	identifier = letter + `(?:` + letter + `|` + digit + `)*`
 	letter     = `\pL` // All unicode letters and connectors like underscores.
+	literal    = `['][^']+[']|["][^"]+["]`
 	note       = `! [^` + eol + `]*`
 	symbol     = `\$` + identifier
 )

@@ -19,28 +19,29 @@ import (
 // This map captures the syntax rules for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar = map[string]string{
-	"$COMMENT": `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"  ! Supports nested comments.`,
-	"$EOL": `"\n"  ! Standard POSIX definition.`,
-	"$IDENTIFIER": `LETTER {LETTER | DIGIT}`,
-	"$INTRINSIC": `"LETTER" | "DIGIT" | "EOF"  ! Language specific definitions.`,
-	"$NOTE": `"! " {~EOL}`,
-	"$SYMBOL": `"$" IDENTIFIER`,
+	"$COMMENT":     `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"  ! Supports nested comments.`,
+	"$EOL":         `"\n"  ! Standard POSIX definition.`,
+	"$IDENTIFIER":  `LETTER {LETTER | DIGIT}`,
+	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOF"  ! Language specific definitions.`,
+	"$LITERAL":     `"'" <~"'"> "'" | '"' <~'"'> '"'`,
+	"$NOTE":        `"! " {~EOL}`,
+	"$SYMBOL":      `"$" IDENTIFIER`,
 	"$alternative": `[[NOTE] EOL] option`,
-	"$factor": `
-    INTRINSIC              |
-    IDENTIFIER             |
-    literal [".." literal] |
-    "~" factor             |  ! Indicates the inverse of the factor.
-    "(" rule ")"           |  ! Indicates that the rule is evaluated first.
-    "[" rule "]"           |  ! Indicates zero or one repetitions of the rule.
-    "{" rule "}"           |  ! Indicates zero or more repetitions of the rule.
-    "<" rule ">"              ! Indicates one or more repetitions of the rule.`,
-	"$literal": `"'" <~"'"> "'" | '"' <~'"'> '"'`,
-	"$option": `<factor>`,
+	"$factor":      `
+    INTRINSIC    |
+    IDENTIFIER   |
+    range        |
+    "~" factor   |  ! Indicates the inverse of the factor.
+    "(" rule ")" |  ! Indicates that the rule is evaluated first.
+    "[" rule "]" |  ! Indicates zero or one repetitions of the rule.
+    "{" rule "}" |  ! Indicates zero or more repetitions of the rule.
+    "<" rule ">"    ! Indicates one or more repetitions of the rule.`,
+	"$option":     `<factor>`,
 	"$production": `SYMBOL ":" rule [NOTE]`,
-	"$rule": `option {"|" alternative}`,
-	"$source": `<statement> EOF  ! EOF is the end-of-file marker.`,
-	"$statement": `(COMMENT | production) <EOL>`,
+	"$range":      `LITERAL [".." LITERAL]`,
+	"$rule":       `option {"|" alternative}`,
+	"$source":     `<statement> EOF  ! EOF is the end-of-file marker.`,
+	"$statement":  `(COMMENT | production) <EOL>`,
 }
 
 const header = `!>

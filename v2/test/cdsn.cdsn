@@ -13,6 +13,8 @@ $IDENTIFIER: LETTER {LETTER | DIGIT}
 
 $INTRINSIC: "LETTER" | "DIGIT" | "EOF"  ! Language specific definitions.
 
+$LITERAL: "'" <~"'"> "'" | '"' <~'"'> '"'
+
 $NOTE: "! " {~EOL}
 
 $SYMBOL: "$" IDENTIFIER
@@ -20,20 +22,20 @@ $SYMBOL: "$" IDENTIFIER
 $alternative: [[NOTE] EOL] option
 
 $factor: 
-    INTRINSIC              |
-    IDENTIFIER             |
-    literal [".." literal] |
-    "~" factor             |  ! Indicates the inverse of the factor.
-    "(" rule ")"           |  ! Indicates that the rule is evaluated first.
-    "[" rule "]"           |  ! Indicates zero or one repetitions of the rule.
-    "{" rule "}"           |  ! Indicates zero or more repetitions of the rule.
-    "<" rule ">"              ! Indicates one or more repetitions of the rule.
-
-$literal: "'" <~"'"> "'" | '"' <~'"'> '"'
+    INTRINSIC    |
+    IDENTIFIER   |
+    range        |
+    "~" factor   |  ! Indicates the inverse of the factor.
+    "(" rule ")" |  ! Indicates that the rule is evaluated first.
+    "[" rule "]" |  ! Indicates zero or one repetitions of the rule.
+    "{" rule "}" |  ! Indicates zero or more repetitions of the rule.
+    "<" rule ">"    ! Indicates one or more repetitions of the rule.
 
 $option: <factor>
 
 $production: SYMBOL ":" rule [NOTE]
+
+$range: LITERAL [".." LITERAL] |
 
 $rule: option {"|" alternative}
 
