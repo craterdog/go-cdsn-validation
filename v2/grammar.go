@@ -19,18 +19,21 @@ import (
 // This map captures the syntax rules for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar = map[string]string{
+	"$CHARACTER":   `LETTER | DIGIT`,
 	"$COMMENT":     `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"  ! Supports nested comments.`,
 	"$EOL":         `"\n"  ! Standard POSIX definition.`,
-	"$IDENTIFIER":  `LETTER {LETTER | DIGIT}`,
-	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOF"  ! Language specific definitions.`,
+	"$IDENTIFIER":  `LETTER {CHARACTER}`,
+	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOF"`,
 	"$LITERAL":     `"'" <~"'"> "'" | '"' <~'"'> '"'`,
 	"$NOTE":        `"! " {~EOL}`,
+	"$RANGE":       `CHARACTER ".." CHARACTER`,
 	"$SYMBOL":      `"$" IDENTIFIER`,
 	"$alternative": `[[NOTE] EOL] option`,
 	"$factor": `
-    INTRINSIC    |
-    IDENTIFIER   |
-    range        |
+    RANGE        |  ! A range takes precedence over other factor types.
+    INTRINSIC    |  ! These tokens have character set specific definitions.
+    IDENTIFIER   |  ! These tokens map to symbols defined in other statements.
+    LITERAL      |  ! Represents a literal string in quotes.
     "~" factor   |  ! Indicates the inverse of the factor.
     "(" rule ")" |  ! Indicates that the rule is evaluated first.
     "[" rule "]" |  ! Indicates zero or one repetitions of the rule.
@@ -38,10 +41,9 @@ var grammar = map[string]string{
     "<" rule ">"    ! Indicates one or more repetitions of the rule.`,
 	"$option":     `<factor>`,
 	"$production": `SYMBOL ":" rule [NOTE]`,
-	"$range":      `LITERAL [".." LITERAL]`,
 	"$rule":       `option {"|" alternative}`,
 	"$source":     `<statement> EOF  ! EOF is the end-of-file marker.`,
-	"$statement":  `(COMMENT | production) <EOL>`,
+	"$statement":  `(COMMENT | production) <EOL>  ! EOL is the end-of-line character.`,
 }
 
 const header = `!>
