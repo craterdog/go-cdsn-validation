@@ -227,16 +227,7 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	var factor Factor
 	factor, token, ok = v.parseRange() // This must be first.
 	if !ok {
-		factor, token, ok = v.parseIntrinsic() // This must be second.
-	}
-	if !ok {
-		factor, token, ok = v.parseIdentifier()
-	}
-	if !ok {
 		factor, token, ok = v.parseInversion()
-	}
-	if !ok {
-		factor, token, ok = v.parseLiteral()
 	}
 	if !ok {
 		factor, token, ok = v.parsePrecedence()
@@ -249,6 +240,18 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	}
 	if !ok {
 		factor, token, ok = v.parseOneOrMore()
+	}
+	if !ok {
+		factor, token, ok = v.parseCharacter()
+	}
+	if !ok {
+		factor, token, ok = v.parseLiteral()
+	}
+	if !ok {
+		factor, token, ok = v.parseIntrinsic() // This must be second.
+	}
+	if !ok {
+		factor, token, ok = v.parseIdentifier()
 	}
 	return factor, token, ok
 }

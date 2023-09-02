@@ -37,9 +37,9 @@ var grammar = map[string]string{
     range        |
     "~" factor   |
     "(" rule ")" |
-    "<" rule ">" |
     "[" rule "]" |
     "{" rule "}" |
+    "<" rule ">" |
     CHARACTER    |
     LITERAL      |
     INTRINSIC    |
