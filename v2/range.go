@@ -14,25 +14,25 @@ package cdsn
 
 // This constructor creates a new range.
 func Range(first Character, last Character) RangeLike {
-	var v = &range_{}
+	var v = &rng{}
 	v.SetFirstCharacter(first)
 	v.SetLastCharacter(last)
 	return v
 }
 
 // This type defines the structure and methods associated with a range.
-type range_ struct {
+type rng struct {
 	first Character
 	last  Character
 }
 
 // This method returns the first character for this range.
-func (v *range_) GetFirstCharacter() Character {
+func (v *rng) GetFirstCharacter() Character {
 	return v.first
 }
 
 // This method sets the first character for this range.
-func (v *range_) SetFirstCharacter(first Character) {
+func (v *rng) SetFirstCharacter(first Character) {
 	if len(first) == 0 {
 		panic("A range requires two characters.")
 	}
@@ -40,12 +40,12 @@ func (v *range_) SetFirstCharacter(first Character) {
 }
 
 // This method returns the last character for this range.
-func (v *range_) GetLastCharacter() Character {
+func (v *rng) GetLastCharacter() Character {
 	return v.last
 }
 
 // This method sets the last character for this range.
-func (v *range_) SetLastCharacter(last Character) {
+func (v *rng) SetLastCharacter(last Character) {
 	if len(last) == 0 {
 		panic("A range requires two characters.")
 	}
