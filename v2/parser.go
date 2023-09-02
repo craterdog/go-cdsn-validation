@@ -127,7 +127,7 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	var note Note
 	var option OptionLike
 	var alternative AlternativeLike
-	note, token, ok = v.parseNote()
+	note, _, ok = v.parseNote()
 	if ok {
 		_, token, ok = v.parseEOL()
 		if !ok {
@@ -221,6 +221,9 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	}
 	if !ok {
 		factor, token, ok = v.parseInversion()
+	}
+	if !ok {
+		factor, token, ok = v.parseLiteral()
 	}
 	if !ok {
 		factor, token, ok = v.parsePrecedence()
@@ -435,7 +438,7 @@ func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 			"$NOTE")
 		panic(message)
 	}
-	note, token, ok = v.parseNote()
+	note, _, _ = v.parseNote()
 	production = Production(symbol, rule, note)
 	return production, token, true
 }
@@ -473,7 +476,7 @@ func (v *parser) parseRule() (RuleLike, *Token, bool) {
 			// No more alternatives.
 			break
 		}
-		alternative, token, ok = v.parseAlternative()
+		alternative, _, _ = v.parseAlternative()
 		alternatives.AddValue(alternative)
 	}
 	rule = Rule(option, alternatives)
@@ -489,7 +492,7 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	var comment Comment
 	var production ProductionLike
 	var statement StatementLike
-	comment, token, ok = v.parseComment()
+	comment, _, ok = v.parseComment()
 	if !ok {
 		production, token, ok = v.parseProduction()
 		if !ok {
