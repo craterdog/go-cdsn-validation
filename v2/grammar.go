@@ -19,38 +19,45 @@ import (
 // This map captures the syntax rules for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar = map[string]string{
-	"$CHARACTER":   `LETTER | DIGIT`,
-	"$COMMENT":     `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"  ! Supports nested comments.`,
-	"$EOL":         `"\n"  ! Standard POSIX definition.`,
-	"$IDENTIFIER":  `LETTER {CHARACTER}`,
-	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOF"`,
-	"$LITERAL":     `"'" <~"'"> "'" | '"' <~'"'> '"'`,
 	"$NOTE":        `"! " {~EOL}`,
-	"$RANGE":       `CHARACTER ".." CHARACTER`,
+	"$COMMENT":     `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"`,
+	"$CHARACTER":   `"'" ~"'" "'"`,
+	"$STRING":      `'"' <~'"'> '"'`,
+	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOL" | "EOF"`,
+	"$IDENTIFIER":  `LETTER {LETTER | DIGIT}`,
 	"$SYMBOL":      `"$" IDENTIFIER`,
+	"$source":      `<statement> EOF`,
+	"$statement":   `(COMMENT | production) <EOL>`,
+	"$production":  `SYMBOL ":" rule [NOTE]`,
+	"$rule":        `option {"|" alternative}`,
+	"$option":      `<factor>`,
 	"$alternative": `[[NOTE] EOL] option`,
+	"$range":       `CHARACTER ".." CHARACTER`,
 	"$factor": `
-    RANGE        |  ! A range takes precedence over other factor types.
-    INTRINSIC    |  ! These tokens have character set specific definitions.
-    IDENTIFIER   |  ! These tokens map to symbols defined in other statements.
-    LITERAL      |  ! Represents a literal string in quotes.
-    "~" factor   |  ! Indicates the inverse of the factor.
-    "(" rule ")" |  ! Indicates that the rule is evaluated first.
-    "[" rule "]" |  ! Indicates zero or one repetitions of the rule.
-    "{" rule "}" |  ! Indicates zero or more repetitions of the rule.
-    "<" rule ">"    ! Indicates one or more repetitions of the rule.`,
-	"$option":     `<factor>`,
-	"$production": `SYMBOL ":" rule [NOTE]`,
-	"$rule":       `option {"|" alternative}`,
-	"$source":     `<statement> EOF  ! EOF is the end-of-file marker.`,
-	"$statement":  `(COMMENT | production) <EOL>  ! EOL is the end-of-line character.`,
+    range        |
+    "~" factor   |
+    "(" rule ")" |
+    "<" rule ">" |
+    "[" rule "]" |
+    "{" rule "}" |
+    CHARACTER    |
+    STRING       |
+    INTRINSIC    |
+    IDENTIFIER`,
 }
 
 const header = `!>
     A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
-    Syntax Notation™ itself. The token names are identified by all CAPITAL
-    characters and the rule names are identified by lowerCamelCase characters.
-    The starting rule is "$source".
+    Syntax Notation™ itself. Token names are identified by all CAPITAL
+    letters and rule names are identified by lowerCamelCase letters.
+
+    The INTRINSIC tokens are environment dependent and therefore left undefined.
+    The tokens are scanned in the order listed so an INTRINSIC token takes
+    precedence over an IDENTIFIER token.
+
+    The rules are applied in the order listed as well, so within a factor a
+    range takes precedence over an individual CHARACTER.  The starting rule is
+    the "$source" rule.
 <!
 
 `
