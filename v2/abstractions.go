@@ -27,6 +27,7 @@ type (
 	Factor       any
 	Literal      string
 	Note         string
+	Range        string
 	Symbol       string
 	GroupingType int64
 )
@@ -82,14 +83,6 @@ type ProductionLike interface {
 	SetRule(rule RuleLike)
 	GetNote() Note
 	SetNote(note Note)
-}
-
-// This interface defines the methods supported by all range-like components.
-type RangeLike interface {
-	GetFirstLiteral() Literal
-	SetFirstLiteral(literal Literal)
-	GetLastLiteral() Literal
-	SetLastLiteral(literal Literal)
 }
 
 // This interface defines the methods supported by all rule-like components.

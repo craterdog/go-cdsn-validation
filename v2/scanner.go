@@ -26,7 +26,7 @@ type TokenType int
 // This enumeration defines all possible token types including the error token.
 const (
 	TokenError TokenType = iota
-	TokenCatagory
+	TokenCharacter
 	TokenComment
 	TokenDelimiter
 	TokenEOF
@@ -35,6 +35,7 @@ const (
 	TokenIntrinsic
 	TokenLiteral
 	TokenNote
+	TokenRange
 	TokenSymbol
 )
 
@@ -42,7 +43,7 @@ const (
 func (v TokenType) String() string {
 	return [...]string{
 		"Error",
-		"Catagory",
+		"Character",
 		"Comment",
 		"Delimiter",
 		"EOF",
@@ -51,6 +52,7 @@ func (v TokenType) String() string {
 		"Intrinsic",
 		"Literal",
 		"Note",
+		"Range",
 		"Symbol",
 	}[v]
 }
@@ -124,7 +126,7 @@ func (v *scanner) scanTokens() {
 func (v *scanner) scanToken() bool {
 	v.skipSpaces()
 	switch {
-	case v.foundCatagory():
+	case v.foundRange(): // This must be first.
 	case v.foundComment():
 	case v.foundDelimiter():
 	case v.foundEOL():
@@ -190,19 +192,6 @@ func (v *scanner) emitToken(tType TokenType) TokenType {
 	v.firstByte = v.nextByte
 	v.position += sts.Count(tValue, "") - 1 // Add the number of runes in the token.
 	return tType
-}
-
-// This method adds a catagory token with the current scanner information to the
-// token channel. It returns true if a catagory token was found.
-func (v *scanner) foundCatagory() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanCatagory(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenCatagory)
-		return true
-	}
-	return false
 }
 
 // This method adds a comment token with the current scanner information
@@ -326,6 +315,19 @@ func (v *scanner) foundNote() bool {
 	return false
 }
 
+// This method adds a range token with the current scanner information to the
+// token channel. It returns true if a range token was found.
+func (v *scanner) foundRange() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanRange(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenRange)
+		return true
+	}
+	return false
+}
+
 // This method adds a symbol token with the current scanner information to the
 // token channel. It returns true if a symbol token was found.
 func (v *scanner) foundSymbol() bool {
@@ -337,16 +339,6 @@ func (v *scanner) foundSymbol() bool {
 		return true
 	}
 	return false
-}
-
-// This scanner is used for matching catagory tokens.
-var catagoryScanner = reg.MustCompile(`^(?:` + catagory + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for a catagory token. The first string in the array is the
-// entire matched string.
-func scanCatagory(v []byte) []string {
-	return bytesToStrings(catagoryScanner.FindSubmatch(v))
 }
 
 // This function returns for the specified string an array of the matching
@@ -449,6 +441,16 @@ func scanNote(v []byte) []string {
 	return bytesToStrings(noteScanner.FindSubmatch(v))
 }
 
+// This scanner is used for matching range tokens.
+var rangeScanner = reg.MustCompile(`^(?:` + range_ + `)`)
+
+// This function returns for the specified string an array of the matching
+// subgroups for a range token. The first string in the array is the
+// entire matched string.
+func scanRange(v []byte) []string {
+	return bytesToStrings(rangeScanner.FindSubmatch(v))
+}
+
 // This scanner is used for matching symbol tokens.
 var symbolScanner = reg.MustCompile(`^(?:` + symbol + `)`)
 
@@ -469,22 +471,21 @@ const (
 
 // These constant definitions capture regular expression subpatterns.
 const (
-	catagory   = `LETTER|DIGIT`
+	character  = letter + `|` + digit
 	digit      = `\pN` // All unicode digits.
 	eol        = `\n`
-	identifier = letter + `(?:` + letter + `|` + digit + `)*`
+	identifier = letter + `(?:` + character + `)*`
 	intrinsic  = `LETTER|DIGIT|EOF`
 	letter     = `\pL` // All unicode letters and connectors like underscores.
 	literal    = `['][^']+[']|["][^"]+["]`
 	note       = `! [^` + eol + `]*`
+	range_     = `(` + character + `)` + ".." + `(` + character + `)`
 	symbol     = `\$` + identifier
 )
 
 // This array contains the set of delimiters that may be used to separate the
 // other tokens.
 var delimiters = [][]byte{
-	[]byte(`..`),
-	[]byte(`! `),
 	[]byte(`~`),
 	[]byte(`:`),
 	[]byte(`|`),

@@ -26,7 +26,9 @@ func GetType(factor Factor) string {
 		return "Intrinsic"
 	case Identifier:
 		return "Identifier"
-	case *range_:
+	case Literal:
+		return "Literal"
+	case Range:
 		return "Range"
 	case *inversion:
 		return "Inversion"

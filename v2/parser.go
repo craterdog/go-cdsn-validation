@@ -212,12 +212,12 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	var ok bool
 	var token *Token
 	var factor Factor
-	factor, token, ok = v.parseIntrinsic()
+	factor, token, ok = v.parseRange() // This must be first.
 	if !ok {
-		factor, token, ok = v.parseIdentifier()
+		factor, token, ok = v.parseIntrinsic() // This must be second.
 	}
 	if !ok {
-		factor, token, ok = v.parseRange()
+		factor, token, ok = v.parseIdentifier()
 	}
 	if !ok {
 		factor, token, ok = v.parseInversion()
@@ -440,31 +440,16 @@ func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 	return production, token, true
 }
 
-// This method attempts to parse a range. It returns the range
-// and whether or not the range was successfully parsed.
-func (v *parser) parseRange() (RangeLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var first Literal
-	var last Literal
-	var range_ RangeLike
-	first, token, ok = v.parseLiteral()
-	if !ok {
-		// This is not a range.
+// This method attempts to parse a range. It returns the range and whether
+// or not the range was successfully parsed.
+func (v *parser) parseRange() (Range, *Token, bool) {
+	var range_ Range
+	var token = v.nextToken()
+	if token.Type != TokenRange {
+		v.backupOne()
 		return range_, token, false
 	}
-	_, token, ok = v.parseDelimiter("..")
-	if ok {
-		last, token, ok = v.parseLiteral()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("LITERAL",
-				"$range",
-				"$LITERAL")
-			panic(message)
-		}
-	}
-	range_ = Range(first, last)
+	range_ = Range(token.Value)
 	return range_, token, true
 }
 
