@@ -21,13 +21,13 @@ import (
 // TYPE DEFINITIONS
 
 type (
+	Character    string
 	Comment      string
 	Identifier   string
 	Intrinsic    string
 	Factor       any
 	Literal      string
 	Note         string
-	Range        string
 	Symbol       string
 	GroupingType int64
 )
@@ -83,6 +83,14 @@ type ProductionLike interface {
 	SetRule(rule RuleLike)
 	GetNote() Note
 	SetNote(note Note)
+}
+
+// This interface defines the methods supported by all range-like components.
+type RangeLike interface {
+	GetFirstCharacter() Character
+	SetFirstCharacter(first Character)
+	GetLastCharacter() Character
+	SetLastCharacter(last Character)
 }
 
 // This interface defines the methods supported by all rule-like components.

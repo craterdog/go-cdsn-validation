@@ -22,14 +22,14 @@ import (
 // The type switch CAN distinguish between the private structure types.
 func GetType(factor Factor) string {
 	switch value := factor.(type) {
+	case Character:
+		return "Character"
 	case Intrinsic:
 		return "Intrinsic"
 	case Identifier:
 		return "Identifier"
 	case Literal:
 		return "Literal"
-	case Range:
-		return "Range"
 	case *inversion:
 		return "Inversion"
 	case *grouping:

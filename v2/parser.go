@@ -152,6 +152,19 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	return alternative, token, true
 }
 
+// This method attempts to parse a character. It returns the character and
+// whether or not a character was successfully parsed.
+func (v *parser) parseCharacter() (Character, *Token, bool) {
+	var character Character
+	var token = v.nextToken()
+	if token.Type != TokenCharacter {
+		v.backupOne()
+		return character, token, false
+	}
+	character = Character(token.Value)
+	return character, token, true
+}
+
 // This method attempts to parse a comment. It returns the comment and whether
 // or not a comment was successfully parsed.
 func (v *parser) parseComment() (Comment, *Token, bool) {
@@ -443,16 +456,34 @@ func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 	return production, token, true
 }
 
-// This method attempts to parse a range. It returns the range and whether
-// or not the range was successfully parsed.
-func (v *parser) parseRange() (Range, *Token, bool) {
-	var range_ Range
-	var token = v.nextToken()
-	if token.Type != TokenRange {
-		v.backupOne()
+// This method attempts to parse a range. It returns the range
+// and whether or not the range was successfully parsed.
+func (v *parser) parseRange() (RangeLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var first Character
+	var last Character
+	var range_ RangeLike
+	first, token, ok = v.parseCharacter()
+	if !ok {
+		// This is not a range.
 		return range_, token, false
 	}
-	range_ = Range(token.Value)
+	_, token, ok = v.parseDelimiter("..")
+	if !ok {
+		// This is not a range.
+		v.backupOne() // Put back the character.
+		return range_, token, false
+	}
+	last, token, ok = v.parseCharacter()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("CHARACTER",
+			"$range",
+			"$CHARACTER")
+		panic(message)
+	}
+	range_ = Range(first, last)
 	return range_, token, true
 }
 
