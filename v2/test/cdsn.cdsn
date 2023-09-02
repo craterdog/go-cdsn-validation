@@ -20,9 +20,9 @@ $IDENTIFIER: LETTER {LETTER | DIGIT}
 
 $INTRINSIC: "LETTER" | "DIGIT" | "EOL" | "EOF"
 
-$NOTE: "! " {~EOL}
+$LITERAL: '"' <~'"'> '"'
 
-$STRING: '"' <~'"'> '"'
+$NOTE: "! " {~EOL}
 
 $SYMBOL: "$" IDENTIFIER
 
@@ -36,7 +36,7 @@ $factor:
     "[" rule "]" |
     "{" rule "}" |
     CHARACTER    |
-    STRING       |
+    LITERAL      |
     INTRINSIC    |
     IDENTIFIER
 

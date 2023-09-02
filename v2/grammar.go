@@ -22,7 +22,7 @@ var grammar = map[string]string{
 	"$NOTE":        `"! " {~EOL}`,
 	"$COMMENT":     `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"`,
 	"$CHARACTER":   `"'" ~"'" "'"`,
-	"$STRING":      `'"' <~'"'> '"'`,
+	"$LITERAL":     `'"' <~'"'> '"'`,
 	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOL" | "EOF"`,
 	"$IDENTIFIER":  `LETTER {LETTER | DIGIT}`,
 	"$SYMBOL":      `"$" IDENTIFIER`,
@@ -41,7 +41,7 @@ var grammar = map[string]string{
     "[" rule "]" |
     "{" rule "}" |
     CHARACTER    |
-    STRING       |
+    LITERAL      |
     INTRINSIC    |
     IDENTIFIER`,
 }
