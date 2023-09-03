@@ -119,7 +119,21 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	var note Note
 	var option OptionLike
 	var alternative AlternativeLike
+	_, token, ok = v.parseDelimiter("|")
+	if !ok {
+		// This is not an alternative.
+		return alternative, token, false
+	}
 	note, _, _ = v.parseNote() // The note is optional.
+	_, token, ok = v.parseEOL()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("EOL",
+			"$alternative",
+			"$NOTE",
+			"$option")
+		panic(message)
+	}
 	option, token, ok = v.parseOption()
 	if !ok {
 		var message = v.formatError(token)
@@ -380,7 +394,6 @@ func (v *parser) parseOption() (OptionLike, *Token, bool) {
 	var factor Factor
 	var factors = col.List[Factor]()
 	var option OptionLike
-	v.parseEOL() // The EOL is optional.
 	factor, token, ok = v.parseFactor()
 	if !ok {
 		// An option must have at least one factor.
@@ -511,18 +524,50 @@ func (v *parser) parseRule() (RuleLike, *Token, bool) {
 	var alternatives = col.List[AlternativeLike]()
 	var rule RuleLike
 	option, token, ok = v.parseOption()
+	if ok {
+		rule = Rule(option, alternatives)
+		return rule, token, true
+	}
+	_, token, ok = v.parseEOL()
 	if !ok {
 		// This is not a rule.
 		return rule, token, false
 	}
+	option, token, ok = v.parseOption()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("option",
+			"$rule",
+			"$option",
+			"$alternative")
+		panic(message)
+	}
+	alternative, token, ok = v.parseAlternative()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("alternative",
+			"$rule",
+			"$option",
+			"$alternative")
+		panic(message)
+	}
 	for {
-		_, token, ok = v.parseDelimiter("|")
+		alternatives.AddValue(alternative)
+		alternative, _, ok = v.parseAlternative()
 		if !ok {
 			// No more alternatives.
 			break
 		}
-		alternative, _, _ = v.parseAlternative()
-		alternatives.AddValue(alternative)
+	}
+	note, _, _ = v.parseNote() // The note is optional.
+	_, token, ok = v.parseEOL()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("EOL",
+			"$rule",
+			"$option",
+			"$alternative")
+		panic(message)
 	}
 	rule = Rule(option, alternatives)
 	return rule, token, true

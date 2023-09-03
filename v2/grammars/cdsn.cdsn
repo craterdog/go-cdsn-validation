@@ -14,21 +14,14 @@
 
 $CHARACTER: "'" ~"'" "'"
 
-$COMMENT: "!>" EOL {
-    COMMENT |
-    ~"<!"
-} EOL "<!"
+$COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
 
-$IDENTIFIER: LETTER {
-    LETTER |
-    DIGIT
-}
+$IDENTIFIER: LETTER {LETTER | DIGIT}
 
-$INTRINSIC:
-    "LETTER" |
-    "DIGIT" |
-    "EOL" |
-    "EOF"
+$INTRINSIC: "LETTER"
+    | "DIGIT"
+    | "EOL"
+    | "EOF"
 
 $LITERAL: '"' <~'"'> '"'
 
@@ -36,34 +29,26 @@ $NOTE: "! " {~EOL}
 
 $SYMBOL: "$" IDENTIFIER
 
-$alternative: "|" [NOTE] EOL option
+$factor: range
+    | "~" factor
+    | "(" rule ")"
+    | "[" rule "]"
+    | "{" rule "}"
+    | "<" rule ">"
+    | CHARACTER
+    | LITERAL
+    | INTRINSIC
+    | IDENTIFIER
 
-$factor:
-    range |
-    "~" factor |
-    "(" rule ")" |
-    "[" rule "]" |
-    "{" rule "}" |
-    "<" rule ">" |
-    CHARACTER |
-    LITERAL |
-    INTRINSIC |
-    IDENTIFIER
+$option: <factor> [[NOTE] EOL]
 
-$option: <factor>
-
-$production: SYMBOL ":" rule [NOTE]
+$production: SYMBOL ":" rule
 
 $range: CHARACTER ".." CHARACTER
 
-$rule:
-    option |
-    EOL option <alternative> EOL
+$rule: option {"|" option}
 
 $source: <statement> EOF
 
-$statement: (
-    COMMENT |
-    production
-) <EOL>
+$statement: (COMMENT | production) <EOL>
 
