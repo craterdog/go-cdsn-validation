@@ -19,13 +19,13 @@ import (
 	tes "testing"
 )
 
-const testDirectory = "./test/"
+const testDirectory = "./grammars/"
 
 func TestParsingRoundtrips(t *tes.T) {
 
 	var files, err = osx.ReadDir(testDirectory)
 	if err != nil {
-		panic("Could not find the ./test directory.")
+		panic("Could not find the " + testDirectory + " directory.")
 	}
 
 	for _, file := range files {

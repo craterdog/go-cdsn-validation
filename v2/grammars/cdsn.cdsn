@@ -11,18 +11,59 @@
     range takes precedence over an individual CHARACTER.  The starting rule is
     the "$source" rule.
 <!
+
 $CHARACTER: "'" ~"'" "'"
-$COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
-$IDENTIFIER: LETTER {LETTER | DIGIT}
-$INTRINSIC: "LETTER" | "DIGIT" | "EOL" | "EOF"
+
+$COMMENT: "!>" EOL {
+    COMMENT |
+    ~"<!"
+} EOL "<!"
+
+$IDENTIFIER: LETTER {
+    LETTER |
+    DIGIT
+}
+
+$INTRINSIC:
+    "LETTER" |
+    "DIGIT" |
+    "EOL" |
+    "EOF"
+
 $LITERAL: '"' <~'"'> '"'
+
 $NOTE: "! " {~EOL}
+
 $SYMBOL: "$" IDENTIFIER
-$alternative: [[NOTE] EOL] option
-$factor: range | "~" factor | "(" rule ")" | "[" rule "]" | "{" rule "}" | "<" rule ">" | CHARACTER | LITERAL | INTRINSIC | IDENTIFIER
+
+$alternative: "|" [NOTE] EOL option
+
+$factor:
+    range |
+    "~" factor |
+    "(" rule ")" |
+    "[" rule "]" |
+    "{" rule "}" |
+    "<" rule ">" |
+    CHARACTER |
+    LITERAL |
+    INTRINSIC |
+    IDENTIFIER
+
 $option: <factor>
+
 $production: SYMBOL ":" rule [NOTE]
+
 $range: CHARACTER ".." CHARACTER
-$rule: option {"|" alternative}
+
+$rule:
+    option |
+    EOL option <alternative> EOL
+
 $source: <statement> EOF
-$statement: (COMMENT | production) <EOL>
+
+$statement: (
+    COMMENT |
+    production
+) <EOL>
+
