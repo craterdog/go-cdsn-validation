@@ -1,5 +1,5 @@
 /*******************************************************************************
- *   Copyright (c) 2009-2023 Crater Dog Technologies™.  All Rights Reserved.   *
+ *   Copyright (c) 2009-2022 Crater Dog Technologies™.  All Rights Reserved.   *
  *******************************************************************************
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.               *
  *                                                                             *
@@ -12,17 +12,30 @@ package cdsn_test
 
 import (
 	fmt "fmt"
-	val "github.com/craterdog/go-cdsn-validation/v2"
+	cds "github.com/craterdog/go-cdsn-validation/v2"
+	ass "github.com/stretchr/testify/assert"
 	osx "os"
+	sts "strings"
 	tes "testing"
 )
 
-const cdsn = "./test/cdsn.cdsn"
+const testDirectory = "./test/"
 
-func TestGenerateGrammar(t *tes.T) {
-	var err = osx.WriteFile(cdsn, []byte(val.FormatGrammar()), 0644)
+func TestParsingRoundtrips(t *tes.T) {
+
+	var files, err = osx.ReadDir(testDirectory)
 	if err != nil {
-		var message = fmt.Sprintf("Could not create the cdsn file: %v.", err)
-		panic(message)
+		panic("Could not find the ./test directory.")
+	}
+
+	for _, file := range files {
+		var filename = testDirectory + file.Name()
+		if sts.HasSuffix(filename, ".cdsn") {
+			fmt.Println(filename)
+			var expected, _ = osx.ReadFile(filename)
+			var grammar = cds.ParseDocument(expected)
+			var document = cds.FormatDocument(grammar)
+			ass.Equal(t, string(expected), string(document))
+		}
 	}
 }

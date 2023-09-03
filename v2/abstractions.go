@@ -49,6 +49,12 @@ type AlternativeLike interface {
 	SetNote(note Note)
 }
 
+// This interface defines the methods supported by all inversion-like components.
+type InversionLike interface {
+	GetFactor() Factor
+	SetFactor(factor Factor)
+}
+
 // This interface defines the methods supported by all grammar-like components.
 type GrammarLike interface {
 	GetStatements() col.Sequential[StatementLike]
@@ -61,12 +67,6 @@ type GroupingLike interface {
 	SetRule(rule RuleLike)
 	GetType() GroupingType
 	SetType(type_ GroupingType)
-}
-
-// This interface defines the methods supported by all inversion-like components.
-type InversionLike interface {
-	GetFactor() Factor
-	SetFactor(factor Factor)
 }
 
 // This interface defines the methods supported by all option-like components.
@@ -99,12 +99,6 @@ type RuleLike interface {
 	SetOption(option OptionLike)
 	GetAlternatives() col.Sequential[AlternativeLike]
 	SetAlternatives(alternatives col.Sequential[AlternativeLike])
-}
-
-// This interface defines the methods supported by all source-like components.
-type SourceLike interface {
-	GetStatements() col.Sequential[StatementLike]
-	SetStatements(statements col.Sequential[StatementLike])
 }
 
 // This interface defines the methods supported by all statement-like components.

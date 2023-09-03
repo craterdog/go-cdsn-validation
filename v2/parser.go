@@ -19,13 +19,13 @@ import (
 // PARSER INTERFACE
 
 // This function parses the specified document source retrieved from a POSIX
-// compliant file and returns the corresponding CDSN statements that were used
+// compliant file and returns the corresponding CDSN grammar that was used
 // to generate the document using the CDSN formatting capabilities.
 // A POSIX compliant file must end with an EOF marker.
-func ParseDocument(source []byte) col.Sequential[StatementLike] {
+func ParseDocument(source []byte) GrammarLike {
 	var ok bool
 	var token *Token
-	var statements col.Sequential[StatementLike]
+	var grammar GrammarLike
 	var tokens = make(chan Token, 256)
 	Scanner(source, tokens) // Starts scanning in a separate go routine.
 	var p = &parser{
@@ -33,23 +33,15 @@ func ParseDocument(source []byte) col.Sequential[StatementLike] {
 		next:   col.StackWithCapacity[*Token](4),
 		tokens: tokens,
 	}
-	statements, token, ok = p.parseStatements()
+	grammar, token, ok = p.parseGrammar()
 	if !ok {
 		var message = p.formatError(token)
 		message += generateGrammar("statement",
-			"$source",
+			"$grammar",
 			"$statement")
 		panic(message)
 	}
-	_, token, ok = p.parseEOF()
-	if !ok {
-		var message = p.formatError(token)
-		message += generateGrammar("EOF",
-			"$source",
-			"$statement")
-		panic(message)
-	}
-	return statements
+	return grammar
 }
 
 // PARSER IMPLEMENTATION
@@ -127,18 +119,7 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	var note Note
 	var option OptionLike
 	var alternative AlternativeLike
-	note, _, ok = v.parseNote()
-	if ok {
-		_, token, ok = v.parseEOL()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("EOL",
-				"$alternative",
-				"$NOTE",
-				"$option")
-			panic(message)
-		}
-	}
+	note, _, _ = v.parseNote() // The note is optional.
 	option, token, ok = v.parseOption()
 	if !ok {
 		var message = v.formatError(token)
@@ -195,13 +176,7 @@ func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
 // character.
 func (v *parser) parseEOF() (*Token, *Token, bool) {
 	var token = v.nextToken()
-	if token.Type != TokenEOL {
-		v.backupOne()
-		return token, token, false
-	}
-	token = v.nextToken()
 	if token.Type != TokenEOF {
-		v.backupOne() // Put back the EOL character.
 		v.backupOne()
 		return token, token, false
 	}
@@ -256,15 +231,50 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	return factor, token, ok
 }
 
+// This method attempts to parse a grammar. It returns the grammar and whether
+// or not the grammar was successfully parsed.
+func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var statement StatementLike
+	var statements = col.List[StatementLike]()
+	var grammar GrammarLike
+	statement, token, ok = v.parseStatement()
+	if !ok {
+		// A grammar must have at least one statement.
+		return grammar, token, false
+	}
+	for {
+		statements.AddValue(statement)
+		statement, _, ok = v.parseStatement()
+		if !ok {
+			// No more statements.
+			break
+		}
+	}
+	_, token, ok = v.parseEOF()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("EOF",
+			"$grammar",
+			"$statement")
+		panic(message)
+	}
+	grammar = Grammar(statements)
+	return grammar, token, true
+}
+
 // This method attempts to parse an identifier token. It returns
 // the token and whether or not an identifier token was found.
-func (v *parser) parseIdentifier() (*Token, *Token, bool) {
+func (v *parser) parseIdentifier() (Identifier, *Token, bool) {
+	var identifier Identifier
 	var token = v.nextToken()
 	if token.Type != TokenIdentifier {
 		v.backupOne()
-		return token, token, false
+		return identifier, token, false
 	}
-	return token, token, true
+	identifier = Identifier(token.Value)
+	return identifier, token, true
 }
 
 // This method attempts to parse a intrinsic. It returns the intrinsic and
@@ -370,6 +380,7 @@ func (v *parser) parseOption() (OptionLike, *Token, bool) {
 	var factor Factor
 	var factors = col.List[Factor]()
 	var option OptionLike
+	v.parseEOL() // The EOL is optional.
 	factor, token, ok = v.parseFactor()
 	if !ok {
 		// An option must have at least one factor.
@@ -534,41 +545,15 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 			return statement, token, false
 		}
 	}
-	_, token, ok = v.parseEOL()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("EOL",
-			"$statement",
-			"$COMMENT",
-			"$production")
-		panic(message)
-	}
-	statement = Statement(comment, production)
-	return statement, token, true
-}
-
-// This method attempts to parse a sequence of statements. It returns the
-// sequence of statements and whether or not the sequence of statements was
-// successfully parsed.
-func (v *parser) parseStatements() (col.Sequential[StatementLike], *Token, bool) {
-	var ok bool
-	var token *Token
-	var statement StatementLike
-	var statements = col.List[StatementLike]()
-	statement, token, ok = v.parseStatement()
-	if !ok {
-		// A grammar must have at least one statement.
-		return statements, token, false
-	}
 	for {
-		statements.AddValue(statement)
-		statement, token, ok = v.parseStatement()
+		_, token, ok = v.parseEOL()
 		if !ok {
-			// No more statements.
+			// No more blank lines.
 			break
 		}
 	}
-	return statements, token, true
+	statement = Statement(comment, production)
+	return statement, token, true
 }
 
 // This method attempts to parse a symbol. It returns the symbol and whether
@@ -648,4 +633,82 @@ func (v *parser) parseZeroOrOne() (GroupingLike, *Token, bool) {
 	}
 	grouping = Grouping(rule, ZeroOrOne)
 	return grouping, token, true
+}
+
+// GRAMMAR UTILITIES
+
+// This map captures the syntax rules for Crater Dog Syntax Notation.
+// It is useful when creating scanner and parser error messages.
+var grammar_ = map[string]string{
+	"$NOTE":        `"! " {~EOL}`,
+	"$COMMENT":     `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"`,
+	"$CHARACTER":   `"'" ~"'" "'"`,
+	"$LITERAL":     `'"' <~'"'> '"'`,
+	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOL" | "EOF"`,
+	"$IDENTIFIER":  `LETTER {LETTER | DIGIT}`,
+	"$SYMBOL":      `"$" IDENTIFIER`,
+	"$grammar":      `<statement> EOF`,
+	"$statement":   `(COMMENT | production) <EOL>`,
+	"$production":  `SYMBOL ":" rule [NOTE]`,
+	"$rule":        `option {"|" alternative}`,
+	"$option":      `<factor>`,
+	"$alternative": `[[NOTE] EOL] option`,
+	"$range":       `CHARACTER ".." CHARACTER`,
+	"$factor": `
+    range        |
+    "~" factor   |
+    "(" rule ")" |
+    "[" rule "]" |
+    "{" rule "}" |
+    "<" rule ">" |
+    CHARACTER    |
+    LITERAL      |
+    INTRINSIC    |
+    IDENTIFIER`,
+}
+
+const header = `!>
+    A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
+    Syntax Notation™ itself. Token names are identified by all CAPITAL
+    letters and rule names are identified by lowerCamelCase letters.
+
+    The INTRINSIC tokens are environment dependent and therefore left undefined.
+    The tokens are scanned in the order listed so an INTRINSIC token takes
+    precedence over an IDENTIFIER token.
+
+    The rules are applied in the order listed as well, so within a factor a
+    range takes precedence over an individual CHARACTER.  The starting rule is
+    the "$grammar" rule.
+<!
+
+`
+
+func FormatGrammar() string {
+	var builder sts.Builder
+	builder.WriteString(header)
+	var unsorted = make([]string, len(grammar_))
+	var index = 0
+	for key := range grammar_ {
+		unsorted[index] = key
+		index++
+	}
+	var keys = col.ListFromArray(unsorted)
+	keys.SortValues()
+	var iterator = col.Iterator[string](keys)
+	for iterator.HasNext() {
+		var key = iterator.GetNext()
+		var value = grammar_[key]
+		builder.WriteString(fmt.Sprintf("%s: %s\n\n", key, value))
+	}
+	return builder.String()
+}
+
+// PRIVATE FUNCTIONS
+
+func generateGrammar(expected string, symbols ...string) string {
+	var message = "Was expecting '" + expected + "' from:\n"
+	for _, symbol := range symbols {
+		message += fmt.Sprintf("  \033[32m%v: \033[33m%v\033[0m\n\n", symbol, grammar_[symbol])
+	}
+	return message
 }

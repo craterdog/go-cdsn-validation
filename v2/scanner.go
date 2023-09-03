@@ -103,12 +103,12 @@ type scanner struct {
 	source    []byte
 	firstByte int // The zero based index of the first possible byte in the next token.
 	nextByte  int // The zero based index of the next possible byte in the next token.
-	line      int // The line number in the source string of the next rune.
+	line      int // The line number in the source bytes of the next rune.
 	position  int // The position in the current line of the first rune in the next token.
 	tokens    chan Token
 }
 
-// This method continues scanning tokens from the source array until an error
+// This method continues scanning tokens from the source bytes until an error
 // occurs or the end of file is reached. It then closes the token channel.
 func (v *scanner) scanTokens() {
 	for v.scanToken() {
@@ -117,7 +117,7 @@ func (v *scanner) scanTokens() {
 }
 
 // This method attempts to scan any token starting with the next rune in the
-// source array. It checks for each type of token as the cases for the switch
+// source bytes. It checks for each type of token as the cases for the switch
 // statement. If that token type is found, this method returns true and skips
 // the rest of the cases.  If no valid token is found, or a TokenEOF is found
 // this method returns false.
@@ -134,7 +134,7 @@ func (v *scanner) scanToken() bool {
 	case v.foundDelimiter():
 	case v.foundEOL():
 	case v.foundEOF():
-		// We are at the end of the source array.
+		// We are at the end of the source bytes.
 		return false
 	default:
 		// No valid token was found.
@@ -144,7 +144,7 @@ func (v *scanner) scanToken() bool {
 	return true
 }
 
-// This method scans through any spaces in the source array and sets the next
+// This method scans through any spaces in the source bytes and sets the next
 // byte index to the next non-space rune.
 func (v *scanner) skipSpaces() {
 	if v.nextByte < len(v.source) {
@@ -212,6 +212,7 @@ func (v *scanner) foundComment() bool {
 	var matches = scanComment(s)
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
+		v.line += sts.Count(matches[0], EOL)
 		v.emitToken(TokenComment)
 		return true
 	}
@@ -245,17 +246,11 @@ func (v *scanner) foundError() {
 func (v *scanner) foundEOF() bool {
 	// The last byte in a POSIX standard file must be an EOL character.
 	var s = v.source[v.nextByte:]
-	if !byt.HasPrefix(s, []byte(EOL)) {
+	if !byt.HasPrefix(s, []byte(EOL)) || v.nextByte + 1 < len(v.source) {
 		return false
 	}
 	v.nextByte++
 	v.line++
-	// Now make sure there are no more bytes.
-	if v.nextByte != len(v.source) {
-		v.nextByte--
-		v.line--
-		return false
-	}
 	v.emitToken(TokenEOF)
 	return true
 }
@@ -264,7 +259,7 @@ func (v *scanner) foundEOF() bool {
 // token channel. It returns true if an EOL token was found.
 func (v *scanner) foundEOL() bool {
 	var s = v.source[v.nextByte:]
-	if !byt.HasPrefix(s, []byte(EOL)) {
+	if !byt.HasPrefix(s, []byte(EOL)) || v.nextByte + 1 == len(v.source) {
 		return false
 	}
 	v.nextByte++

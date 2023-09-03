@@ -11,83 +11,32 @@
 package cdsn
 
 import (
-	fmt "fmt"
 	col "github.com/craterdog/go-collection-framework/v2"
-	sts "strings"
 )
 
-// This map captures the syntax rules for Crater Dog Syntax Notation.
-// It is useful when creating scanner and parser error messages.
-var grammar = map[string]string{
-	"$NOTE":        `"! " {~EOL}`,
-	"$COMMENT":     `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"`,
-	"$CHARACTER":   `"'" ~"'" "'"`,
-	"$LITERAL":     `'"' <~'"'> '"'`,
-	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOL" | "EOF"`,
-	"$IDENTIFIER":  `LETTER {LETTER | DIGIT}`,
-	"$SYMBOL":      `"$" IDENTIFIER`,
-	"$source":      `<statement> EOF`,
-	"$statement":   `(COMMENT | production) <EOL>`,
-	"$production":  `SYMBOL ":" rule [NOTE]`,
-	"$rule":        `option {"|" alternative}`,
-	"$option":      `<factor>`,
-	"$alternative": `[[NOTE] EOL] option`,
-	"$range":       `CHARACTER ".." CHARACTER`,
-	"$factor": `
-    range        |
-    "~" factor   |
-    "(" rule ")" |
-    "[" rule "]" |
-    "{" rule "}" |
-    "<" rule ">" |
-    CHARACTER    |
-    LITERAL      |
-    INTRINSIC    |
-    IDENTIFIER`,
+// GRAMMAR IMPLEMENTATION
+
+// This constructor creates a new grammar.
+func Grammar(statements col.Sequential[StatementLike]) GrammarLike {
+	var v = &grammar{}
+	v.SetStatements(statements)
+	return v
 }
 
-const header = `!>
-    A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
-    Syntax Notation™ itself. Token names are identified by all CAPITAL
-    letters and rule names are identified by lowerCamelCase letters.
-
-    The INTRINSIC tokens are environment dependent and therefore left undefined.
-    The tokens are scanned in the order listed so an INTRINSIC token takes
-    precedence over an IDENTIFIER token.
-
-    The rules are applied in the order listed as well, so within a factor a
-    range takes precedence over an individual CHARACTER.  The starting rule is
-    the "$source" rule.
-<!
-
-`
-
-func FormatGrammar() string {
-	var builder sts.Builder
-	builder.WriteString(header)
-	var unsorted = make([]string, len(grammar))
-	var index = 0
-	for key := range grammar {
-		unsorted[index] = key
-		index++
-	}
-	var keys = col.ListFromArray(unsorted)
-	keys.SortValues()
-	var iterator = col.Iterator[string](keys)
-	for iterator.HasNext() {
-		var key = iterator.GetNext()
-		var value = grammar[key]
-		builder.WriteString(fmt.Sprintf("%s: %s\n\n", key, value))
-	}
-	return builder.String()
+// This type defines the structure and methods associated with a grammar.
+type grammar struct {
+	statements col.Sequential[StatementLike]
 }
 
-// PRIVATE FUNCTIONS
+// This method returns the statements for this grammar.
+func (v *grammar) GetStatements() col.Sequential[StatementLike] {
+	return v.statements
+}
 
-func generateGrammar(expected string, symbols ...string) string {
-	var message = "Was expecting '" + expected + "' from:\n"
-	for _, symbol := range symbols {
-		message += fmt.Sprintf("  \033[32m%v: \033[33m%v\033[0m\n\n", symbol, grammar[symbol])
+// This method sets the statements for this grammar.
+func (v *grammar) SetStatements(statements col.Sequential[StatementLike]) {
+	if statements == nil || statements.IsEmpty() {
+		panic("A grammar requires at least one statement.")
 	}
-	return message
+	v.statements = statements
 }
