@@ -17,15 +17,17 @@ import (
 // OPTION IMPLEMENTATION
 
 // This constructor creates a new option.
-func Option(factors col.Sequential[Factor]) OptionLike {
+func Option(factors col.Sequential[Factor], note Note) OptionLike {
 	var v = &option{}
 	v.SetFactors(factors)
+	v.SetNote(note)
 	return v
 }
 
 // This type defines the structure and methods associated with an option.
 type option struct {
 	factors col.Sequential[Factor]
+	note Note
 }
 
 // This method returns the factors for this option.
@@ -39,4 +41,14 @@ func (v *option) SetFactors(factors col.Sequential[Factor]) {
 		panic("An option requires at least one factor.")
 	}
 	v.factors = factors
+}
+
+// This method returns the note for this option.
+func (v *option) GetNote() Note {
+	return v.note
+}
+
+// This method sets the note for this option.
+func (v *option) SetNote(note Note) {
+	v.note = note
 }

@@ -13,11 +13,10 @@ package cdsn
 // PRODUCTION IMPLEMENTATION
 
 // This constructor creates a new production.
-func Production(symbol Symbol, rule RuleLike, note Note) ProductionLike {
+func Production(symbol Symbol, rule RuleLike) ProductionLike {
 	var v = &production{}
 	v.SetSymbol(symbol)
 	v.SetRule(rule)
-	v.SetNote(note)
 	return v
 }
 
@@ -25,7 +24,6 @@ func Production(symbol Symbol, rule RuleLike, note Note) ProductionLike {
 type production struct {
 	symbol Symbol
 	rule   RuleLike
-	note   Note
 }
 
 // This method returns the symbol for this production.
@@ -52,14 +50,4 @@ func (v *production) SetRule(rule RuleLike) {
 		panic("A production requires a rule.")
 	}
 	v.rule = rule
-}
-
-// This method returns the note for this production.
-func (v *production) GetNote() Note {
-	return v.note
-}
-
-// This method sets the note for this production.
-func (v *production) SetNote(note Note) {
-	v.note = note
 }

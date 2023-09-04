@@ -12,7 +12,7 @@
     the "$grammar" rule.
 <!
 
-$grammar: <statement> EOF
+$grammar: <statement> EOF  ! Terminated by an end-of-file marker.
 
 $statement: (COMMENT | production) <EOL>
 
@@ -22,12 +22,12 @@ $rule: option {"|" option}
 
 $option: <factor> [[NOTE] EOL]
 
-$factor: range
-    | "~" factor
-    | "(" rule ")"
-    | "[" rule "]"
-    | "{" rule "}"
-    | "<" rule ">"
+$factor: range  ! A range of characters.
+    | "~" factor  ! The inversion of the factor.
+    | "(" rule ")"  ! The rule takes precedence.
+    | "[" rule "]"  ! Zero or one instances of the rule.
+    | "{" rule "}"  ! Zero or more instances of the rule.
+    | "<" rule ">"  ! One or more instances of the rule.
     | CHARACTER
     | LITERAL
     | INTRINSIC
@@ -39,10 +39,7 @@ $CHARACTER: "'" ~"'" "'"
 
 $LITERAL: '"' <~'"'> '"'
 
-$INTRINSIC: "LETTER"
-    | "DIGIT"
-    | "EOL"
-    | "EOF"
+$INTRINSIC: "LETTER" | "DIGIT" | "EOL" | "EOF"
 
 $SYMBOL: "$" IDENTIFIER
 
@@ -51,4 +48,5 @@ $IDENTIFIER: LETTER {LETTER | DIGIT}
 $NOTE: "! " {~EOL}
 
 $COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
+
 

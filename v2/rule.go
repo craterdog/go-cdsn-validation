@@ -17,35 +17,26 @@ import (
 // RULE IMPLEMENTATION
 
 // This constructor creates a new rule.
-func Rule(option OptionLike, alternatives col.Sequential[AlternativeLike]) RuleLike {
+func Rule(options col.Sequential[OptionLike]) RuleLike {
 	var v = &rule{}
-	v.SetOption(option)
-	v.SetAlternatives(alternatives)
+	v.SetOptions(options)
 	return v
 }
 
 // This type defines the structure and methods associated with a rule.
 type rule struct {
-	option       OptionLike
-	alternatives col.Sequential[AlternativeLike]
+	options col.Sequential[OptionLike]
 }
 
-// This method returns the option for this rule.
-func (v *rule) GetOption() OptionLike {
-	return v.option
+// This method returns the options for this rule.
+func (v *rule) GetOptions() col.Sequential[OptionLike] {
+	return v.options
 }
 
-// This method sets the option for this rule.
-func (v *rule) SetOption(option OptionLike) {
-	v.option = option
-}
-
-// This method returns the alternatives for this rule.
-func (v *rule) GetAlternatives() col.Sequential[AlternativeLike] {
-	return v.alternatives
-}
-
-// This method sets the alternatives for this rule.
-func (v *rule) SetAlternatives(alternatives col.Sequential[AlternativeLike]) {
-	v.alternatives = alternatives
+// This method sets the options for this rule.
+func (v *rule) SetOptions(options col.Sequential[OptionLike]) {
+	if options == nil || options.IsEmpty() {
+		panic("A rule requires at least one option.")
+	}
+	v.options = options
 }

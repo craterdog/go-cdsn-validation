@@ -41,14 +41,6 @@ const (
 
 // INDIVIDUAL INTERFACES
 
-// This interface defines the methods supported by all alternative-like components.
-type AlternativeLike interface {
-	GetOption() OptionLike
-	SetOption(option OptionLike)
-	GetNote() Note
-	SetNote(note Note)
-}
-
 // This interface defines the methods supported by all inversion-like components.
 type InversionLike interface {
 	GetFactor() Factor
@@ -73,6 +65,8 @@ type GroupingLike interface {
 type OptionLike interface {
 	GetFactors() col.Sequential[Factor]
 	SetFactors(factors col.Sequential[Factor])
+	GetNote() Note
+	SetNote(note Note)
 }
 
 // This interface defines the methods supported by all production-like components.
@@ -81,8 +75,6 @@ type ProductionLike interface {
 	SetSymbol(symbol Symbol)
 	GetRule() RuleLike
 	SetRule(rule RuleLike)
-	GetNote() Note
-	SetNote(note Note)
 }
 
 // This interface defines the methods supported by all range-like components.
@@ -95,10 +87,8 @@ type RangeLike interface {
 
 // This interface defines the methods supported by all rule-like components.
 type RuleLike interface {
-	GetOption() OptionLike
-	SetOption(option OptionLike)
-	GetAlternatives() col.Sequential[AlternativeLike]
-	SetAlternatives(alternatives col.Sequential[AlternativeLike])
+	GetOptions() col.Sequential[OptionLike]
+	SetOptions(options col.Sequential[OptionLike])
 }
 
 // This interface defines the methods supported by all statement-like components.

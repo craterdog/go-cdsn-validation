@@ -11,94 +11,43 @@
 
 $BASE10: '0'..'9'
 
-$BASE16:
-    '0'..'9' |
-    'a'..'f'
+$BASE16: '0'..'9' | 'a'..'f'
 
-$BOOLEAN:
-    "false" |
-    "true"
+$BOOLEAN: "false" | "true"
 
 $COMPLEX: "(" FLOAT SIGN FLOAT "i)"
 
-$CONTEXT:
-    "array" |
-    "catalog" |
-    "list" |
-    "map" |
-    "queue" |
-    "set" |
-    "stack"
+$CONTEXT: "array" | "catalog" | "list" | "map" | "queue" | "set" | "stack"
 
-$DELIMITER:
-    "]" |
-    "[" |
-    ")" |
-    "(" |
-    ":" |
-    ","
+$DELIMITER: "]" | "[" | ")" | "(" | ":" | ","
 
 $EOL: "\n"
 
-$ESCAPE: '\' (
-    UNICODE |
-    'a' |
-    'b' |
-    'f' |
-    'n' |
-    'r' |
-    't' |
-    'v' |
-    '"' |
-    "'" |
-    '\'
-)
+$ESCAPE: '\' (UNICODE | 'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | '"' | "'" | '\')
 
-$EXPONENT: (
-    "e" |
-    "E"
-) SIGN ORDINAL
+$EXPONENT: ("e" | "E") SIGN ORDINAL
 
 $FLOAT: [SIGN] SCALAR [EXPONENT]
 
 $FRACTION: "." <BASE10>
 
-$INTEGER:
-    ZERO |
-    [SIGN] ORDINAL
+$INTEGER: ZERO
+    | [SIGN] ORDINAL
 
 $NIL: "nil"
 
 $ORDINAL: '1'..'9' {'0'..'9'}
 
-$RUNE: "'" (
-    ESCAPE |
-    ~(
-        "'" |
-        EOL
-    )
-) "'"
+$RUNE: "'" (ESCAPE | ~("'" | EOL)) "'"
 
-$SCALAR: (
-    ZERO |
-    ORDINAL
-) FRACTION
+$SCALAR: (ZERO | ORDINAL) FRACTION
 
-$SIGN:
-    "+" |
-    "-"
+$SIGN: "+" | "-"
 
-$STRING: '"' {
-    ESCAPE |
-    ~(
-        '"' |
-        EOL
-    )
-} '"'
+$STRING: '"' {ESCAPE | ~('"' | EOL)} '"'
 
-$UNICODE:
-    "u" BASE16 BASE16 BASE16 BASE16 |
-    "U" BASE16 BASE16 BASE16 BASE16 BASE16 BASE16 BASE16 BASE16
+$UNICODE: "u" BASE16 BASE16 BASE16 BASE16
+    | "U" BASE16 BASE16 BASE16 BASE16 BASE16 BASE16 BASE16 BASE16
 
 $UNSIGNED: "0x" <BASE16>
 
@@ -106,35 +55,22 @@ $ZERO: "0"
 
 $association: key ":" value
 
-$associations:
-    association {"," association} |
-    EOL <association EOL> |
-    ":"  ! No associations.
+$associations: association {"," association}
+    | EOL <association EOL>
+    | ":"  ! No associations.
 
-$collection: "[" (
-    values |
-    associations
-) "]" "(" CONTEXT ")"
+$collection: "[" (values | associations) "]" "(" CONTEXT ")"
 
 $key: primitive
 
-$primitive:
-    BOOLEAN |
-    COMPLEX |
-    FLOAT |
-    INTEGER |
-    NIL |
-    RUNE |
-    STRING
+$primitive: BOOLEAN | COMPLEX | FLOAT | INTEGER | NIL | RUNE | STRING
 
 $source: collection EOF  ! EOF is the end-of-file marker.
 
-$value:
-    primitive |
-    collection
+$value: primitive | collection
 
-$values:
-    value {"," value} |
-    EOL <value EOL> |
-    " "  ! No values.
+$values: value {"," value}
+    | EOL <value EOL>
+    | " "  ! No values.
+
 

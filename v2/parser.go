@@ -111,42 +111,6 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
-// This method attempts to parse an alternative. It returns the alternative
-// and whether or not the alternative was successfully parsed.
-func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var note Note
-	var option OptionLike
-	var alternative AlternativeLike
-	_, token, ok = v.parseDelimiter("|")
-	if !ok {
-		// This is not an alternative.
-		return alternative, token, false
-	}
-	note, _, _ = v.parseNote() // The note is optional.
-	_, token, ok = v.parseEOL()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("EOL",
-			"$alternative",
-			"$NOTE",
-			"$option")
-		panic(message)
-	}
-	option, token, ok = v.parseOption()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("option",
-			"$alternative",
-			"$NOTE",
-			"$option")
-		panic(message)
-	}
-	alternative = Alternative(note, option)
-	return alternative, token, true
-}
-
 // This method attempts to parse a character. It returns the character and
 // whether or not a character was successfully parsed.
 func (v *parser) parseCharacter() (Character, *Token, bool) {
@@ -255,8 +219,11 @@ func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
 	var grammar GrammarLike
 	statement, token, ok = v.parseStatement()
 	if !ok {
-		// A grammar must have at least one statement.
-		return grammar, token, false
+		var message = v.formatError(token)
+		message += generateGrammar("statement",
+			"$grammar",
+			"$statement")
+		panic(message)
 	}
 	for {
 		statements.AddValue(statement)
@@ -393,6 +360,7 @@ func (v *parser) parseOption() (OptionLike, *Token, bool) {
 	var token *Token
 	var factor Factor
 	var factors = col.List[Factor]()
+	var note Note
 	var option OptionLike
 	factor, token, ok = v.parseFactor()
 	if !ok {
@@ -407,7 +375,21 @@ func (v *parser) parseOption() (OptionLike, *Token, bool) {
 			break
 		}
 	}
-	option = Option(factors)
+	note, _, ok = v.parseNote() // The note is optional.
+	if ok {
+		_, token, ok = v.parseEOL()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("EOL",
+				"$option",
+				"$factor",
+				"$NOTE")
+			panic(message)
+		}
+	} else {
+		v.parseEOL() // The EOL is optional.
+	}
+	option = Option(factors, note)
 	return option, token, true
 }
 
@@ -451,7 +433,6 @@ func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 	var token *Token
 	var symbol Symbol
 	var rule RuleLike
-	var note Note
 	var production ProductionLike
 	symbol, token, ok = v.parseSymbol()
 	if !ok {
@@ -464,8 +445,7 @@ func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 		message += generateGrammar(":",
 			"$production",
 			"$SYMBOL",
-			"$rule",
-			"$NOTE")
+			"$rule")
 		panic(message)
 	}
 	rule, token, ok = v.parseRule()
@@ -474,12 +454,10 @@ func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 		message += generateGrammar("rule",
 			"$production",
 			"$SYMBOL",
-			"$rule",
-			"$NOTE")
+			"$rule")
 		panic(message)
 	}
-	note, _, _ = v.parseNote()
-	production = Production(symbol, rule, note)
+	production = Production(symbol, rule)
 	return production, token, true
 }
 
@@ -520,56 +498,30 @@ func (v *parser) parseRule() (RuleLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var option OptionLike
-	var alternative AlternativeLike
-	var alternatives = col.List[AlternativeLike]()
+	var options = col.List[OptionLike]()
 	var rule RuleLike
 	option, token, ok = v.parseOption()
-	if ok {
-		rule = Rule(option, alternatives)
-		return rule, token, true
-	}
-	_, token, ok = v.parseEOL()
 	if !ok {
 		// This is not a rule.
 		return rule, token, false
 	}
-	option, token, ok = v.parseOption()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("option",
-			"$rule",
-			"$option",
-			"$alternative")
-		panic(message)
-	}
-	alternative, token, ok = v.parseAlternative()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("alternative",
-			"$rule",
-			"$option",
-			"$alternative")
-		panic(message)
-	}
 	for {
-		alternatives.AddValue(alternative)
-		alternative, _, ok = v.parseAlternative()
+		options.AddValue(option)
+		_, _, ok = v.parseDelimiter("|")
 		if !ok {
-			// No more alternatives.
+			// No more options.
 			break
 		}
+		option, token, ok = v.parseOption()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("option",
+				"$rule",
+				"$option")
+			panic(message)
+		}
 	}
-	note, _, _ = v.parseNote() // The note is optional.
-	_, token, ok = v.parseEOL()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("EOL",
-			"$rule",
-			"$option",
-			"$alternative")
-		panic(message)
-	}
-	rule = Rule(option, alternatives)
+	rule = Rule(options)
 	return rule, token, true
 }
 
@@ -590,8 +542,17 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 			return statement, token, false
 		}
 	}
+	_, token, ok = v.parseEOL()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("EOL",
+			"$statement",
+			"$COMMENT",
+			"$production")
+		panic(message)
+	}
 	for {
-		_, token, ok = v.parseEOL()
+		_, _, ok = v.parseEOL()
 		if !ok {
 			// No more blank lines.
 			break

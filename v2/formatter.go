@@ -58,18 +58,6 @@ func (v *formatter) appendNewline() {
 	v.result.WriteString(separator)
 }
 
-// This private method appends a formatted alternative to the result.
-func (v *formatter) formatAlternative(alternative AlternativeLike) {
-	var note = alternative.GetNote()
-	var option = alternative.GetOption()
-	if len(note) > 0 {
-		v.appendString(" ")
-		v.formatNote(note)
-	}
-	v.appendNewline()
-	v.formatOption(option)
-}
-
 // This private method appends a formatted character to the result.
 func (v *formatter) formatCharacter(character Character) {
 	v.appendString(string(character))
@@ -110,6 +98,7 @@ func (v *formatter) formatGrammar(grammar GrammarLike) {
 		var statement = iterator.GetNext()
 		v.formatStatement(statement)
 	}
+	v.appendNewline()
 }
 
 // This private method appends a formatted grouping to the result.
@@ -179,6 +168,11 @@ func (v *formatter) formatOption(option OptionLike) {
 		factor = iterator.GetNext()
 		v.formatFactor(factor)
 	}
+	var note = option.GetNote()
+	if len(note) > 0 {
+		v.appendString("  ")
+		v.formatNote(note)
+	}
 }
 
 // This private method appends a formatted production to the result.
@@ -188,11 +182,6 @@ func (v *formatter) formatProduction(production ProductionLike) {
 	v.appendString(": ")
 	var rule = production.GetRule()
 	v.formatRule(rule)
-	var note = production.GetNote()
-	if len(note) > 0 {
-		v.appendString("  ")
-		v.formatNote(note)
-	}
 }
 
 // This private method appends a formatted range to the result.
@@ -206,22 +195,29 @@ func (v *formatter) formatRange(range_ RangeLike) {
 
 // This private method appends a formatted rule to the result.
 func (v *formatter) formatRule(rule RuleLike) {
-	var option = rule.GetOption()
-	var alternatives = rule.GetAlternatives()
-	if alternatives.GetSize() > 0 {
-		v.depth++
-		v.appendNewline()
-		v.formatOption(option)
-		var iterator = col.Iterator(alternatives)
-		for iterator.HasNext() {
-			var alternative = iterator.GetNext()
-			v.formatAlternative(alternative)
+	var inline = true
+	var options = rule.GetOptions()
+	var iterator = col.Iterator(options)
+	v.depth++
+	var option = iterator.GetNext()
+	v.formatOption(option)
+	if option.GetFactors().GetSize() > 1 || len(option.GetNote()) > 0 {
+		inline = false
+	}
+	for iterator.HasNext() {
+		option = iterator.GetNext()
+		if option.GetFactors().GetSize() > 1 || len(option.GetNote()) > 0 {
+			inline = false
 		}
-		v.depth--
-		v.appendNewline()
-	} else {
+		if inline {
+			v.appendString(" ")
+		} else {
+			v.appendNewline()
+		}
+		v.appendString("| ")
 		v.formatOption(option)
 	}
+	v.depth--
 }
 
 // This private method appends a formatted statement to the result.
