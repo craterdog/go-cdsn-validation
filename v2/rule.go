@@ -47,7 +47,7 @@ func (v *rule) SetOptions(options col.Sequential[OptionLike]) {
 	var iterator = col.Iterator(options)
 	for iterator.HasNext() {
 		var option = iterator.GetNext()
-		if options.GetSize() > 1 && (option.GetFactors().GetSize() > 1 || len(option.GetNote()) > 0) {
+		if options.GetSize() > 1 && (option.GetFactors().GetSize() > 2 || len(option.GetNote()) > 0) {
 			v.multilined = true
 			break
 		}

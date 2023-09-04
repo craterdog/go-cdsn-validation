@@ -14,10 +14,7 @@
 
 $grammar: <statement> EOF  ! Terminated by an end-of-file marker.
 
-$statement: (
-      COMMENT  ! This is a test.
-    | production
-) <EOL>
+$statement: (COMMENT | production) <EOL>
 
 $production: SYMBOL ":" rule
 

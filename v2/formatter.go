@@ -107,55 +107,19 @@ func (v *formatter) formatGrouping(grouping GroupingLike) {
 	switch type_ {
 	case Precedence:
 		v.appendString("(")
-		if rule.IsMultilined() {
-			v.appendNewline()
-			v.appendString("  ")
-		}
 		v.formatRule(rule)
-		if rule.IsMultilined() {
-			v.depth--
-			v.appendNewline()
-			v.depth++
-		}
 		v.appendString(")")
 	case ZeroOrOne:
 		v.appendString("[")
-		if rule.IsMultilined() {
-			v.appendNewline()
-			v.appendString("  ")
-		}
 		v.formatRule(rule)
-		if rule.IsMultilined() {
-			v.depth--
-			v.appendNewline()
-			v.depth++
-		}
 		v.appendString("]")
 	case ZeroOrMore:
 		v.appendString("{")
-		if rule.IsMultilined() {
-			v.appendNewline()
-			v.appendString("  ")
-		}
 		v.formatRule(rule)
-		if rule.IsMultilined() {
-			v.depth--
-			v.appendNewline()
-			v.depth++
-		}
 		v.appendString("}")
 	case OneOrMore:
 		v.appendString("<")
-		if rule.IsMultilined() {
-			v.appendNewline()
-			v.appendString("  ")
-		}
 		v.formatRule(rule)
-		if rule.IsMultilined() {
-			v.depth--
-			v.appendNewline()
-			v.depth++
-		}
 		v.appendString(">")
 	default:
 		panic(fmt.Sprintf("Attempted to format an invalid grouping type: %v\n", type_))
