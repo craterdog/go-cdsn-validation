@@ -185,7 +185,7 @@ func (v *scanner) emitToken(tType TokenType) TokenType {
 		}
 	}
 	var token = Token{tType, tValue, v.line, v.position}
-	//fmt.Println(token)
+	fmt.Println(token)
 	v.tokens <- token
 	v.firstByte = v.nextByte
 	v.position += sts.Count(tValue, "") - 1 // Add the number of runes in the token.
@@ -246,27 +246,27 @@ func (v *scanner) foundError() {
 func (v *scanner) foundEOF() bool {
 	// The last byte in a POSIX standard file must be an EOL character.
 	var s = v.source[v.nextByte:]
-	if !byt.HasPrefix(s, []byte(EOL)) || v.nextByte + 1 < len(v.source) {
-		return false
+	if byt.HasPrefix(s, []byte(EOL)) && v.nextByte + 1 == len(v.source) {
+		v.nextByte++
+		v.line++
+		v.emitToken(TokenEOF)
+		return true
 	}
-	v.nextByte++
-	v.line++
-	v.emitToken(TokenEOF)
-	return true
+	return false
 }
 
 // This method adds an EOL token with the current scanner information to the
 // token channel. It returns true if an EOL token was found.
 func (v *scanner) foundEOL() bool {
 	var s = v.source[v.nextByte:]
-	if !byt.HasPrefix(s, []byte(EOL)) || v.nextByte + 1 == len(v.source) {
-		return false
+	if byt.HasPrefix(s, []byte(EOL)) && v.nextByte + 1 < len(v.source) {
+		v.nextByte++
+		v.line++
+		v.emitToken(TokenEOL)
+		v.position = 1
+		return true
 	}
-	v.nextByte++
-	v.emitToken(TokenEOL)
-	v.line++
-	v.position = 1
-	return true
+	return false
 }
 
 // This method adds an identifier token with the current scanner information

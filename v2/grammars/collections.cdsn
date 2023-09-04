@@ -31,7 +31,8 @@ $FLOAT: [SIGN] SCALAR [EXPONENT]
 
 $FRACTION: "." <BASE10>
 
-$INTEGER: ZERO
+$INTEGER:
+    ZERO
     | [SIGN] ORDINAL
 
 $NIL: "nil"
@@ -46,7 +47,8 @@ $SIGN: "+" | "-"
 
 $STRING: '"' {ESCAPE | ~('"' | EOL)} '"'
 
-$UNICODE: "u" BASE16 BASE16 BASE16 BASE16
+$UNICODE:
+    "u" BASE16 BASE16 BASE16 BASE16
     | "U" BASE16 BASE16 BASE16 BASE16 BASE16 BASE16 BASE16 BASE16
 
 $UNSIGNED: "0x" <BASE16>
@@ -55,7 +57,8 @@ $ZERO: "0"
 
 $association: key ":" value
 
-$associations: association {"," association}
+$associations:
+    association {"," association}
     | EOL <association EOL>
     | ":"  ! No associations.
 
@@ -69,8 +72,8 @@ $source: collection EOF  ! EOF is the end-of-file marker.
 
 $value: primitive | collection
 
-$values: value {"," value}
+$values:
+    value {"," value}
     | EOL <value EOL>
     | " "  ! No values.
-
 

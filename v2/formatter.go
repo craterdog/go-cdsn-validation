@@ -179,9 +179,16 @@ func (v *formatter) formatOption(option OptionLike) {
 func (v *formatter) formatProduction(production ProductionLike) {
 	var symbol = production.GetSymbol()
 	v.formatSymbol(symbol)
-	v.appendString(": ")
+	v.appendString(":")
+	v.depth++
 	var rule = production.GetRule()
+	if rule.IsMultilined() {
+		v.appendNewline()
+	} else {
+		v.appendString(" ")
+	}
 	v.formatRule(rule)
+	v.depth--
 }
 
 // This private method appends a formatted range to the result.
@@ -195,29 +202,20 @@ func (v *formatter) formatRange(range_ RangeLike) {
 
 // This private method appends a formatted rule to the result.
 func (v *formatter) formatRule(rule RuleLike) {
-	var inline = true
 	var options = rule.GetOptions()
 	var iterator = col.Iterator(options)
-	v.depth++
 	var option = iterator.GetNext()
 	v.formatOption(option)
-	if option.GetFactors().GetSize() > 1 || len(option.GetNote()) > 0 {
-		inline = false
-	}
 	for iterator.HasNext() {
 		option = iterator.GetNext()
-		if option.GetFactors().GetSize() > 1 || len(option.GetNote()) > 0 {
-			inline = false
-		}
-		if inline {
-			v.appendString(" ")
-		} else {
+		if rule.IsMultilined() {
 			v.appendNewline()
+		} else {
+			v.appendString(" ")
 		}
 		v.appendString("| ")
 		v.formatOption(option)
 	}
-	v.depth--
 }
 
 // This private method appends a formatted statement to the result.

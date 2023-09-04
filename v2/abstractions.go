@@ -87,6 +87,7 @@ type RangeLike interface {
 
 // This interface defines the methods supported by all rule-like components.
 type RuleLike interface {
+	IsMultilined() bool
 	GetOptions() col.Sequential[OptionLike]
 	SetOptions(options col.Sequential[OptionLike])
 }

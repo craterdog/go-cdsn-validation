@@ -362,6 +362,7 @@ func (v *parser) parseOption() (OptionLike, *Token, bool) {
 	var factors = col.List[Factor]()
 	var note Note
 	var option OptionLike
+	v.parseEOL() // The EOL is optional.
 	factor, token, ok = v.parseFactor()
 	if !ok {
 		// An option must have at least one factor.
@@ -375,20 +376,7 @@ func (v *parser) parseOption() (OptionLike, *Token, bool) {
 			break
 		}
 	}
-	note, _, ok = v.parseNote() // The note is optional.
-	if ok {
-		_, token, ok = v.parseEOL()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("EOL",
-				"$option",
-				"$factor",
-				"$NOTE")
-			panic(message)
-		}
-	} else {
-		v.parseEOL() // The EOL is optional.
-	}
+	note, _, _ = v.parseNote() // The note is optional.
 	option = Option(factors, note)
 	return option, token, true
 }
@@ -507,6 +495,7 @@ func (v *parser) parseRule() (RuleLike, *Token, bool) {
 	}
 	for {
 		options.AddValue(option)
+		v.parseEOL() // The EOL is optional.
 		_, _, ok = v.parseDelimiter("|")
 		if !ok {
 			// No more options.
@@ -541,15 +530,6 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 			// This is not a statement.
 			return statement, token, false
 		}
-	}
-	_, token, ok = v.parseEOL()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("EOL",
-			"$statement",
-			"$COMMENT",
-			"$production")
-		panic(message)
 	}
 	for {
 		_, _, ok = v.parseEOL()

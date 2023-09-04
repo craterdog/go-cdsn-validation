@@ -25,7 +25,13 @@ func Rule(options col.Sequential[OptionLike]) RuleLike {
 
 // This type defines the structure and methods associated with a rule.
 type rule struct {
+	multilined bool
 	options col.Sequential[OptionLike]
+}
+
+// This method determines whether or not this rule is multlined.
+func (v *rule) IsMultilined() bool {
+	return v.multilined
 }
 
 // This method returns the options for this rule.
@@ -37,6 +43,14 @@ func (v *rule) GetOptions() col.Sequential[OptionLike] {
 func (v *rule) SetOptions(options col.Sequential[OptionLike]) {
 	if options == nil || options.IsEmpty() {
 		panic("A rule requires at least one option.")
+	}
+	var iterator = col.Iterator(options)
+	for iterator.HasNext() {
+		var option = iterator.GetNext()
+		if options.GetSize() > 1 && (option.GetFactors().GetSize() > 1 || len(option.GetNote()) > 0) {
+			v.multilined = true
+			break
+		}
 	}
 	v.options = options
 }

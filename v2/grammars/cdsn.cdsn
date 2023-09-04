@@ -20,9 +20,10 @@ $production: SYMBOL ":" rule
 
 $rule: option {"|" option}
 
-$option: <factor> [[NOTE] EOL]
+$option: [EOL] <factor> [NOTE]
 
-$factor: range  ! A range of characters.
+$factor:
+    range  ! A range of characters.
     | "~" factor  ! The inversion of the factor.
     | "(" rule ")"  ! The rule takes precedence.
     | "[" rule "]"  ! Zero or one instances of the rule.
@@ -48,5 +49,4 @@ $IDENTIFIER: LETTER {LETTER | DIGIT}
 $NOTE: "! " {~EOL}
 
 $COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
-
 
