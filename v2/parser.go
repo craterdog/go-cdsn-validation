@@ -137,6 +137,26 @@ func (v *parser) parseComment() (Comment, *Token, bool) {
 	return comment, token, true
 }
 
+// This method attempts to parse a count. It returns the count and whether or
+// not the count was successfully parsed.
+func (v *parser) parseCount() (CountLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var digit Digit
+	var digits = col.List[Digit]()
+	var count CountLike
+	for {
+		digits.AddValue(digit)
+		digit, token, ok = v.parseDigit()
+		if !ok {
+			// No more digits.
+			break
+		}
+	}
+	count = Count(digits)
+	return count, token, true
+}
+
 // This method attempts to parse the specified delimiter. It returns
 // the token and whether or not the delimiter was found.
 func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
@@ -146,6 +166,19 @@ func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
 		return delimiter, token, false
 	}
 	return delimiter, token, true
+}
+
+// This method attempts to parse a digit. It returns the digit and
+// whether or not a digit was successfully parsed.
+func (v *parser) parseDigit() (Digit, *Token, bool) {
+	var digit Digit
+	var token = v.nextToken()
+	if token.Type != TokenDigit {
+		v.backupOne()
+		return digit, token, false
+	}
+	digit = Digit(token.Value)
+	return digit, token, true
 }
 
 // This method attempts to parse the end-of-file (EOF) marker. It returns
@@ -183,7 +216,7 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseInversion()
 	}
 	if !ok {
-		factor, token, ok = v.parsePrecedence()
+		factor, token, ok = v.parseExactCount()
 	}
 	if !ok {
 		factor, token, ok = v.parseZeroOrOne()
@@ -201,7 +234,7 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseLiteral()
 	}
 	if !ok {
-		factor, token, ok = v.parseIntrinsic() // This must be second.
+		factor, token, ok = v.parseIntrinsic()
 	}
 	if !ok {
 		factor, token, ok = v.parseIdentifier()
@@ -349,7 +382,8 @@ func (v *parser) parseOneOrMore() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	grouping = Grouping(rule, OneOrMore)
+	var count, _, _ = v.parseCount()  // The count is optional.
+	grouping = Grouping(rule, OneOrMore, count)
 	return grouping, token, true
 }
 
@@ -380,10 +414,10 @@ func (v *parser) parseOption() (OptionLike, *Token, bool) {
 	return option, token, true
 }
 
-// This method attempts to parse a precedence grouping. It returns the
-// precedence grouping and whether or not the precedence grouping was
+// This method attempts to parse an exact count grouping. It returns the
+// exact count grouping and whether or not the exact count grouping was
 // successfully parsed.
-func (v *parser) parsePrecedence() (GroupingLike, *Token, bool) {
+func (v *parser) parseExactCount() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var rule RuleLike
@@ -409,7 +443,8 @@ func (v *parser) parsePrecedence() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	grouping = Grouping(rule, Precedence)
+	var count, _, _ = v.parseCount()  // The count is optional.
+	grouping = Grouping(rule, ExactCount, count)
 	return grouping, token, true
 }
 
@@ -587,7 +622,8 @@ func (v *parser) parseZeroOrMore() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	grouping = Grouping(rule, ZeroOrMore)
+	var count, _, _ = v.parseCount()  // The count is optional.
+	grouping = Grouping(rule, ZeroOrMore, count)
 	return grouping, token, true
 }
 
@@ -620,7 +656,8 @@ func (v *parser) parseZeroOrOne() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	grouping = Grouping(rule, ZeroOrOne)
+	var count, _, _ = v.parseCount()  // The count is optional.
+	grouping = Grouping(rule, ZeroOrOne, count)
 	return grouping, token, true
 }
 

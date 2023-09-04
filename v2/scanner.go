@@ -29,6 +29,7 @@ const (
 	TokenCharacter
 	TokenComment
 	TokenDelimiter
+	TokenDigit
 	TokenEOF
 	TokenEOL
 	TokenIdentifier
@@ -45,6 +46,7 @@ func (v TokenType) String() string {
 		"Character",
 		"Comment",
 		"Delimiter",
+		"Digit",
 		"EOF",
 		"EOL",
 		"Identifier",
@@ -132,6 +134,7 @@ func (v *scanner) scanToken() bool {
 	case v.foundCharacter():
 	case v.foundLiteral():
 	case v.foundDelimiter():
+	case v.foundDigit():
 	case v.foundEOL():
 	case v.foundEOF():
 		// We are at the end of the source bytes.
@@ -227,6 +230,19 @@ func (v *scanner) foundDelimiter() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenDelimiter)
+		return true
+	}
+	return false
+}
+
+// This method adds a digit token with the current scanner information to the
+// token channel. It returns true if a digit token was found.
+func (v *scanner) foundDigit() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanDigit(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenDigit)
 		return true
 	}
 	return false
@@ -402,6 +418,16 @@ func scanDelimiter(v []byte) []string {
 		}
 	}
 	return result
+}
+
+// This scanner is used for matching digit tokens.
+var digitScanner = reg.MustCompile(`^(?:` + digit + `)`)
+
+// This function returns for the specified string an array of the matching
+// subgroups for a digit token. The first string in the array is the
+// entire matched string.
+func scanDigit(v []byte) []string {
+	return bytesToStrings(digitScanner.FindSubmatch(v))
 }
 
 // This scanner is used for matching identifier tokens.

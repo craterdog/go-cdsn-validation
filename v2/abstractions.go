@@ -23,6 +23,8 @@ import (
 type (
 	Character    string
 	Comment      string
+	Digit        string
+	Letter       string
 	Identifier   string
 	Intrinsic    string
 	Factor       any
@@ -33,7 +35,7 @@ type (
 )
 
 const (
-	Precedence GroupingType = iota
+	ExactCount GroupingType = iota
 	ZeroOrOne
 	ZeroOrMore
 	OneOrMore
@@ -41,10 +43,11 @@ const (
 
 // INDIVIDUAL INTERFACES
 
-// This interface defines the methods supported by all inversion-like components.
-type InversionLike interface {
-	GetFactor() Factor
-	SetFactor(factor Factor)
+// This interface defines the methods supported by all count-like components.
+type CountLike interface {
+	IsDefault() bool
+	GetDigits() col.Sequential[Digit]
+	SetDigits(digits col.Sequential[Digit])
 }
 
 // This interface defines the methods supported by all grammar-like components.
@@ -59,6 +62,14 @@ type GroupingLike interface {
 	SetRule(rule RuleLike)
 	GetType() GroupingType
 	SetType(type_ GroupingType)
+	GetCount() CountLike
+	SetCount(count CountLike)
+}
+
+// This interface defines the methods supported by all inversion-like components.
+type InversionLike interface {
+	GetFactor() Factor
+	SetFactor(factor Factor)
 }
 
 // This interface defines the methods supported by all option-like components.

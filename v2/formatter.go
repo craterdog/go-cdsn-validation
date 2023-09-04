@@ -68,6 +68,16 @@ func (v *formatter) formatComment(comment Comment) {
 	v.appendString(string(comment))
 }
 
+// This private method appends a formatted count to the result.
+func (v *formatter) formatCount(count CountLike) {
+	var digits = count.GetDigits()
+	var iterator = col.Iterator(digits)
+	for iterator.HasNext() {
+		var digit = iterator.GetNext()
+		v.appendString(string(digit))
+	}
+}
+
 // This private method appends a formatted factor to the result.
 func (v *formatter) formatFactor(factor Factor) {
 	switch f := factor.(type) {
@@ -104,8 +114,9 @@ func (v *formatter) formatGrammar(grammar GrammarLike) {
 func (v *formatter) formatGrouping(grouping GroupingLike) {
 	var rule = grouping.GetRule()
 	var type_ = grouping.GetType()
+	var count = grouping.GetCount()
 	switch type_ {
-	case Precedence:
+	case ExactCount:
 		v.appendString("(")
 		v.formatRule(rule)
 		v.appendString(")")
@@ -124,6 +135,7 @@ func (v *formatter) formatGrouping(grouping GroupingLike) {
 	default:
 		panic(fmt.Sprintf("Attempted to format an invalid grouping type: %v\n", type_))
 	}
+	v.formatCount(count)
 }
 
 // This private method appends a formatted identifier to the result.
