@@ -14,7 +14,10 @@
 
 $grammar: <statement> EOF  ! Terminated by an end-of-file marker.
 
-$statement: (COMMENT | production) <EOL>
+$statement: (
+      COMMENT  ! This is a test.
+    | production
+) <EOL>
 
 $production: SYMBOL ":" rule
 
@@ -23,7 +26,7 @@ $rule: [EOL] option {[EOL] "|" option}
 $option: <factor> [NOTE]
 
 $factor:
-    range  ! A range of characters.
+      range  ! A range of characters.
     | "~" factor  ! The inversion of the factor.
     | "(" rule ")"  ! The rule takes precedence.
     | "[" rule "]"  ! Zero or one instances of the rule.

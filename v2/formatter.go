@@ -98,7 +98,6 @@ func (v *formatter) formatGrammar(grammar GrammarLike) {
 		var statement = iterator.GetNext()
 		v.formatStatement(statement)
 	}
-	v.appendNewline()
 }
 
 // This private method appends a formatted grouping to the result.
@@ -108,19 +107,55 @@ func (v *formatter) formatGrouping(grouping GroupingLike) {
 	switch type_ {
 	case Precedence:
 		v.appendString("(")
+		if rule.IsMultilined() {
+			v.appendNewline()
+			v.appendString("  ")
+		}
 		v.formatRule(rule)
+		if rule.IsMultilined() {
+			v.depth--
+			v.appendNewline()
+			v.depth++
+		}
 		v.appendString(")")
 	case ZeroOrOne:
 		v.appendString("[")
+		if rule.IsMultilined() {
+			v.appendNewline()
+			v.appendString("  ")
+		}
 		v.formatRule(rule)
+		if rule.IsMultilined() {
+			v.depth--
+			v.appendNewline()
+			v.depth++
+		}
 		v.appendString("]")
 	case ZeroOrMore:
 		v.appendString("{")
+		if rule.IsMultilined() {
+			v.appendNewline()
+			v.appendString("  ")
+		}
 		v.formatRule(rule)
+		if rule.IsMultilined() {
+			v.depth--
+			v.appendNewline()
+			v.depth++
+		}
 		v.appendString("}")
 	case OneOrMore:
 		v.appendString("<")
+		if rule.IsMultilined() {
+			v.appendNewline()
+			v.appendString("  ")
+		}
 		v.formatRule(rule)
+		if rule.IsMultilined() {
+			v.depth--
+			v.appendNewline()
+			v.depth++
+		}
 		v.appendString(">")
 	default:
 		panic(fmt.Sprintf("Attempted to format an invalid grouping type: %v\n", type_))
@@ -184,6 +219,7 @@ func (v *formatter) formatProduction(production ProductionLike) {
 	var rule = production.GetRule()
 	if rule.IsMultilined() {
 		v.appendNewline()
+		v.appendString("  ")
 	} else {
 		v.appendString(" ")
 	}
