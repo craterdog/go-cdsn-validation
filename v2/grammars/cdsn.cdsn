@@ -9,25 +9,18 @@
 
     The rules are applied in the order listed as well, so within a factor a
     range takes precedence over an individual CHARACTER.  The starting rule is
-    the "$source" rule.
+    the "$grammar" rule.
 <!
 
-$CHARACTER: "'" ~"'" "'"
+$grammar: <statement> EOF
 
-$COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
+$statement: (COMMENT | production) <EOL>
 
-$IDENTIFIER: LETTER {LETTER | DIGIT}
+$production: SYMBOL ":" rule
 
-$INTRINSIC: "LETTER"
-    | "DIGIT"
-    | "EOL"
-    | "EOF"
+$rule: option {"|" option}
 
-$LITERAL: '"' <~'"'> '"'
-
-$NOTE: "! " {~EOL}
-
-$SYMBOL: "$" IDENTIFIER
+$option: <factor> [[NOTE] EOL]
 
 $factor: range
     | "~" factor
@@ -40,15 +33,22 @@ $factor: range
     | INTRINSIC
     | IDENTIFIER
 
-$option: <factor> [[NOTE] EOL]
-
-$production: SYMBOL ":" rule
-
 $range: CHARACTER ".." CHARACTER
 
-$rule: option {"|" option}
+$CHARACTER: "'" ~"'" "'"
 
-$source: <statement> EOF
+$LITERAL: '"' <~'"'> '"'
 
-$statement: (COMMENT | production) <EOL>
+$INTRINSIC: "LETTER"
+    | "DIGIT"
+    | "EOL"
+    | "EOF"
+
+$SYMBOL: "$" IDENTIFIER
+
+$IDENTIFIER: LETTER {LETTER | DIGIT}
+
+$NOTE: "! " {~EOL}
+
+$COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
 
