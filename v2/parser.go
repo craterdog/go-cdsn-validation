@@ -362,7 +362,6 @@ func (v *parser) parseOption() (OptionLike, *Token, bool) {
 	var factors = col.List[Factor]()
 	var note Note
 	var option OptionLike
-	v.parseEOL() // The EOL is optional.
 	factor, token, ok = v.parseFactor()
 	if !ok {
 		// An option must have at least one factor.
@@ -488,10 +487,14 @@ func (v *parser) parseRule() (RuleLike, *Token, bool) {
 	var option OptionLike
 	var options = col.List[OptionLike]()
 	var rule RuleLike
+	v.parseEOL() // The EOL is optional.
 	option, token, ok = v.parseOption()
 	if !ok {
-		// This is not a rule.
-		return rule, token, false
+		var message = v.formatError(token)
+		message += generateGrammar("option",
+			"$rule",
+			"$option")
+		panic(message)
 	}
 	for {
 		options.AddValue(option)

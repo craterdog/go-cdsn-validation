@@ -18,9 +18,9 @@ $statement: (COMMENT | production) <EOL>
 
 $production: SYMBOL ":" rule
 
-$rule: option {"|" option}
+$rule: [EOL] option {[EOL] "|" option}
 
-$option: [EOL] <factor> [NOTE]
+$option: <factor> [NOTE]
 
 $factor:
     range  ! A range of characters.
