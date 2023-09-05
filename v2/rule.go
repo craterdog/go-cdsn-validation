@@ -17,16 +17,16 @@ import (
 // RULE IMPLEMENTATION
 
 // This constructor creates a new rule.
-func Rule(options col.Sequential[OptionLike]) RuleLike {
+func Rule(alternatives col.Sequential[AlternativeLike]) RuleLike {
 	var v = &rule{}
-	v.SetOptions(options)
+	v.SetAlternatives(alternatives)
 	return v
 }
 
 // This type defines the structure and methods associated with a rule.
 type rule struct {
 	multilined bool
-	options col.Sequential[OptionLike]
+	alternatives col.Sequential[AlternativeLike]
 }
 
 // This method determines whether or not this rule is multlined.
@@ -34,23 +34,23 @@ func (v *rule) IsMultilined() bool {
 	return v.multilined
 }
 
-// This method returns the options for this rule.
-func (v *rule) GetOptions() col.Sequential[OptionLike] {
-	return v.options
+// This method returns the alternatives for this rule.
+func (v *rule) GetAlternatives() col.Sequential[AlternativeLike] {
+	return v.alternatives
 }
 
-// This method sets the options for this rule.
-func (v *rule) SetOptions(options col.Sequential[OptionLike]) {
-	if options == nil || options.IsEmpty() {
-		panic("A rule requires at least one option.")
+// This method sets the alternatives for this rule.
+func (v *rule) SetAlternatives(alternatives col.Sequential[AlternativeLike]) {
+	if alternatives == nil || alternatives.IsEmpty() {
+		panic("A rule requires at least one alternative.")
 	}
-	var iterator = col.Iterator(options)
+	var iterator = col.Iterator(alternatives)
 	for iterator.HasNext() {
-		var option = iterator.GetNext()
-		if options.GetSize() > 1 && (option.GetFactors().GetSize() > 2 || len(option.GetNote()) > 0) {
+		var alternative = iterator.GetNext()
+		if alternatives.GetSize() > 1 && (alternative.GetFactors().GetSize() > 2 || len(alternative.GetNote()) > 0) {
 			v.multilined = true
 			break
 		}
 	}
-	v.options = options
+	v.alternatives = alternatives
 }

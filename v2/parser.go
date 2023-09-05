@@ -111,6 +111,33 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
+// This method attempts to parse an alternative. It returns the alternative and whether or
+// not the alternative was successfully parsed.
+func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var factor Factor
+	var factors = col.List[Factor]()
+	var note Note
+	var alternative AlternativeLike
+	factor, token, ok = v.parseFactor()
+	if !ok {
+		// An alternative must have at least one factor.
+		return alternative, token, false
+	}
+	for {
+		factors.AddValue(factor)
+		factor, token, ok = v.parseFactor()
+		if !ok {
+			// No more factors.
+			break
+		}
+	}
+	note, _, _ = v.parseNote() // The note is optional.
+	alternative = Alternative(factors, note)
+	return alternative, token, true
+}
+
 // This method attempts to parse a character. It returns the character and
 // whether or not a character was successfully parsed.
 func (v *parser) parseCharacter() (Character, *Token, bool) {
@@ -455,33 +482,6 @@ func (v *parser) parseNote() (Note, *Token, bool) {
 	return note, token, true
 }
 
-// This method attempts to parse an option. It returns the option and whether or
-// not the option was successfully parsed.
-func (v *parser) parseOption() (OptionLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor Factor
-	var factors = col.List[Factor]()
-	var note Note
-	var option OptionLike
-	factor, token, ok = v.parseFactor()
-	if !ok {
-		// An option must have at least one factor.
-		return option, token, false
-	}
-	for {
-		factors.AddValue(factor)
-		factor, token, ok = v.parseFactor()
-		if !ok {
-			// No more factors.
-			break
-		}
-	}
-	note, _, _ = v.parseNote() // The note is optional.
-	option = Option(factors, note)
-	return option, token, true
-}
-
 // This method attempts to parse a zero or one grouping. It returns the
 // zero or one grouping and whether or not the zero or one grouping was
 // successfully parsed.
@@ -587,36 +587,36 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 func (v *parser) parseRule() (RuleLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var option OptionLike
-	var options = col.List[OptionLike]()
+	var alternative AlternativeLike
+	var alternatives = col.List[AlternativeLike]()
 	var rule RuleLike
 	v.parseEOL() // The EOL is optional.
-	option, token, ok = v.parseOption()
+	alternative, token, ok = v.parseAlternative()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("option",
+		message += generateGrammar("alternative",
 			"$rule",
-			"$option")
+			"$alternative")
 		panic(message)
 	}
 	for {
-		options.AddValue(option)
+		alternatives.AddValue(alternative)
 		v.parseEOL() // The EOL is optional.
 		_, _, ok = v.parseDelimiter("|")
 		if !ok {
-			// No more options.
+			// No more alternatives.
 			break
 		}
-		option, token, ok = v.parseOption()
+		alternative, token, ok = v.parseAlternative()
 		if !ok {
 			var message = v.formatError(token)
-			message += generateGrammar("option",
+			message += generateGrammar("alternative",
 				"$rule",
-				"$option")
+				"$alternative")
 			panic(message)
 		}
 	}
-	rule = Rule(options)
+	rule = Rule(alternatives)
 	return rule, token, true
 }
 
@@ -666,31 +666,32 @@ func (v *parser) parseSymbol() (Symbol, *Token, bool) {
 // This map captures the syntax rules for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar_ = map[string]string{
-	"$NOTE":        `"! " {~EOL}`,
-	"$COMMENT":     `"!>" EOL  {COMMENT | ~"<!"} EOL "<!"`,
+
+	"$grammar":     `<statement> EOF  ! Terminated by an end-of-file marker.`,
+	"$statement":   `(COMMENT | production) <EOL>`,
+	"$production":  `SYMBOL ":" rule`,
+	"$rule":        `[EOL] alternative {[EOL] "|" alternative}`,
+	"$alternative": `<factor> [NOTE]`,
+	"$range":       `CHARACTER ".." CHARACTER`,
+	"$count":       `{DIGIT}  ! No digits signifies the default count.`,
 	"$CHARACTER":   `"'" ~"'" "'"`,
 	"$LITERAL":     `'"' <~'"'> '"'`,
 	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOL" | "EOF"`,
-	"$IDENTIFIER":  `LETTER {LETTER | DIGIT}`,
 	"$SYMBOL":      `"$" IDENTIFIER`,
-	"$grammar":      `<statement> EOF`,
-	"$statement":   `(COMMENT | production) <EOL>`,
-	"$production":  `SYMBOL ":" rule [NOTE]`,
-	"$rule":        `option {"|" alternative}`,
-	"$option":      `<factor>`,
-	"$alternative": `[[NOTE] EOL] option`,
-	"$range":       `CHARACTER ".." CHARACTER`,
-	"$factor": `
-    range        |
-    "~" factor   |
-    "(" rule ")" |
-    "[" rule "]" |
-    "{" rule "}" |
-    "<" rule ">" |
-    CHARACTER    |
-    LITERAL      |
-    INTRINSIC    |
-    IDENTIFIER`,
+	"$IDENTIFIER":  `LETTER {LETTER | DIGIT}`,
+	"$NOTE":        `"! " {~EOL}`,
+	"$COMMENT":     `"!>" EOL {COMMENT | ~"<!"} EOL "<!"`,
+	"$factor":      `
+      range  ! A range of characters.
+    | "~" factor  ! The inversion of the factor.
+    | "[" rule "]"  ! Zero or one instances of the rule.
+    | "(" rule ")" count  ! Exact (default one) number of instances of the rule.
+    | "<" rule ">" count  ! Minimum (default one) number of instances of the rule.
+    | "{" rule "}" count  ! Maximum (default unlimited) number of instances of the rule.
+    | CHARACTER
+    | LITERAL
+    | INTRINSIC
+    | IDENTIFIER`,
 }
 
 const header = `!>

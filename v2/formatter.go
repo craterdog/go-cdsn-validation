@@ -58,6 +58,27 @@ func (v *formatter) appendNewline() {
 	v.result.WriteString(separator)
 }
 
+// This private method appends a formatted alternative to the result.
+func (v *formatter) formatAlternative(alternative AlternativeLike) {
+	var factor Factor
+	var factors = alternative.GetFactors()
+	var iterator = col.Iterator(factors)
+	if iterator.HasNext() {
+		factor = iterator.GetNext()
+		v.formatFactor(factor)
+	}
+	for iterator.HasNext() {
+		v.appendString(" ")
+		factor = iterator.GetNext()
+		v.formatFactor(factor)
+	}
+	var note = alternative.GetNote()
+	if len(note) > 0 {
+		v.appendString("  ")
+		v.formatNote(note)
+	}
+}
+
 // This private method appends a formatted character to the result.
 func (v *formatter) formatCharacter(character Character) {
 	v.appendString(string(character))
@@ -165,27 +186,6 @@ func (v *formatter) formatNote(note Note) {
 	v.appendString(string(note))
 }
 
-// This private method appends a formatted option to the result.
-func (v *formatter) formatOption(option OptionLike) {
-	var factor Factor
-	var factors = option.GetFactors()
-	var iterator = col.Iterator(factors)
-	if iterator.HasNext() {
-		factor = iterator.GetNext()
-		v.formatFactor(factor)
-	}
-	for iterator.HasNext() {
-		v.appendString(" ")
-		factor = iterator.GetNext()
-		v.formatFactor(factor)
-	}
-	var note = option.GetNote()
-	if len(note) > 0 {
-		v.appendString("  ")
-		v.formatNote(note)
-	}
-}
-
 // This private method appends a formatted production to the result.
 func (v *formatter) formatProduction(production ProductionLike) {
 	var symbol = production.GetSymbol()
@@ -214,19 +214,19 @@ func (v *formatter) formatRange(range_ RangeLike) {
 
 // This private method appends a formatted rule to the result.
 func (v *formatter) formatRule(rule RuleLike) {
-	var options = rule.GetOptions()
-	var iterator = col.Iterator(options)
-	var option = iterator.GetNext()
-	v.formatOption(option)
+	var alternatives = rule.GetAlternatives()
+	var iterator = col.Iterator(alternatives)
+	var alternative = iterator.GetNext()
+	v.formatAlternative(alternative)
 	for iterator.HasNext() {
-		option = iterator.GetNext()
+		alternative = iterator.GetNext()
 		if rule.IsMultilined() {
 			v.appendNewline()
 		} else {
 			v.appendString(" ")
 		}
 		v.appendString("| ")
-		v.formatOption(option)
+		v.formatAlternative(alternative)
 	}
 }
 

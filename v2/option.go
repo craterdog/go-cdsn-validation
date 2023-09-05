@@ -16,39 +16,39 @@ import (
 
 // OPTION IMPLEMENTATION
 
-// This constructor creates a new option.
-func Option(factors col.Sequential[Factor], note Note) OptionLike {
-	var v = &option{}
+// This constructor creates a new alternative.
+func Alternative(factors col.Sequential[Factor], note Note) AlternativeLike {
+	var v = &alternative{}
 	v.SetFactors(factors)
 	v.SetNote(note)
 	return v
 }
 
-// This type defines the structure and methods associated with an option.
-type option struct {
+// This type defines the structure and methods associated with an alternative.
+type alternative struct {
 	factors col.Sequential[Factor]
 	note Note
 }
 
-// This method returns the factors for this option.
-func (v *option) GetFactors() col.Sequential[Factor] {
+// This method returns the factors for this alternative.
+func (v *alternative) GetFactors() col.Sequential[Factor] {
 	return v.factors
 }
 
-// This method sets the factors for this option.
-func (v *option) SetFactors(factors col.Sequential[Factor]) {
+// This method sets the factors for this alternative.
+func (v *alternative) SetFactors(factors col.Sequential[Factor]) {
 	if factors == nil || factors.IsEmpty() {
-		panic("An option requires at least one factor.")
+		panic("An alternative requires at least one factor.")
 	}
 	v.factors = factors
 }
 
-// This method returns the note for this option.
-func (v *option) GetNote() Note {
+// This method returns the note for this alternative.
+func (v *alternative) GetNote() Note {
 	return v.note
 }
 
-// This method sets the note for this option.
-func (v *option) SetNote(note Note) {
+// This method sets the note for this alternative.
+func (v *alternative) SetNote(note Note) {
 	v.note = note
 }

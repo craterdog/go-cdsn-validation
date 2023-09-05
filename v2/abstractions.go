@@ -49,6 +49,14 @@ const (
 
 // INDIVIDUAL INTERFACES
 
+// This interface defines the methods supported by all alternative-like components.
+type AlternativeLike interface {
+	GetFactors() col.Sequential[Factor]
+	SetFactors(factors col.Sequential[Factor])
+	GetNote() Note
+	SetNote(note Note)
+}
+
 // This interface defines the methods supported by all count-like components.
 type CountLike interface {
 	IsDefault() bool
@@ -78,14 +86,6 @@ type InversionLike interface {
 	SetFactor(factor Factor)
 }
 
-// This interface defines the methods supported by all option-like components.
-type OptionLike interface {
-	GetFactors() col.Sequential[Factor]
-	SetFactors(factors col.Sequential[Factor])
-	GetNote() Note
-	SetNote(note Note)
-}
-
 // This interface defines the methods supported by all production-like components.
 type ProductionLike interface {
 	GetSymbol() Symbol
@@ -105,8 +105,8 @@ type RangeLike interface {
 // This interface defines the methods supported by all rule-like components.
 type RuleLike interface {
 	IsMultilined() bool
-	GetOptions() col.Sequential[OptionLike]
-	SetOptions(options col.Sequential[OptionLike])
+	GetAlternatives() col.Sequential[AlternativeLike]
+	SetAlternatives(alternatives col.Sequential[AlternativeLike])
 }
 
 // This interface defines the methods supported by all statement-like components.
