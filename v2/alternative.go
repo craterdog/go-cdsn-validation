@@ -14,7 +14,7 @@ import (
 	col "github.com/craterdog/go-collection-framework/v2"
 )
 
-// OPTION IMPLEMENTATION
+// ALTERNATIVE IMPLEMENTATION
 
 // This constructor creates a new alternative.
 func Alternative(factors col.Sequential[Factor], note Note) AlternativeLike {
