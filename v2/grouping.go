@@ -13,11 +13,11 @@ package cdsn
 // GROUPING IMPLEMENTATION
 
 // This constructor creates a new grouping.
-func Grouping(rule RuleLike, type_ GroupingType, count CountLike) GroupingLike {
+func Grouping(rule RuleLike, type_ GroupingType, number Number) GroupingLike {
 	var v = &grouping{}
 	v.SetRule(rule)
 	v.SetType(type_)
-	v.SetCount(count)
+	v.SetNumber(number)
 	return v
 }
 
@@ -25,7 +25,7 @@ func Grouping(rule RuleLike, type_ GroupingType, count CountLike) GroupingLike {
 type grouping struct {
 	rule  RuleLike
 	type_ GroupingType
-	count CountLike
+	number Number
 }
 
 // This method returns the rule for this grouping.
@@ -51,12 +51,12 @@ func (v *grouping) SetType(type_ GroupingType) {
 	v.type_ = type_
 }
 
-// This method returns the count for this grouping.
-func (v *grouping) GetCount() CountLike {
-	return v.count
+// This method returns the number for this grouping.
+func (v *grouping) GetNumber() Number {
+	return v.number
 }
 
-// This method sets the count for this grouping.
-func (v *grouping) SetCount(count CountLike) {
-	v.count = count
+// This method sets the number for this grouping.
+func (v *grouping) SetNumber(number Number) {
+	v.number = number
 }

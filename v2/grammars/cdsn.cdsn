@@ -26,17 +26,23 @@ $factor:
       range  ! A range of characters.
     | "~" factor  ! The inversion of the factor.
     | "[" rule "]"  ! Zero or one instances of the rule.
-    | "(" rule ")" count  ! Exact (default one) number of instances of the rule.
-    | "<" rule ">" count  ! Minimum (default one) number of instances of the rule.
-    | "{" rule "}" count  ! Maximum (default unlimited) number of instances of the rule.
+    | "(" rule ")" [NUMBER]  ! Exact (default one) number of instances of the rule.
+    | "<" rule ">" [NUMBER]  ! Minimum (default one) number of instances of the rule.
+    | "{" rule "}" [NUMBER]  ! Maximum (default unlimited) number of instances of the rule.
+    | NUMBER
     | CHARACTER
     | LITERAL
     | INTRINSIC
     | IDENTIFIER
+    | DELIMITER
 
 $range: CHARACTER ".." CHARACTER
 
-$count: {DIGIT}  ! No digits signifies the default count.
+$NOTE: "! " {~EOL}
+
+$COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
+
+$NUMBER: <DIGIT>
 
 $CHARACTER: "'" ~"'" "'"
 
@@ -44,11 +50,9 @@ $LITERAL: '"' <~'"'> '"'
 
 $INTRINSIC: "LETTER" | "DIGIT" | "EOL" | "EOF"
 
-$SYMBOL: "$" IDENTIFIER
-
 $IDENTIFIER: LETTER {LETTER | DIGIT}
 
-$NOTE: "! " {~EOL}
+$SYMBOL: "$" IDENTIFIER
 
-$COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
+$DELIMITER: ".." | "~" | ":" | "|" | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">"
 

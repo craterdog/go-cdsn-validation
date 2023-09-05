@@ -29,6 +29,7 @@ type (
 	Intrinsic    string
 	Literal      string
 	Note         string
+	Number       string
 	Symbol       string
 	Factor       any
 	GroupingType int64
@@ -42,9 +43,9 @@ const EOL = "\n"
 // The allowed grouping types.
 const (
 	Optional GroupingType = iota
-	ExactCount
-	MinimumCount
-	MaximumCount
+	ExactNumber
+	MinimumNumber
+	MaximumNumber
 )
 
 // INDIVIDUAL INTERFACES
@@ -55,13 +56,6 @@ type AlternativeLike interface {
 	SetFactors(factors col.Sequential[Factor])
 	GetNote() Note
 	SetNote(note Note)
-}
-
-// This interface defines the methods supported by all count-like components.
-type CountLike interface {
-	IsDefault() bool
-	GetDigits() col.Sequential[Digit]
-	SetDigits(digits col.Sequential[Digit])
 }
 
 // This interface defines the methods supported by all grammar-like components.
@@ -76,8 +70,8 @@ type GroupingLike interface {
 	SetRule(rule RuleLike)
 	GetType() GroupingType
 	SetType(type_ GroupingType)
-	GetCount() CountLike
-	SetCount(count CountLike)
+	GetNumber() Number
+	SetNumber(count Number)
 }
 
 // This interface defines the methods supported by all inversion-like components.

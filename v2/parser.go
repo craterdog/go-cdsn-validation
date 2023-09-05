@@ -164,26 +164,6 @@ func (v *parser) parseComment() (Comment, *Token, bool) {
 	return comment, token, true
 }
 
-// This method attempts to parse a count. It returns the count and whether or
-// not the count was successfully parsed.
-func (v *parser) parseCount() (CountLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var digit Digit
-	var digits = col.List[Digit]()
-	var count CountLike
-	for {
-		digits.AddValue(digit)
-		digit, token, ok = v.parseDigit()
-		if !ok {
-			// No more digits.
-			break
-		}
-	}
-	count = Count(digits)
-	return count, token, true
-}
-
 // This method attempts to parse the specified delimiter. It returns
 // the token and whether or not the delimiter was found.
 func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
@@ -195,23 +175,23 @@ func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
 	return delimiter, token, true
 }
 
-// This method attempts to parse a digit. It returns the digit and
-// whether or not a digit was successfully parsed.
-func (v *parser) parseDigit() (Digit, *Token, bool) {
-	var digit Digit
+// This method attempts to parse a number. It returns the number and
+// whether or not a number was successfully parsed.
+func (v *parser) parseNumber() (Number, *Token, bool) {
+	var number Number
 	var token = v.nextToken()
-	if token.Type != TokenDigit {
+	if token.Type != TokenNumber {
 		v.backupOne()
-		return digit, token, false
+		return number, token, false
 	}
-	digit = Digit(token.Value)
-	return digit, token, true
+	number = Number(token.Value)
+	return number, token, true
 }
 
 // This method attempts to parse an exact count grouping. It returns the
 // exact count grouping and whether or not the exact count grouping was
 // successfully parsed.
-func (v *parser) parseExactCount() (GroupingLike, *Token, bool) {
+func (v *parser) parseExactNumber() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var rule RuleLike
@@ -238,8 +218,8 @@ func (v *parser) parseExactCount() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	var count, _, _ = v.parseCount()  // The count is optional.
-	grouping = Grouping(rule, ExactCount, count)
+	var number, _, _ = v.parseNumber()  // The number is optional.
+	grouping = Grouping(rule, ExactNumber, number)
 	return grouping, token, true
 }
 
@@ -281,13 +261,13 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseOptional()
 	}
 	if !ok {
-		factor, token, ok = v.parseExactCount()
+		factor, token, ok = v.parseExactNumber()
 	}
 	if !ok {
-		factor, token, ok = v.parseMinimumCount()
+		factor, token, ok = v.parseMinimumNumber()
 	}
 	if !ok {
-		factor, token, ok = v.parseMaximumCount()
+		factor, token, ok = v.parseMaximumNumber()
 	}
 	if !ok {
 		factor, token, ok = v.parseCharacter()
@@ -405,7 +385,7 @@ func (v *parser) parseLiteral() (Literal, *Token, bool) {
 // This method attempts to parse a zero or more grouping. It returns the
 // zero or more grouping and whether or not the zero or more grouping was
 // successfully parsed.
-func (v *parser) parseMaximumCount() (GroupingLike, *Token, bool) {
+func (v *parser) parseMaximumNumber() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var rule RuleLike
@@ -432,15 +412,15 @@ func (v *parser) parseMaximumCount() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	var count, _, _ = v.parseCount()  // The count is optional.
-	grouping = Grouping(rule, MaximumCount, count)
+	var number, _, _ = v.parseNumber()  // The number is optional.
+	grouping = Grouping(rule, MaximumNumber, number)
 	return grouping, token, true
 }
 
 // This method attempts to parse a one or more grouping. It returns the
 // one or more grouping and whether or not the one or more grouping was
 // successfully parsed.
-func (v *parser) parseMinimumCount() (GroupingLike, *Token, bool) {
+func (v *parser) parseMinimumNumber() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var rule RuleLike
@@ -467,8 +447,8 @@ func (v *parser) parseMinimumCount() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	var count, _, _ = v.parseCount()  // The count is optional.
-	grouping = Grouping(rule, MinimumCount, count)
+	var number, _, _ = v.parseNumber()  // The number is optional.
+	grouping = Grouping(rule, MinimumNumber, number)
 	return grouping, token, true
 }
 
@@ -515,8 +495,8 @@ func (v *parser) parseOptional() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	var count, _, _ = v.parseCount()  // The count is optional.
-	grouping = Grouping(rule, Optional, count)
+	var number, _, _ = v.parseNumber()  // The number is optional.
+	grouping = Grouping(rule, Optional, number)
 	return grouping, token, true
 }
 
@@ -677,21 +657,21 @@ var grammar_ = map[string]string{
 	"$rule":        `[EOL] alternative {[EOL] "|" alternative}`,
 	"$alternative": `<factor> [NOTE]`,
 	"$range":       `CHARACTER ".." CHARACTER`,
-	"$count":       `{DIGIT}  ! No digits signifies the default count.`,
 	"$CHARACTER":   `"'" ~"'" "'"`,
 	"$LITERAL":     `'"' <~'"'> '"'`,
 	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOL" | "EOF"`,
 	"$SYMBOL":      `"$" IDENTIFIER`,
 	"$IDENTIFIER":  `LETTER {LETTER | DIGIT}`,
+	"$NUMBER":      `<DIGIT>`,
 	"$NOTE":        `"! " {~EOL}`,
 	"$COMMENT":     `"!>" EOL {COMMENT | ~"<!"} EOL "<!"`,
 	"$factor":      `
       range  ! A range of characters.
     | "~" factor  ! The inversion of the factor.
     | "[" rule "]"  ! Zero or one instances of the rule.
-    | "(" rule ")" count  ! Exact (default one) number of instances of the rule.
-    | "<" rule ">" count  ! Minimum (default one) number of instances of the rule.
-    | "{" rule "}" count  ! Maximum (default unlimited) number of instances of the rule.
+    | "(" rule ")" [NUMBER]  ! Exact (default one) number of instances of the rule.
+    | "<" rule ">" [NUMBER]  ! Minimum (default one) number of instances of the rule.
+    | "{" rule "}" [NUMBER]  ! Maximum (default unlimited) number of instances of the rule.
     | CHARACTER
     | LITERAL
     | INTRINSIC

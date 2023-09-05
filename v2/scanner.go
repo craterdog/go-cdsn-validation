@@ -29,13 +29,13 @@ const (
 	TokenCharacter
 	TokenComment
 	TokenDelimiter
-	TokenDigit
 	TokenEOF
 	TokenEOL
 	TokenIdentifier
 	TokenIntrinsic
 	TokenLiteral
 	TokenNote
+	TokenNumber
 	TokenSymbol
 )
 
@@ -46,13 +46,13 @@ func (v TokenType) String() string {
 		"Character",
 		"Comment",
 		"Delimiter",
-		"Digit",
 		"EOF",
 		"EOL",
 		"Identifier",
 		"Intrinsic",
 		"Literal",
 		"Note",
+		"Number",
 		"Symbol",
 	}[v]
 }
@@ -134,7 +134,7 @@ func (v *scanner) scanToken() bool {
 	case v.foundCharacter():
 	case v.foundLiteral():
 	case v.foundDelimiter():
-	case v.foundDigit():
+	case v.foundNumber():
 	case v.foundEOL():
 	case v.foundEOF():
 		// We are at the end of the source bytes.
@@ -235,14 +235,14 @@ func (v *scanner) foundDelimiter() bool {
 	return false
 }
 
-// This method adds a digit token with the current scanner information to the
-// token channel. It returns true if a digit token was found.
-func (v *scanner) foundDigit() bool {
+// This method adds a number token with the current scanner information to the
+// token channel. It returns true if a number token was found.
+func (v *scanner) foundNumber() bool {
 	var s = v.source[v.nextByte:]
-	var matches = scanDigit(s)
+	var matches = scanNumber(s)
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenDigit)
+		v.emitToken(TokenNumber)
 		return true
 	}
 	return false
@@ -406,27 +406,24 @@ func scanComment(v []byte) []string {
 	return result
 }
 
+// This scanner is used for matching delimiter tokens.
+var delimiterScanner = reg.MustCompile(`^(?:` + delimiter + `)`)
+
 // This function returns for the specified string an array of the matching
 // subgroups for a delimiter. The first string in the array is the entire
 // matched string.
 func scanDelimiter(v []byte) []string {
-	var result []string
-	for _, delimiter := range delimiters {
-		if byt.HasPrefix(v, delimiter) {
-			result = append(result, string(delimiter))
-		}
-	}
-	return result
+	return bytesToStrings(delimiterScanner.FindSubmatch(v))
 }
 
-// This scanner is used for matching digit tokens.
-var digitScanner = reg.MustCompile(`^(?:` + digit + `)`)
+// This scanner is used for matching number tokens.
+var numberScanner = reg.MustCompile(`^(?:` + number + `)`)
 
 // This function returns for the specified string an array of the matching
-// subgroups for a digit token. The first string in the array is the
+// subgroups for a number token. The first string in the array is the
 // entire matched string.
-func scanDigit(v []byte) []string {
-	return bytesToStrings(digitScanner.FindSubmatch(v))
+func scanNumber(v []byte) []string {
+	return bytesToStrings(numberScanner.FindSubmatch(v))
 }
 
 // This scanner is used for matching identifier tokens.
@@ -490,25 +487,10 @@ const (
 	digit      = `\pN` // All unicode digits.
 	identifier = letter + `(?:` + letter + `|` + digit + `)*`
 	symbol     = `\$` + identifier
+	number     = digit + `+`
 	note       = `! [^\n]*`
+	delimiter  = `[~:|()[\]{}<>]|\.\.`
 )
-
-// This array contains the set of delimiters that may be used to separate the
-// other tokens.
-var delimiters = [][]byte{
-	[]byte(`..`),
-	[]byte(`~`),
-	[]byte(`:`),
-	[]byte(`|`),
-	[]byte(`(`),
-	[]byte(`)`),
-	[]byte(`[`),
-	[]byte(`]`),
-	[]byte(`{`),
-	[]byte(`}`),
-	[]byte(`<`),
-	[]byte(`>`),
-}
 
 // PRIVATE FUNCTIONS
 
