@@ -25,7 +25,7 @@ func Rule(alternatives col.Sequential[AlternativeLike]) RuleLike {
 
 // This type defines the structure and methods associated with a rule.
 type rule struct {
-	multilined bool
+	multilined   bool
 	alternatives col.Sequential[AlternativeLike]
 }
 

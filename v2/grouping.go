@@ -23,8 +23,8 @@ func Grouping(rule RuleLike, type_ GroupingType, number Number) GroupingLike {
 
 // This type defines the structure and methods associated with a grouping.
 type grouping struct {
-	rule  RuleLike
-	type_ GroupingType
+	rule   RuleLike
+	type_  GroupingType
 	number Number
 }
 

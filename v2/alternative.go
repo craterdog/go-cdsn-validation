@@ -27,7 +27,7 @@ func Alternative(factors col.Sequential[Factor], note Note) AlternativeLike {
 // This type defines the structure and methods associated with an alternative.
 type alternative struct {
 	factors col.Sequential[Factor]
-	note Note
+	note    Note
 }
 
 // This method returns the factors for this alternative.

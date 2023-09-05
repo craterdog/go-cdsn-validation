@@ -24,7 +24,7 @@ func FormatDocument(grammar GrammarLike) []byte {
 	var v = &formatter{}
 	v.formatGrammar(grammar)
 	var string_ = v.getResult()
-return []byte(string_)
+	return []byte(string_)
 }
 
 // FORMATTER IMPLEMENTATION
@@ -87,11 +87,6 @@ func (v *formatter) formatAnnotation(annotation Annotation) {
 // This private method appends a formatted character to the result.
 func (v *formatter) formatCharacter(character Character) {
 	v.appendString(string(character))
-}
-
-// This private method appends a formatted comment to the result.
-func (v *formatter) formatComment(comment Comment) {
-	v.appendString(string(comment))
 }
 
 // This private method appends a formatted number to the result.

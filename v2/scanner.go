@@ -262,7 +262,7 @@ func (v *scanner) foundError() {
 func (v *scanner) foundEOF() bool {
 	// The last byte in a POSIX standard file must be an EOL character.
 	var s = v.source[v.nextByte:]
-	if byt.HasPrefix(s, []byte(EOL)) && v.nextByte + 1 == len(v.source) {
+	if byt.HasPrefix(s, []byte(EOL)) && v.nextByte+1 == len(v.source) {
 		v.nextByte++
 		v.emitToken(TokenEOF)
 		return true
@@ -274,7 +274,7 @@ func (v *scanner) foundEOF() bool {
 // token channel. It returns true if an EOL token was found.
 func (v *scanner) foundEOL() bool {
 	var s = v.source[v.nextByte:]
-	if byt.HasPrefix(s, []byte(EOL)) && v.nextByte + 1 < len(v.source) {
+	if byt.HasPrefix(s, []byte(EOL)) && v.nextByte+1 < len(v.source) {
 		v.nextByte++
 		v.emitToken(TokenEOL)
 		v.line++

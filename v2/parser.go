@@ -240,7 +240,7 @@ func (v *parser) parseExactNumber() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	var number, _, _ = v.parseNumber()  // The number is optional.
+	var number, _, _ = v.parseNumber() // The number is optional.
 	grouping = Grouping(rule, ExactNumber, number)
 	return grouping, token, true
 }
@@ -434,7 +434,7 @@ func (v *parser) parseMaximumNumber() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	var number, _, _ = v.parseNumber()  // The number is optional.
+	var number, _, _ = v.parseNumber() // The number is optional.
 	grouping = Grouping(rule, MaximumNumber, number)
 	return grouping, token, true
 }
@@ -469,7 +469,7 @@ func (v *parser) parseMinimumNumber() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	var number, _, _ = v.parseNumber()  // The number is optional.
+	var number, _, _ = v.parseNumber() // The number is optional.
 	grouping = Grouping(rule, MinimumNumber, number)
 	return grouping, token, true
 }
@@ -517,7 +517,7 @@ func (v *parser) parseOptional() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	var number, _, _ = v.parseNumber()  // The number is optional.
+	var number, _, _ = v.parseNumber() // The number is optional.
 	grouping = Grouping(rule, Optional, number)
 	return grouping, token, true
 }
@@ -686,7 +686,7 @@ var grammar_ = map[string]string{
 	"$NUMBER":      `<DIGIT>`,
 	"$NOTE":        `"! " {~EOL}`,
 	"$COMMENT":     `"!>" EOL {COMMENT | ~"<!"} EOL "<!"`,
-	"$factor":      `
+	"$factor": `
       range  ! A range of characters.
     | "~" factor  ! The inversion of the factor.
     | "[" rule "]"  ! Zero or one instances of the rule.
