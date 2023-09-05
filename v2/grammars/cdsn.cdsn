@@ -54,5 +54,5 @@ $IDENTIFIER: LETTER {LETTER | DIGIT}
 
 $SYMBOL: "$" IDENTIFIER
 
-$DELIMITER: ".." | "~" | ":" | "|" | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">"
+$DELIMITER: "~" | ":" | "|" | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">" | ".."
 
