@@ -21,18 +21,19 @@ import (
 // TYPE DEFINITIONS
 
 type (
+	Annotation   string
 	Character    string
 	Comment      string
 	Digit        string
-	Letter       string
+	Factor       any
+	GroupingType int64
 	Identifier   string
 	Intrinsic    string
+	Letter       string
 	Literal      string
 	Note         string
 	Number       string
 	Symbol       string
-	Factor       any
-	GroupingType int64
 )
 
 // CONSTANTS
@@ -106,8 +107,8 @@ type RuleLike interface {
 
 // This interface defines the methods supported by all statement-like components.
 type StatementLike interface {
-	GetComment() Comment
-	SetComment(comment Comment)
+	GetAnnotation() Annotation
+	SetAnnotation(annotation Annotation)
 	GetProduction() ProductionLike
 	SetProduction(production ProductionLike)
 }

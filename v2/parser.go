@@ -138,6 +138,28 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	return alternative, token, true
 }
 
+// This method attempts to parse an annotation. It returns the annotation and
+// whether or not the annotation was successfully parsed.
+func (v *parser) parseAnnotation() (Annotation, *Token, bool) {
+	var ok bool
+	var token *Token
+	var note Note
+	var comment Comment
+	var annotation Annotation
+	note, _, ok = v.parseNote()
+	if !ok {
+		comment, token, ok = v.parseComment()
+		if !ok {
+			// This is not an annotation.
+			return annotation, token, false
+		}
+		annotation = Annotation(string(comment))
+	} else {
+		annotation = Annotation(string(note))
+	}
+	return annotation, token, true
+}
+
 // This method attempts to parse a character. It returns the character and
 // whether or not a character was successfully parsed.
 func (v *parser) parseCharacter() (Character, *Token, bool) {
@@ -604,16 +626,15 @@ func (v *parser) parseRule() (RuleLike, *Token, bool) {
 	return rule, token, true
 }
 
-// This method attempts to parse a sequence of statements. It returns the
-// sequence of statements and whether or not the sequence of statements was
-// successfully parsed.
+// This method attempts to parse a statement. It returns the statement and
+// whether or not the statement was successfully parsed.
 func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var comment Comment
+	var annotation Annotation
 	var production ProductionLike
 	var statement StatementLike
-	comment, _, ok = v.parseComment()
+	annotation, _, ok = v.parseAnnotation()
 	if !ok {
 		production, token, ok = v.parseProduction()
 		if !ok {
@@ -628,7 +649,7 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 			break
 		}
 	}
-	statement = Statement(comment, production)
+	statement = Statement(annotation, production)
 	return statement, token, true
 }
 

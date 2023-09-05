@@ -79,6 +79,11 @@ func (v *formatter) formatAlternative(alternative AlternativeLike) {
 	}
 }
 
+// This private method appends a formatted annotation to the result.
+func (v *formatter) formatAnnotation(annotation Annotation) {
+	v.appendString(string(annotation))
+}
+
 // This private method appends a formatted character to the result.
 func (v *formatter) formatCharacter(character Character) {
 	v.appendString(string(character))
@@ -227,9 +232,9 @@ func (v *formatter) formatRule(rule RuleLike) {
 
 // This private method appends a formatted statement to the result.
 func (v *formatter) formatStatement(statement StatementLike) {
-	var comment = statement.GetComment()
-	if len(comment) > 0 {
-		v.formatComment(comment)
+	var annotation = statement.GetAnnotation()
+	if len(annotation) > 0 {
+		v.formatAnnotation(annotation)
 	} else {
 		var production = statement.GetProduction()
 		v.formatProduction(production)

@@ -12,9 +12,13 @@
     the "$grammar" rule.
 <!
 
+! *** Rules ***
+
 $grammar: <statement> EOF  ! Terminated by an end-of-file marker.
 
-$statement: (COMMENT | production) <EOL>
+$statement: (annotation | production) <EOL>
+
+$annotation: NOTE | COMMENT
 
 $production: SYMBOL ":" rule
 
@@ -37,6 +41,8 @@ $factor:
     | DELIMITER
 
 $range: CHARACTER ".." CHARACTER
+
+! *** Tokens ***
 
 $NOTE: "! " {~EOL}
 
