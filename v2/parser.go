@@ -181,6 +181,40 @@ func (v *parser) parseDigit() (Digit, *Token, bool) {
 	return digit, token, true
 }
 
+// This method attempts to parse an exact count grouping. It returns the
+// exact count grouping and whether or not the exact count grouping was
+// successfully parsed.
+func (v *parser) parseExactCount() (GroupingLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var rule RuleLike
+	var grouping GroupingLike
+	_, token, ok = v.parseDelimiter("(")
+	if !ok {
+		// This is not a precedence grouping.
+		return grouping, token, false
+	}
+	rule, token, ok = v.parseRule()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("rule",
+			"$factor",
+			"$rule")
+		panic(message)
+	}
+	_, token, ok = v.parseDelimiter(")")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar(")",
+			"$factor",
+			"$rule")
+		panic(message)
+	}
+	var count, _, _ = v.parseCount()  // The count is optional.
+	grouping = Grouping(rule, ExactCount, count)
+	return grouping, token, true
+}
+
 // This method attempts to parse the end-of-file (EOF) marker. It returns
 // the token and whether or not an EOF marker was found. Note that the POSIX
 // standard requires that the last byte in a file be an end-of-line (EOL)
@@ -216,16 +250,16 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseInversion()
 	}
 	if !ok {
-		factor, token, ok = v.parseZeroOrOne()
+		factor, token, ok = v.parseOptional()
 	}
 	if !ok {
 		factor, token, ok = v.parseExactCount()
 	}
 	if !ok {
-		factor, token, ok = v.parseOneOrMore()
+		factor, token, ok = v.parseMinimumCount()
 	}
 	if !ok {
-		factor, token, ok = v.parseZeroOrMore()
+		factor, token, ok = v.parseMaximumCount()
 	}
 	if !ok {
 		factor, token, ok = v.parseCharacter()
@@ -340,23 +374,44 @@ func (v *parser) parseLiteral() (Literal, *Token, bool) {
 	return literal, token, true
 }
 
-// This method attempts to parse a note. It returns the note and whether
-// or not the note was successfully parsed.
-func (v *parser) parseNote() (Note, *Token, bool) {
-	var note Note
-	var token = v.nextToken()
-	if token.Type != TokenNote {
-		v.backupOne()
-		return note, token, false
+// This method attempts to parse a zero or more grouping. It returns the
+// zero or more grouping and whether or not the zero or more grouping was
+// successfully parsed.
+func (v *parser) parseMaximumCount() (GroupingLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var rule RuleLike
+	var grouping GroupingLike
+	_, token, ok = v.parseDelimiter("{")
+	if !ok {
+		// This is not a zero or more grouping.
+		return grouping, token, false
 	}
-	note = Note(token.Value)
-	return note, token, true
+	rule, token, ok = v.parseRule()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("rule",
+			"$factor",
+			"$rule")
+		panic(message)
+	}
+	_, token, ok = v.parseDelimiter("}")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("}",
+			"$factor",
+			"$rule")
+		panic(message)
+	}
+	var count, _, _ = v.parseCount()  // The count is optional.
+	grouping = Grouping(rule, MaximumCount, count)
+	return grouping, token, true
 }
 
 // This method attempts to parse a one or more grouping. It returns the
 // one or more grouping and whether or not the one or more grouping was
 // successfully parsed.
-func (v *parser) parseOneOrMore() (GroupingLike, *Token, bool) {
+func (v *parser) parseMinimumCount() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var rule RuleLike
@@ -383,8 +438,21 @@ func (v *parser) parseOneOrMore() (GroupingLike, *Token, bool) {
 		panic(message)
 	}
 	var count, _, _ = v.parseCount()  // The count is optional.
-	grouping = Grouping(rule, OneOrMore, count)
+	grouping = Grouping(rule, MinimumCount, count)
 	return grouping, token, true
+}
+
+// This method attempts to parse a note. It returns the note and whether
+// or not the note was successfully parsed.
+func (v *parser) parseNote() (Note, *Token, bool) {
+	var note Note
+	var token = v.nextToken()
+	if token.Type != TokenNote {
+		v.backupOne()
+		return note, token, false
+	}
+	note = Note(token.Value)
+	return note, token, true
 }
 
 // This method attempts to parse an option. It returns the option and whether or
@@ -414,17 +482,17 @@ func (v *parser) parseOption() (OptionLike, *Token, bool) {
 	return option, token, true
 }
 
-// This method attempts to parse an exact count grouping. It returns the
-// exact count grouping and whether or not the exact count grouping was
+// This method attempts to parse a zero or one grouping. It returns the
+// zero or one grouping and whether or not the zero or one grouping was
 // successfully parsed.
-func (v *parser) parseExactCount() (GroupingLike, *Token, bool) {
+func (v *parser) parseOptional() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var rule RuleLike
 	var grouping GroupingLike
-	_, token, ok = v.parseDelimiter("(")
+	_, token, ok = v.parseDelimiter("[")
 	if !ok {
-		// This is not a precedence grouping.
+		// This is not a zero or one grouping.
 		return grouping, token, false
 	}
 	rule, token, ok = v.parseRule()
@@ -435,16 +503,16 @@ func (v *parser) parseExactCount() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
-	_, token, ok = v.parseDelimiter(")")
+	_, token, ok = v.parseDelimiter("]")
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar(")",
+		message += generateGrammar("]",
 			"$factor",
 			"$rule")
 		panic(message)
 	}
 	var count, _, _ = v.parseCount()  // The count is optional.
-	grouping = Grouping(rule, ExactCount, count)
+	grouping = Grouping(rule, Optional, count)
 	return grouping, token, true
 }
 
@@ -591,74 +659,6 @@ func (v *parser) parseSymbol() (Symbol, *Token, bool) {
 	}
 	symbol = Symbol(token.Value)
 	return symbol, token, true
-}
-
-// This method attempts to parse a zero or more grouping. It returns the
-// zero or more grouping and whether or not the zero or more grouping was
-// successfully parsed.
-func (v *parser) parseZeroOrMore() (GroupingLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var rule RuleLike
-	var grouping GroupingLike
-	_, token, ok = v.parseDelimiter("{")
-	if !ok {
-		// This is not a zero or more grouping.
-		return grouping, token, false
-	}
-	rule, token, ok = v.parseRule()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("rule",
-			"$factor",
-			"$rule")
-		panic(message)
-	}
-	_, token, ok = v.parseDelimiter("}")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("}",
-			"$factor",
-			"$rule")
-		panic(message)
-	}
-	var count, _, _ = v.parseCount()  // The count is optional.
-	grouping = Grouping(rule, ZeroOrMore, count)
-	return grouping, token, true
-}
-
-// This method attempts to parse a zero or one grouping. It returns the
-// zero or one grouping and whether or not the zero or one grouping was
-// successfully parsed.
-func (v *parser) parseZeroOrOne() (GroupingLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var rule RuleLike
-	var grouping GroupingLike
-	_, token, ok = v.parseDelimiter("[")
-	if !ok {
-		// This is not a zero or one grouping.
-		return grouping, token, false
-	}
-	rule, token, ok = v.parseRule()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("rule",
-			"$factor",
-			"$rule")
-		panic(message)
-	}
-	_, token, ok = v.parseDelimiter("]")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("]",
-			"$factor",
-			"$rule")
-		panic(message)
-	}
-	var count, _, _ = v.parseCount()  // The count is optional.
-	grouping = Grouping(rule, ZeroOrOne, count)
-	return grouping, token, true
 }
 
 // GRAMMAR UTILITIES

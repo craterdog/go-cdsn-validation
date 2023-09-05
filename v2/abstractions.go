@@ -41,10 +41,10 @@ const EOL = "\n"
 
 // The allowed grouping types.
 const (
-	ExactCount GroupingType = iota
-	ZeroOrOne
-	ZeroOrMore
-	OneOrMore
+	Optional GroupingType = iota
+	ExactCount
+	MinimumCount
+	MaximumCount
 )
 
 // INDIVIDUAL INTERFACES

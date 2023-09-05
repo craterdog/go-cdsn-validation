@@ -116,22 +116,22 @@ func (v *formatter) formatGrouping(grouping GroupingLike) {
 	var type_ = grouping.GetType()
 	var count = grouping.GetCount()
 	switch type_ {
+	case Optional:
+		v.appendString("[")
+		v.formatRule(rule)
+		v.appendString("]")
 	case ExactCount:
 		v.appendString("(")
 		v.formatRule(rule)
 		v.appendString(")")
-	case ZeroOrOne:
-		v.appendString("[")
-		v.formatRule(rule)
-		v.appendString("]")
-	case ZeroOrMore:
-		v.appendString("{")
-		v.formatRule(rule)
-		v.appendString("}")
-	case OneOrMore:
+	case MinimumCount:
 		v.appendString("<")
 		v.formatRule(rule)
 		v.appendString(">")
+	case MaximumCount:
+		v.appendString("{")
+		v.formatRule(rule)
+		v.appendString("}")
 	default:
 		panic(fmt.Sprintf("Attempted to format an invalid grouping type: %v\n", type_))
 	}
