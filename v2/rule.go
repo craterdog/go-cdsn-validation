@@ -34,6 +34,11 @@ func (v *rule) IsMultilined() bool {
 	return v.multilined
 }
 
+// This method sets whether or not this rule is multlined.
+func (v *rule) SetMultilined(multilined bool) {
+	v.multilined = multilined
+}
+
 // This method returns the alternatives for this rule.
 func (v *rule) GetAlternatives() col.Sequential[AlternativeLike] {
 	return v.alternatives

@@ -229,6 +229,7 @@ func (v *parser) parseExactCount() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
+	rule.SetMultilined(false)
 	_, token, ok = v.parseDelimiter(")")
 	if !ok {
 		var message = v.formatError(token)
@@ -422,6 +423,7 @@ func (v *parser) parseMaximumCount() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
+	rule.SetMultilined(false)
 	_, token, ok = v.parseDelimiter("}")
 	if !ok {
 		var message = v.formatError(token)
@@ -456,6 +458,7 @@ func (v *parser) parseMinimumCount() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
+	rule.SetMultilined(false)
 	_, token, ok = v.parseDelimiter(">")
 	if !ok {
 		var message = v.formatError(token)
@@ -503,6 +506,7 @@ func (v *parser) parseOptional() (GroupingLike, *Token, bool) {
 			"$rule")
 		panic(message)
 	}
+	rule.SetMultilined(false)
 	_, token, ok = v.parseDelimiter("]")
 	if !ok {
 		var message = v.formatError(token)

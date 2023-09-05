@@ -105,6 +105,7 @@ type RangeLike interface {
 // This interface defines the methods supported by all rule-like components.
 type RuleLike interface {
 	IsMultilined() bool
+	SetMultilined(multilined bool)
 	GetAlternatives() col.Sequential[AlternativeLike]
 	SetAlternatives(alternatives col.Sequential[AlternativeLike])
 }
