@@ -1,12 +1,15 @@
 !>
-    A formal definition of Bali Document Notation™ (Bali) using Bali Wirth Syntax
-    Notation™ (BWSN):
-        <https://github.com/bali-nebula/specifications/blob/main/bwsn.bwsn>
+    A formal definition of Bali Document Notation™ (Bali) using Crater Dog
+	Syntax Notation™.  Token names are identified by all CAPITAL letters and
+	rule names are identified by lowerCamelCase letters.
 
-    The token names are identified by all CAPITAL characters and the rule names
-    are identified by lowerCamelCase characters. The token and rule definitions
-    have been alphabetized to make it easier to locate specific definitions.
-    The starting rule is "$source".
+    The INTRINSIC tokens are environment dependent and therefore left undefined.
+    The tokens are scanned in the order listed so an INTRINSIC token takes
+    precedence over an IDENTIFIER token.
+
+    The rules are applied in the order listed as well, so within a factor a
+    range takes precedence over an individual CHARACTER.  The starting rule is
+    the "$source" rule.
 <!
 
 $ANGLE: "~" (ZERO | MAGNITUDE)
