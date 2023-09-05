@@ -216,16 +216,16 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseInversion()
 	}
 	if !ok {
-		factor, token, ok = v.parseExactCount()
-	}
-	if !ok {
 		factor, token, ok = v.parseZeroOrOne()
 	}
 	if !ok {
-		factor, token, ok = v.parseZeroOrMore()
+		factor, token, ok = v.parseExactCount()
 	}
 	if !ok {
 		factor, token, ok = v.parseOneOrMore()
+	}
+	if !ok {
+		factor, token, ok = v.parseZeroOrMore()
 	}
 	if !ok {
 		factor, token, ok = v.parseCharacter()

@@ -25,10 +25,10 @@ $option: <factor> [NOTE]
 $factor:
       range  ! A range of characters.
     | "~" factor  ! The inversion of the factor.
-    | "(" rule ")" count  ! Exactly count instances of the rule.
-    | "[" rule "]" count  ! Zero or count (default is one) instances of the rule.
-    | "{" rule "}" count  ! Zero or more up to count (default is infinity) instances of the rule.
-    | "<" rule ">" count  ! One or more up to count (default is infinity) instances of the rule.
+    | "[" rule "]"  ! Zero or one instances of the rule.
+    | "(" rule ")" count  ! Exact (default one) number of instances of the rule.
+    | "<" rule ">" count  ! Minimum (default one) number of instances of the rule.
+    | "{" rule "}" count  ! Maximum (default unlimited) number of instances of the rule.
     | CHARACTER
     | LITERAL
     | INTRINSIC
@@ -36,7 +36,7 @@ $factor:
 
 $range: CHARACTER ".." CHARACTER
 
-$count: {DIGIT}  ! No digits means a default count of one.
+$count: {DIGIT}  ! No digits signifies the default count.
 
 $CHARACTER: "'" ~"'" "'"
 

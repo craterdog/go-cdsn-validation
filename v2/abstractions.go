@@ -27,13 +27,19 @@ type (
 	Letter       string
 	Identifier   string
 	Intrinsic    string
-	Factor       any
 	Literal      string
 	Note         string
 	Symbol       string
+	Factor       any
 	GroupingType int64
 )
 
+// CONSTANTS
+
+// The POSIX standard end-of-line character.
+const EOL = "\n"
+
+// The allowed grouping types.
 const (
 	ExactCount GroupingType = iota
 	ZeroOrOne

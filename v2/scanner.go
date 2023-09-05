@@ -264,7 +264,6 @@ func (v *scanner) foundEOF() bool {
 	var s = v.source[v.nextByte:]
 	if byt.HasPrefix(s, []byte(EOL)) && v.nextByte + 1 == len(v.source) {
 		v.nextByte++
-		v.line++
 		v.emitToken(TokenEOF)
 		return true
 	}
@@ -277,8 +276,8 @@ func (v *scanner) foundEOL() bool {
 	var s = v.source[v.nextByte:]
 	if byt.HasPrefix(s, []byte(EOL)) && v.nextByte + 1 < len(v.source) {
 		v.nextByte++
-		v.line++
 		v.emitToken(TokenEOL)
+		v.line++
 		v.position = 1
 		return true
 	}
@@ -481,12 +480,6 @@ func scanSymbol(v []byte) []string {
 }
 
 // CONSTANT DEFINITIONS
-
-// These constants define the POSIX standard representations.
-const (
-	EOF = "\n" // Must be last byte in a file.
-	EOL = "\n"
-)
 
 // These constant definitions capture regular expression subpatterns.
 const (
