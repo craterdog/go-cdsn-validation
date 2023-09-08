@@ -160,19 +160,6 @@ func (v *parser) parseAnnotation() (Annotation, *Token, bool) {
 	return annotation, token, true
 }
 
-// This method attempts to parse a rune. It returns the rune and
-// whether or not a rune was successfully parsed.
-func (v *parser) parseRune() (Rune, *Token, bool) {
-	var rune_ Rune
-	var token = v.nextToken()
-	if token.Type != TokenRune {
-		v.backupOne()
-		return rune_, token, false
-	}
-	rune_ = Rune(token.Value)
-	return rune_, token, true
-}
-
 // This method attempts to parse a comment. It returns the comment and whether
 // or not a comment was successfully parsed.
 func (v *parser) parseComment() (Comment, *Token, bool) {
@@ -186,6 +173,44 @@ func (v *parser) parseComment() (Comment, *Token, bool) {
 	return comment, token, true
 }
 
+// This method attempts to parse a definition. It returns the definition and
+// whether or not the definition was successfully parsed.
+func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var alternative AlternativeLike
+	var alternatives = col.List[AlternativeLike]()
+	var definition DefinitionLike
+	v.parseEOL() // The EOL is optional.
+	alternative, token, ok = v.parseAlternative()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("alternative",
+			"$definition",
+			"$alternative")
+		panic(message)
+	}
+	for {
+		alternatives.AddValue(alternative)
+		v.parseEOL() // The EOL is optional.
+		_, _, ok = v.parseDelimiter("|")
+		if !ok {
+			// No more alternatives.
+			break
+		}
+		alternative, token, ok = v.parseAlternative()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("alternative",
+				"$definition",
+				"$alternative")
+			panic(message)
+		}
+	}
+	definition = Definition(alternatives)
+	return definition, token, true
+}
+
 // This method attempts to parse the specified delimiter. It returns
 // the token and whether or not the delimiter was found.
 func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
@@ -195,19 +220,6 @@ func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
 		return delimiter, token, false
 	}
 	return delimiter, token, true
-}
-
-// This method attempts to parse a number. It returns the number and
-// whether or not a number was successfully parsed.
-func (v *parser) parseNumber() (Number, *Token, bool) {
-	var number Number
-	var token = v.nextToken()
-	if token.Type != TokenNumber {
-		v.backupOne()
-		return number, token, false
-	}
-	number = Number(token.Value)
-	return number, token, true
 }
 
 // This method attempts to parse an exact count grouping. It returns the
@@ -391,19 +403,6 @@ func (v *parser) parseInversion() (InversionLike, *Token, bool) {
 	return inversion, token, true
 }
 
-// This method attempts to parse a string. It returns the string and whether
-// or not the string was successfully parsed.
-func (v *parser) parseString() (String, *Token, bool) {
-	var string_ String
-	var token = v.nextToken()
-	if token.Type != TokenString {
-		v.backupOne()
-		return string_, token, false
-	}
-	string_ = String(token.Value)
-	return string_, token, true
-}
-
 // This method attempts to parse a zero or more grouping. It returns the zero or
 // more grouping and whether or not the zero or more grouping was successfully
 // parsed.
@@ -485,6 +484,19 @@ func (v *parser) parseNote() (Note, *Token, bool) {
 	}
 	note = Note(token.Value)
 	return note, token, true
+}
+
+// This method attempts to parse a number. It returns the number and
+// whether or not a number was successfully parsed.
+func (v *parser) parseNumber() (Number, *Token, bool) {
+	var number Number
+	var token = v.nextToken()
+	if token.Type != TokenNumber {
+		v.backupOne()
+		return number, token, false
+	}
+	number = Number(token.Value)
+	return number, token, true
 }
 
 // This method attempts to parse a zero or one grouping. It returns the zero or
@@ -588,42 +600,17 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	return range_, token, true
 }
 
-// This method attempts to parse a definition. It returns the definition and
-// whether or not the definition was successfully parsed.
-func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var alternative AlternativeLike
-	var alternatives = col.List[AlternativeLike]()
-	var definition DefinitionLike
-	v.parseEOL() // The EOL is optional.
-	alternative, token, ok = v.parseAlternative()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("alternative",
-			"$definition",
-			"$alternative")
-		panic(message)
+// This method attempts to parse a rune. It returns the rune and
+// whether or not a rune was successfully parsed.
+func (v *parser) parseRune() (Rune, *Token, bool) {
+	var rune_ Rune
+	var token = v.nextToken()
+	if token.Type != TokenRune {
+		v.backupOne()
+		return rune_, token, false
 	}
-	for {
-		alternatives.AddValue(alternative)
-		v.parseEOL() // The EOL is optional.
-		_, _, ok = v.parseDelimiter("|")
-		if !ok {
-			// No more alternatives.
-			break
-		}
-		alternative, token, ok = v.parseAlternative()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("alternative",
-				"$definition",
-				"$alternative")
-			panic(message)
-		}
-	}
-	definition = Definition(alternatives)
-	return definition, token, true
+	rune_ = Rune(token.Value)
+	return rune_, token, true
 }
 
 // This method attempts to parse a statement. It returns the statement and
@@ -651,6 +638,19 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	}
 	statement = Statement(annotation, production)
 	return statement, token, true
+}
+
+// This method attempts to parse a string. It returns the string and whether
+// or not the string was successfully parsed.
+func (v *parser) parseString() (String, *Token, bool) {
+	var string_ String
+	var token = v.nextToken()
+	if token.Type != TokenString {
+		v.backupOne()
+		return string_, token, false
+	}
+	string_ = String(token.Value)
+	return string_, token, true
 }
 
 // This method attempts to parse a symbol. It returns the symbol and whether
