@@ -18,7 +18,7 @@ import (
 const Token#Token# TokenType = "#Token#"
 
 // This regular expression matches all #token#s.
-const #token#  = `['][^'][']`
+const #token#  = `#tokenRE#`
 
 // This function attempts to parse a #token#. It returns the #token# and
 // whether or not a #token# was successfully parsed.
