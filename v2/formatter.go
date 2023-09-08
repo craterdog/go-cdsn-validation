@@ -84,9 +84,9 @@ func (v *formatter) formatAnnotation(annotation Annotation) {
 	v.appendString(string(annotation))
 }
 
-// This private method appends a formatted character to the result.
-func (v *formatter) formatCharacter(character Character) {
-	v.appendString(string(character))
+// This private method appends a formatted rune to the result.
+func (v *formatter) formatRune(rune_ Rune) {
+	v.appendString(string(rune_))
 }
 
 // This private method appends a formatted number to the result.
@@ -97,10 +97,10 @@ func (v *formatter) formatNumber(number Number) {
 // This private method appends a formatted factor to the result.
 func (v *formatter) formatFactor(factor Factor) {
 	switch f := factor.(type) {
-	case Character:
-		v.formatCharacter(f)
-	case Literal:
-		v.formatLiteral(f)
+	case Rune:
+		v.formatRune(f)
+	case String:
+		v.formatString(f)
 	case Intrinsic:
 		v.formatIntrinsic(f)
 	case Identifier:
@@ -171,9 +171,9 @@ func (v *formatter) formatInversion(inversion InversionLike) {
 	v.formatFactor(factor)
 }
 
-// This private method appends a formatted literal to the result.
-func (v *formatter) formatLiteral(literal Literal) {
-	v.appendString(string(literal))
+// This private method appends a formatted string to the result.
+func (v *formatter) formatString(string_ String) {
+	v.appendString(string(string_))
 }
 
 // This private method appends a formatted note to the result.
@@ -200,11 +200,11 @@ func (v *formatter) formatProduction(production ProductionLike) {
 
 // This private method appends a formatted range to the result.
 func (v *formatter) formatRange(range_ RangeLike) {
-	var first = range_.GetFirstCharacter()
-	v.formatCharacter(first)
+	var first = range_.GetFirstRune()
+	v.formatRune(first)
 	v.appendString("..")
-	var last = range_.GetLastCharacter()
-	v.formatCharacter(last)
+	var last = range_.GetLastRune()
+	v.formatRune(last)
 }
 
 // This private method appends a formatted rule to the result.

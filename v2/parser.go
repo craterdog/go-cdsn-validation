@@ -160,17 +160,17 @@ func (v *parser) parseAnnotation() (Annotation, *Token, bool) {
 	return annotation, token, true
 }
 
-// This method attempts to parse a character. It returns the character and
-// whether or not a character was successfully parsed.
-func (v *parser) parseCharacter() (Character, *Token, bool) {
-	var character Character
+// This method attempts to parse a rune. It returns the rune and
+// whether or not a rune was successfully parsed.
+func (v *parser) parseRune() (Rune, *Token, bool) {
+	var rune_ Rune
 	var token = v.nextToken()
-	if token.Type != TokenCharacter {
+	if token.Type != TokenRune {
 		v.backupOne()
-		return character, token, false
+		return rune_, token, false
 	}
-	character = Character(token.Value)
-	return character, token, true
+	rune_ = Rune(token.Value)
+	return rune_, token, true
 }
 
 // This method attempts to parse a comment. It returns the comment and whether
@@ -292,10 +292,10 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseMaximumNumber()
 	}
 	if !ok {
-		factor, token, ok = v.parseCharacter()
+		factor, token, ok = v.parseRune()
 	}
 	if !ok {
-		factor, token, ok = v.parseLiteral()
+		factor, token, ok = v.parseString()
 	}
 	if !ok {
 		factor, token, ok = v.parseIntrinsic()
@@ -391,17 +391,17 @@ func (v *parser) parseInversion() (InversionLike, *Token, bool) {
 	return inversion, token, true
 }
 
-// This method attempts to parse a literal. It returns the literal and whether
-// or not the literal was successfully parsed.
-func (v *parser) parseLiteral() (Literal, *Token, bool) {
-	var literal Literal
+// This method attempts to parse a string. It returns the string and whether
+// or not the string was successfully parsed.
+func (v *parser) parseString() (String, *Token, bool) {
+	var string_ String
 	var token = v.nextToken()
-	if token.Type != TokenLiteral {
+	if token.Type != TokenString {
 		v.backupOne()
-		return literal, token, false
+		return string_, token, false
 	}
-	literal = Literal(token.Value)
-	return literal, token, true
+	string_ = String(token.Value)
+	return string_, token, true
 }
 
 // This method attempts to parse a zero or more grouping. It returns the
@@ -562,10 +562,10 @@ func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var first Character
-	var last Character
+	var first Rune
+	var last Rune
 	var range_ RangeLike
-	first, token, ok = v.parseCharacter()
+	first, token, ok = v.parseRune()
 	if !ok {
 		// This is not a range.
 		return range_, token, false
@@ -573,10 +573,10 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	_, token, ok = v.parseDelimiter("..")
 	if !ok {
 		// This is not a range.
-		v.backupOne() // Put back the character.
+		v.backupOne() // Put back the rune.
 		return range_, token, false
 	}
-	last, token, ok = v.parseCharacter()
+	last, token, ok = v.parseRune()
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("CHARACTER",
@@ -687,7 +687,7 @@ var grammar_ = map[string]string{
 	"$NOTE":        `"! " {~EOL}`,
 	"$COMMENT":     `"!>" EOL {COMMENT | ~"<!"} EOL "<!"`,
 	"$factor": `
-      range  ! A range of characters.
+      range  ! A range of runes.
     | "~" factor  ! The inversion of the factor.
     | "[" rule "]"  ! Zero or one instances of the rule.
     | "(" rule ")" [NUMBER]  ! Exact (default one) number of instances of the rule.

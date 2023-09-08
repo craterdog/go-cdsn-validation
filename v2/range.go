@@ -13,41 +13,41 @@ package cdsn
 // RANGE IMPLEMENTATION
 
 // This constructor creates a new range.
-func Range(first Character, last Character) RangeLike {
+func Range(first Rune, last Rune) RangeLike {
 	var v = &rng{}
-	v.SetFirstCharacter(first)
-	v.SetLastCharacter(last)
+	v.SetFirstRune(first)
+	v.SetLastRune(last)
 	return v
 }
 
 // This type defines the structure and methods associated with a range.
 type rng struct {
-	first Character
-	last  Character
+	first Rune
+	last  Rune
 }
 
-// This method returns the first character for this range.
-func (v *rng) GetFirstCharacter() Character {
+// This method returns the first rune for this range.
+func (v *rng) GetFirstRune() Rune {
 	return v.first
 }
 
-// This method sets the first character for this range.
-func (v *rng) SetFirstCharacter(first Character) {
+// This method sets the first rune for this range.
+func (v *rng) SetFirstRune(first Rune) {
 	if len(first) == 0 {
-		panic("A range requires two characters.")
+		panic("A range requires two runes.")
 	}
 	v.first = first
 }
 
-// This method returns the last character for this range.
-func (v *rng) GetLastCharacter() Character {
+// This method returns the last rune for this range.
+func (v *rng) GetLastRune() Rune {
 	return v.last
 }
 
-// This method sets the last character for this range.
-func (v *rng) SetLastCharacter(last Character) {
+// This method sets the last rune for this range.
+func (v *rng) SetLastRune(last Rune) {
 	if len(last) == 0 {
-		panic("A range requires two characters.")
+		panic("A range requires two runes.")
 	}
 	v.last = last
 }

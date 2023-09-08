@@ -1,18 +1,19 @@
 !>
     A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
-    Syntax Notation™ itself. Token names are identified by all CAPITAL
-    letters and rule names are identified by lowerCamelCase letters.
+    Syntax Notation™ itself.  This language grammar consists of rule definitions
+	and token definitions.
 
-    The INTRINSIC tokens are environment dependent and therefore left undefined.
-    The tokens are scanned in the order listed so an INTRINSIC token takes
-    precedence over an IDENTIFIER token.
+    Each rule name begins with a lowercase letter.  The rules are applied in the
+	order listed. So—for example—within a factor, a range of RUNEs takes
+	precedence over an individual RUNE.  The starting rule is the "$grammar" rule.
 
-    The rules are applied in the order listed as well, so within a factor a
-    range takes precedence over an individual CHARACTER.  The starting rule is
-    the "$grammar" rule.
+	Each token name begins with an uppercase letter.  The INTRINSIC tokens are
+	environment and language specific, and are therefore left undefined. The
+	tokens are also scanned in the order listed.  So an INTRINSIC token takes
+	precedence over an IDENTIFIER token.
 <!
 
-! *** Rules ***
+! *** Rules Begin with a Lowercase Letter ***
 
 $grammar: <statement> EOF  ! Terminated by an end-of-file marker.
 
@@ -20,45 +21,53 @@ $statement: (annotation | production) <EOL>
 
 $annotation: NOTE | COMMENT
 
-$production: SYMBOL ":" rule
+$production: SYMBOL ":" definition
 
-$rule: [EOL] alternative {[EOL] "|" alternative}
+$definition: [EOL] alternative {[EOL] "|" alternative}
 
 $alternative: <factor> [NOTE]
 
 $factor:
-      range  ! A range of characters.
+      range  ! A range of runes.
     | "~" factor  ! The inversion of the factor.
-    | "[" rule "]"  ! Zero or one instances of the rule.
-    | "(" rule ")" [NUMBER]  ! Exact (default one) number of instances of the rule.
-    | "<" rule ">" [NUMBER]  ! Minimum (default one) number of instances of the rule.
-    | "{" rule "}" [NUMBER]  ! Maximum (default unlimited) number of instances of the rule.
+    | "[" definition "]"  ! Zero or one instances of the definition.
+    | "(" definition ")" [NUMBER]  ! Exact (default one) number of instances of the definition.
+    | "<" definition ">" [NUMBER]  ! Minimum (default one) number of instances of the definition.
+    | "{" definition "}" [NUMBER]  ! Maximum (default unlimited) number of instances of the definition.
+    | RUNE
+    | STRING
     | NUMBER
-    | CHARACTER
-    | LITERAL
     | INTRINSIC
     | IDENTIFIER
     | DELIMITER
 
-$range: CHARACTER ".." CHARACTER
+$range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
 
-! *** Tokens ***
+! *** Tokens Begin with an Uppercase Letter ***
 
 $NOTE: "! " {~EOL}
 
 $COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
 
+$RUNE: "'" ~"'" "'"
+
+$STRING: '"' <~'"'> '"'
+
 $NUMBER: <DIGIT>
 
-$CHARACTER: "'" ~"'" "'"
+$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
 
-$LITERAL: '"' <~'"'> '"'
-
-$INTRINSIC: "LETTER" | "DIGIT" | "EOL" | "EOF"
-
-$IDENTIFIER: LETTER {LETTER | DIGIT}
+$IDENTIFIER: RULE | TOKEN
 
 $SYMBOL: "$" IDENTIFIER
+
+$RULE: LOWERCASE {CHARACTER}
+
+$TOKEN: UPPERCASE {CHARACTER}
+
+$LETTER: LOWERCASE | UPPERCASE
+
+$CHARACTER: LETTER | DIGIT
 
 $DELIMITER: "~" | ":" | "|" | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">" | ".."
 

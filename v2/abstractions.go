@@ -22,7 +22,6 @@ import (
 
 type (
 	Annotation   string
-	Character    string
 	Comment      string
 	Digit        string
 	Factor       any
@@ -30,9 +29,10 @@ type (
 	Identifier   string
 	Intrinsic    string
 	Letter       string
-	Literal      string
 	Note         string
 	Number       string
+	Rune         string
+	String       string
 	Symbol       string
 )
 
@@ -91,10 +91,10 @@ type ProductionLike interface {
 
 // This interface defines the methods supported by all range-like components.
 type RangeLike interface {
-	GetFirstCharacter() Character
-	SetFirstCharacter(first Character)
-	GetLastCharacter() Character
-	SetLastCharacter(last Character)
+	GetFirstRune() Rune
+	SetFirstRune(first Rune)
+	GetLastRune() Rune
+	SetLastRune(last Rune)
 }
 
 // This interface defines the methods supported by all rule-like components.

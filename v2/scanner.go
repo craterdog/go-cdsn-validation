@@ -26,16 +26,16 @@ type TokenType int
 // This enumeration defines all possible token types including the error token.
 const (
 	TokenError TokenType = iota
-	TokenCharacter
 	TokenComment
 	TokenDelimiter
 	TokenEOF
 	TokenEOL
 	TokenIdentifier
 	TokenIntrinsic
-	TokenLiteral
+	TokenString
 	TokenNote
 	TokenNumber
+	TokenRune
 	TokenSymbol
 )
 
@@ -43,16 +43,16 @@ const (
 func (v TokenType) String() string {
 	return [...]string{
 		"Error",
-		"Character",
 		"Comment",
 		"Delimiter",
 		"EOF",
 		"EOL",
 		"Identifier",
 		"Intrinsic",
-		"Literal",
+		"String",
 		"Note",
 		"Number",
+		"Rune",
 		"Symbol",
 	}[v]
 }
@@ -131,10 +131,10 @@ func (v *scanner) scanToken() bool {
 	case v.foundIntrinsic():
 	case v.foundIdentifier():
 	case v.foundSymbol():
-	case v.foundCharacter():
-	case v.foundLiteral():
-	case v.foundDelimiter():
 	case v.foundNumber():
+	case v.foundRune():
+	case v.foundString():
+	case v.foundDelimiter():
 	case v.foundEOL():
 	case v.foundEOF():
 		// We are at the end of the source bytes.
@@ -195,19 +195,6 @@ func (v *scanner) emitToken(tType TokenType) TokenType {
 	return tType
 }
 
-// This method adds a character token with the current scanner information
-// to the token channel. It returns true if a character token was found.
-func (v *scanner) foundCharacter() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanCharacter(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenCharacter)
-		return true
-	}
-	return false
-}
-
 // This method adds a comment token with the current scanner information
 // to the token channel. It returns true if a comment token was found.
 func (v *scanner) foundComment() bool {
@@ -230,19 +217,6 @@ func (v *scanner) foundDelimiter() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenDelimiter)
-		return true
-	}
-	return false
-}
-
-// This method adds a number token with the current scanner information to the
-// token channel. It returns true if a number token was found.
-func (v *scanner) foundNumber() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanNumber(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenNumber)
 		return true
 	}
 	return false
@@ -310,19 +284,6 @@ func (v *scanner) foundIntrinsic() bool {
 	return false
 }
 
-// This method adds a literal token with the current scanner information to the
-// token channel. It returns true if a literal token was found.
-func (v *scanner) foundLiteral() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanLiteral(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenLiteral)
-		return true
-	}
-	return false
-}
-
 // This method adds a note token with the current scanner information to the
 // token channel. It returns true if a note token was found.
 func (v *scanner) foundNote() bool {
@@ -331,6 +292,45 @@ func (v *scanner) foundNote() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenNote)
+		return true
+	}
+	return false
+}
+
+// This method adds a number token with the current scanner information to the
+// token channel. It returns true if a number token was found.
+func (v *scanner) foundNumber() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanNumber(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenNumber)
+		return true
+	}
+	return false
+}
+
+// This method adds a rune token with the current scanner information
+// to the token channel. It returns true if a rune token was found.
+func (v *scanner) foundRune() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanRune(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenRune)
+		return true
+	}
+	return false
+}
+
+// This method adds a string token with the current scanner information to the
+// token channel. It returns true if a string token was found.
+func (v *scanner) foundString() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanString(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenString)
 		return true
 	}
 	return false
@@ -347,16 +347,6 @@ func (v *scanner) foundSymbol() bool {
 		return true
 	}
 	return false
-}
-
-// This scanner is used for matching character tokens.
-var characterScanner = reg.MustCompile(`^(?:` + character + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for a character token. The first string in the array is the
-// entire matched string.
-func scanCharacter(v []byte) []string {
-	return bytesToStrings(characterScanner.FindSubmatch(v))
 }
 
 // This function returns for the specified string an array of the matching
@@ -416,16 +406,6 @@ func scanDelimiter(v []byte) []string {
 	return bytesToStrings(delimiterScanner.FindSubmatch(v))
 }
 
-// This scanner is used for matching number tokens.
-var numberScanner = reg.MustCompile(`^(?:` + number + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for a number token. The first string in the array is the
-// entire matched string.
-func scanNumber(v []byte) []string {
-	return bytesToStrings(numberScanner.FindSubmatch(v))
-}
-
 // This scanner is used for matching identifier tokens.
 var identifierScanner = reg.MustCompile(`^(?:` + identifier + `)`)
 
@@ -446,16 +426,6 @@ func scanIntrinsic(v []byte) []string {
 	return bytesToStrings(intrinsicScanner.FindSubmatch(v))
 }
 
-// This scanner is used for matching literal tokens.
-var literalScanner = reg.MustCompile(`^(?:` + literal + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for a literal token. The first string in the array is the
-// entire matched string.
-func scanLiteral(v []byte) []string {
-	return bytesToStrings(literalScanner.FindSubmatch(v))
-}
-
 // This scanner is used for matching note tokens.
 var noteScanner = reg.MustCompile(`^(?:` + note + `)`)
 
@@ -464,6 +434,36 @@ var noteScanner = reg.MustCompile(`^(?:` + note + `)`)
 // entire matched string.
 func scanNote(v []byte) []string {
 	return bytesToStrings(noteScanner.FindSubmatch(v))
+}
+
+// This scanner is used for matching number tokens.
+var numberScanner = reg.MustCompile(`^(?:` + number + `)`)
+
+// This function returns for the specified string an array of the matching
+// subgroups for a number token. The first string in the array is the
+// entire matched string.
+func scanNumber(v []byte) []string {
+	return bytesToStrings(numberScanner.FindSubmatch(v))
+}
+
+// This scanner is used for matching rune tokens.
+var runeScanner = reg.MustCompile(`^(?:` + rune_ + `)`)
+
+// This function returns for the specified string an array of the matching
+// subgroups for a rune token. The first string in the array is the
+// entire matched string.
+func scanRune(v []byte) []string {
+	return bytesToStrings(runeScanner.FindSubmatch(v))
+}
+
+// This scanner is used for matching string tokens.
+var stringScanner = reg.MustCompile(`^(?:` + string_ + `)`)
+
+// This function returns for the specified string an array of the matching
+// subgroups for a string token. The first string in the array is the
+// entire matched string.
+func scanString(v []byte) []string {
+	return bytesToStrings(stringScanner.FindSubmatch(v))
 }
 
 // This scanner is used for matching symbol tokens.
@@ -480,14 +480,20 @@ func scanSymbol(v []byte) []string {
 
 // These constant definitions capture regular expression subpatterns.
 const (
-	intrinsic  = `LETTER|DIGIT|EOL|EOF`
-	character  = `['][^'][']`
-	literal    = `["][^"]+["]`
-	letter     = `\pL` // All unicode letters and connectors like underscores.
-	digit      = `\pN` // All unicode digits.
-	identifier = letter + `(?:` + letter + `|` + digit + `)*`
-	symbol     = `\$` + identifier
+	intrinsic  = `LOWERCASE|UPPERCASE|DIGIT|EOL|EOF`
+	rune_      = `['][^'][']`
+	string_    = `["][^"]+["]`
+	lowercase  = `\p{Ll}` // All unicode lowercase letters.
+	uppercase  = `\p{Lu}` // All unicode upppercase letters.
+	digit      = `\p{Nd}` // All unicode digits.
+	eol        = `\n`
 	number     = digit + `+`
+	letter     = lowercase + `|` + uppercase
+	character  = letter + `|` + digit
+	rule_      = lowercase + `(?:` + character + `)*`
+	token      = uppercase + `(?:` + character + `)*`
+	identifier = rule_ + `|` + token
+	symbol     = `\$(` + identifier + `)`
 	note       = `! [^\n]*`
 	delimiter  = `[~:|()[\]{}<>]|\.\.`
 )
