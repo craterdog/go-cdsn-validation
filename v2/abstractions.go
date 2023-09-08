@@ -51,7 +51,8 @@ const (
 
 // INDIVIDUAL INTERFACES
 
-// This interface defines the methods supported by all alternative-like components.
+// This interface defines the methods supported by all alternative-like
+// components.
 type AlternativeLike interface {
 	GetFactors() col.Sequential[Factor]
 	SetFactors(factors col.Sequential[Factor])
@@ -59,13 +60,15 @@ type AlternativeLike interface {
 	SetNote(note Note)
 }
 
-// This interface defines the methods supported by all grammar-like components.
+// This interface defines the methods supported by all grammar-like
+// components.
 type GrammarLike interface {
 	GetStatements() col.Sequential[StatementLike]
 	SetStatements(statements col.Sequential[StatementLike])
 }
 
-// This interface defines the methods supported by all grouping-like components.
+// This interface defines the methods supported by all grouping-like
+// components.
 type GroupingLike interface {
 	GetDefinition() DefinitionLike
 	SetDefinition(definition DefinitionLike)
@@ -75,13 +78,15 @@ type GroupingLike interface {
 	SetNumber(count Number)
 }
 
-// This interface defines the methods supported by all inversion-like components.
+// This interface defines the methods supported by all inversion-like
+// components.
 type InversionLike interface {
 	GetFactor() Factor
 	SetFactor(factor Factor)
 }
 
-// This interface defines the methods supported by all production-like components.
+// This interface defines the methods supported by all production-like
+// components.
 type ProductionLike interface {
 	GetSymbol() Symbol
 	SetSymbol(symbol Symbol)
@@ -97,7 +102,8 @@ type RangeLike interface {
 	SetLastRune(last Rune)
 }
 
-// This interface defines the methods supported by all definition-like components.
+// This interface defines the methods supported by all definition-like
+// components.
 type DefinitionLike interface {
 	IsMultilined() bool
 	SetMultilined(multilined bool)
@@ -105,7 +111,8 @@ type DefinitionLike interface {
 	SetAlternatives(alternatives col.Sequential[AlternativeLike])
 }
 
-// This interface defines the methods supported by all statement-like components.
+// This interface defines the methods supported by all statement-like
+// components.
 type StatementLike interface {
 	GetAnnotation() Annotation
 	SetAnnotation(annotation Annotation)

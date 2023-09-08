@@ -111,8 +111,8 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
-// This method attempts to parse an alternative. It returns the alternative and whether or
-// not the alternative was successfully parsed.
+// This method attempts to parse an alternative. It returns the alternative and
+// whether or not the alternative was successfully parsed.
 func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -342,8 +342,8 @@ func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
 	return grammar, token, true
 }
 
-// This method attempts to parse an identifier token. It returns
-// the token and whether or not an identifier token was found.
+// This method attempts to parse an identifier token. It returns the token and
+// whether or not an identifier token was found.
 func (v *parser) parseIdentifier() (Identifier, *Token, bool) {
 	var identifier Identifier
 	var token = v.nextToken()
@@ -404,9 +404,9 @@ func (v *parser) parseString() (String, *Token, bool) {
 	return string_, token, true
 }
 
-// This method attempts to parse a zero or more grouping. It returns the
-// zero or more grouping and whether or not the zero or more grouping was
-// successfully parsed.
+// This method attempts to parse a zero or more grouping. It returns the zero or
+// more grouping and whether or not the zero or more grouping was successfully
+// parsed.
 func (v *parser) parseMaximumNumber() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -439,9 +439,9 @@ func (v *parser) parseMaximumNumber() (GroupingLike, *Token, bool) {
 	return grouping, token, true
 }
 
-// This method attempts to parse a one or more grouping. It returns the
-// one or more grouping and whether or not the one or more grouping was
-// successfully parsed.
+// This method attempts to parse a one or more grouping. It returns the one or
+// more grouping and whether or not the one or more grouping was successfully
+// parsed.
 func (v *parser) parseMinimumNumber() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -474,8 +474,8 @@ func (v *parser) parseMinimumNumber() (GroupingLike, *Token, bool) {
 	return grouping, token, true
 }
 
-// This method attempts to parse a note. It returns the note and whether
-// or not the note was successfully parsed.
+// This method attempts to parse a note. It returns the note and whether or not
+// the note was successfully parsed.
 func (v *parser) parseNote() (Note, *Token, bool) {
 	var note Note
 	var token = v.nextToken()
@@ -487,9 +487,9 @@ func (v *parser) parseNote() (Note, *Token, bool) {
 	return note, token, true
 }
 
-// This method attempts to parse a zero or one grouping. It returns the
-// zero or one grouping and whether or not the zero or one grouping was
-// successfully parsed.
+// This method attempts to parse a zero or one grouping. It returns the zero or
+// one grouping and whether or not the zero or one grouping was successfully
+// parsed.
 func (v *parser) parseOptional() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -522,8 +522,8 @@ func (v *parser) parseOptional() (GroupingLike, *Token, bool) {
 	return grouping, token, true
 }
 
-// This method attempts to parse a production. It returns the production
-// and whether or not the production was successfully parsed.
+// This method attempts to parse a production. It returns the production and
+// whether or not the production was successfully parsed.
 func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -557,8 +557,8 @@ func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 	return production, token, true
 }
 
-// This method attempts to parse a range. It returns the range
-// and whether or not the range was successfully parsed.
+// This method attempts to parse a range. It returns the range and whether or
+// not the range was successfully parsed.
 func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -588,8 +588,8 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	return range_, token, true
 }
 
-// This method attempts to parse a definition. It returns the definition and whether or not
-// the definition was successfully parsed.
+// This method attempts to parse a definition. It returns the definition and
+// whether or not the definition was successfully parsed.
 func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -671,13 +671,13 @@ func (v *parser) parseSymbol() (Symbol, *Token, bool) {
 // This map captures the syntax definitions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar_ = map[string]string{
-
 	"$grammar":     `<statement> EOF  ! Terminated by an end-of-file marker.`,
-	"$statement":   `(COMMENT | production) <EOL>`,
+	"$statement":   `(annotation | production) <EOL>`,
+	"$annotation":  `NOTE | COMMENT`,
 	"$production":  `SYMBOL ":" definition`,
 	"$definition":  `[EOL] alternative {[EOL] "|" alternative}`,
 	"$alternative": `<factor> [NOTE]`,
-	"$range":       `CHARACTER ".." CHARACTER`,
+	"$range":       `RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.`,
 	"$CHARACTER":   `"'" ~"'" "'"`,
 	"$LITERAL":     `'"' <~'"'> '"'`,
 	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOL" | "EOF"`,
@@ -693,24 +693,27 @@ var grammar_ = map[string]string{
     | "(" definition ")" [NUMBER]  ! Exact (default one) number of instances of the definition.
     | "<" definition ">" [NUMBER]  ! Minimum (default one) number of instances of the definition.
     | "{" definition "}" [NUMBER]  ! Maximum (default unlimited) number of instances of the definition.
-    | CHARACTER
-    | LITERAL
+    | RUNE
+    | STRING
+    | NUMBER
     | INTRINSIC
-    | IDENTIFIER`,
+    | IDENTIFIER
+    | DELIMITER`,
 }
 
 const header = `!>
     A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
-    Syntax Notation™ itself. Token names are identified by all CAPITAL
-    letters and rule names are identified by lowerCamelCase letters.
+    Syntax Notation™ itself.  This language grammar consists of rule definitions
+	and token definitions.
 
-    The INTRINSIC tokens are environment dependent and therefore left undefined.
-    The tokens are scanned in the order listed so an INTRINSIC token takes
-    precedence over an IDENTIFIER token.
+    Each rule name begins with a lowercase letter.  The rules are applied in the
+	order listed. So—for example—within a factor, a range of RUNEs takes
+	precedence over an individual RUNE.  The starting rule is the "$grammar" rule.
 
-    The rules are applied in the order listed as well, so within a factor a
-    range takes precedence over an individual CHARACTER.  The starting rule is
-    the "$grammar" rule.
+	Each token name begins with an uppercase letter.  The INTRINSIC tokens are
+	environment and language specific, and are therefore left undefined. The
+	tokens are also scanned in the order listed.  So an INTRINSIC token takes
+	precedence over an IDENTIFIER token.
 <!
 
 `

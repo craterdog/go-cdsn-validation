@@ -10,13 +10,13 @@
 
 package #package#
 
-// This method attempts to parse a #rule#. It returns the #rule# and whether or
-// not the #rule# was successfully parsed.
-func parse#Rule#(v *parser) (#Rule#Like, *Token, bool) {
+// This method attempts to parse a #definition#. It returns the #definition#
+// and whether or not the #definition# was successfully parsed.
+func parse#Definition#(v *parser) (#Definition#Like, *Token, bool) {
 	var ok bool
 	var token *Token
-	var #rule# #Rule#Like
+	var #definition# #Definition#Like
 	// body goes here...
-	#rule# = #Rule#()
-	return #rule#, token, true
+	#definition# = #Definition#()
+	return #definition#, token, true
 }
