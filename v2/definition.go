@@ -16,38 +16,38 @@ import (
 
 // RULE IMPLEMENTATION
 
-// This constructor creates a new rule.
-func Rule(alternatives col.Sequential[AlternativeLike]) RuleLike {
-	var v = &rule{}
+// This constructor creates a new definition.
+func Definition(alternatives col.Sequential[AlternativeLike]) DefinitionLike {
+	var v = &definition{}
 	v.SetAlternatives(alternatives)
 	return v
 }
 
-// This type defines the structure and methods associated with a rule.
-type rule struct {
+// This type defines the structure and methods associated with a definition.
+type definition struct {
 	multilined   bool
 	alternatives col.Sequential[AlternativeLike]
 }
 
-// This method determines whether or not this rule is multlined.
-func (v *rule) IsMultilined() bool {
+// This method determines whether or not this definition is multlined.
+func (v *definition) IsMultilined() bool {
 	return v.multilined
 }
 
-// This method sets whether or not this rule is multlined.
-func (v *rule) SetMultilined(multilined bool) {
+// This method sets whether or not this definition is multlined.
+func (v *definition) SetMultilined(multilined bool) {
 	v.multilined = multilined
 }
 
-// This method returns the alternatives for this rule.
-func (v *rule) GetAlternatives() col.Sequential[AlternativeLike] {
+// This method returns the alternatives for this definition.
+func (v *definition) GetAlternatives() col.Sequential[AlternativeLike] {
 	return v.alternatives
 }
 
-// This method sets the alternatives for this rule.
-func (v *rule) SetAlternatives(alternatives col.Sequential[AlternativeLike]) {
+// This method sets the alternatives for this definition.
+func (v *definition) SetAlternatives(alternatives col.Sequential[AlternativeLike]) {
 	if alternatives == nil || alternatives.IsEmpty() {
-		panic("A rule requires at least one alternative.")
+		panic("A definition requires at least one alternative.")
 	}
 	var iterator = col.Iterator(alternatives)
 	for iterator.HasNext() {

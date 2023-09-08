@@ -128,25 +128,25 @@ func (v *formatter) formatGrammar(grammar GrammarLike) {
 
 // This private method appends a formatted grouping to the result.
 func (v *formatter) formatGrouping(grouping GroupingLike) {
-	var rule = grouping.GetRule()
+	var definition = grouping.GetDefinition()
 	var type_ = grouping.GetType()
 	var number = grouping.GetNumber()
 	switch type_ {
 	case Optional:
 		v.appendString("[")
-		v.formatRule(rule)
+		v.formatDefinition(definition)
 		v.appendString("]")
 	case ExactNumber:
 		v.appendString("(")
-		v.formatRule(rule)
+		v.formatDefinition(definition)
 		v.appendString(")")
 	case MinimumNumber:
 		v.appendString("<")
-		v.formatRule(rule)
+		v.formatDefinition(definition)
 		v.appendString(">")
 	case MaximumNumber:
 		v.appendString("{")
-		v.formatRule(rule)
+		v.formatDefinition(definition)
 		v.appendString("}")
 	default:
 		panic(fmt.Sprintf("Attempted to format an invalid grouping type: %v\n", type_))
@@ -187,14 +187,14 @@ func (v *formatter) formatProduction(production ProductionLike) {
 	v.formatSymbol(symbol)
 	v.appendString(":")
 	v.depth++
-	var rule = production.GetRule()
-	if rule.IsMultilined() {
+	var definition = production.GetDefinition()
+	if definition.IsMultilined() {
 		v.appendNewline()
 		v.appendString("  ")
 	} else {
 		v.appendString(" ")
 	}
-	v.formatRule(rule)
+	v.formatDefinition(definition)
 	v.depth--
 }
 
@@ -207,15 +207,15 @@ func (v *formatter) formatRange(range_ RangeLike) {
 	v.formatRune(last)
 }
 
-// This private method appends a formatted rule to the result.
-func (v *formatter) formatRule(rule RuleLike) {
-	var alternatives = rule.GetAlternatives()
+// This private method appends a formatted definition to the result.
+func (v *formatter) formatDefinition(definition DefinitionLike) {
+	var alternatives = definition.GetAlternatives()
 	var iterator = col.Iterator(alternatives)
 	var alternative = iterator.GetNext()
 	v.formatAlternative(alternative)
 	for iterator.HasNext() {
 		alternative = iterator.GetNext()
-		if rule.IsMultilined() {
+		if definition.IsMultilined() {
 			v.appendNewline()
 		} else {
 			v.appendString(" ")

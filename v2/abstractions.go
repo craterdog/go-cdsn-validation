@@ -67,8 +67,8 @@ type GrammarLike interface {
 
 // This interface defines the methods supported by all grouping-like components.
 type GroupingLike interface {
-	GetRule() RuleLike
-	SetRule(rule RuleLike)
+	GetDefinition() DefinitionLike
+	SetDefinition(definition DefinitionLike)
 	GetType() GroupingType
 	SetType(type_ GroupingType)
 	GetNumber() Number
@@ -85,8 +85,8 @@ type InversionLike interface {
 type ProductionLike interface {
 	GetSymbol() Symbol
 	SetSymbol(symbol Symbol)
-	GetRule() RuleLike
-	SetRule(rule RuleLike)
+	GetDefinition() DefinitionLike
+	SetDefinition(definition DefinitionLike)
 }
 
 // This interface defines the methods supported by all range-like components.
@@ -97,8 +97,8 @@ type RangeLike interface {
 	SetLastRune(last Rune)
 }
 
-// This interface defines the methods supported by all rule-like components.
-type RuleLike interface {
+// This interface defines the methods supported by all definition-like components.
+type DefinitionLike interface {
 	IsMultilined() bool
 	SetMultilined(multilined bool)
 	GetAlternatives() col.Sequential[AlternativeLike]

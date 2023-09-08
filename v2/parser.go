@@ -216,32 +216,32 @@ func (v *parser) parseNumber() (Number, *Token, bool) {
 func (v *parser) parseExactNumber() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var rule RuleLike
+	var definition DefinitionLike
 	var grouping GroupingLike
 	_, token, ok = v.parseDelimiter("(")
 	if !ok {
 		// This is not a precedence grouping.
 		return grouping, token, false
 	}
-	rule, token, ok = v.parseRule()
+	definition, token, ok = v.parseDefinition()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("rule",
+		message += generateGrammar("definition",
 			"$factor",
-			"$rule")
+			"$definition")
 		panic(message)
 	}
-	rule.SetMultilined(false)
+	definition.SetMultilined(false)
 	_, token, ok = v.parseDelimiter(")")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(")",
 			"$factor",
-			"$rule")
+			"$definition")
 		panic(message)
 	}
 	var number, _, _ = v.parseNumber() // The number is optional.
-	grouping = Grouping(rule, ExactNumber, number)
+	grouping = Grouping(definition, ExactNumber, number)
 	return grouping, token, true
 }
 
@@ -410,32 +410,32 @@ func (v *parser) parseString() (String, *Token, bool) {
 func (v *parser) parseMaximumNumber() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var rule RuleLike
+	var definition DefinitionLike
 	var grouping GroupingLike
 	_, token, ok = v.parseDelimiter("{")
 	if !ok {
 		// This is not a zero or more grouping.
 		return grouping, token, false
 	}
-	rule, token, ok = v.parseRule()
+	definition, token, ok = v.parseDefinition()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("rule",
+		message += generateGrammar("definition",
 			"$factor",
-			"$rule")
+			"$definition")
 		panic(message)
 	}
-	rule.SetMultilined(false)
+	definition.SetMultilined(false)
 	_, token, ok = v.parseDelimiter("}")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("}",
 			"$factor",
-			"$rule")
+			"$definition")
 		panic(message)
 	}
 	var number, _, _ = v.parseNumber() // The number is optional.
-	grouping = Grouping(rule, MaximumNumber, number)
+	grouping = Grouping(definition, MaximumNumber, number)
 	return grouping, token, true
 }
 
@@ -445,32 +445,32 @@ func (v *parser) parseMaximumNumber() (GroupingLike, *Token, bool) {
 func (v *parser) parseMinimumNumber() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var rule RuleLike
+	var definition DefinitionLike
 	var grouping GroupingLike
 	_, token, ok = v.parseDelimiter("<")
 	if !ok {
 		// This is not a one or more grouping.
 		return grouping, token, false
 	}
-	rule, token, ok = v.parseRule()
+	definition, token, ok = v.parseDefinition()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("rule",
+		message += generateGrammar("definition",
 			"$factor",
-			"$rule")
+			"$definition")
 		panic(message)
 	}
-	rule.SetMultilined(false)
+	definition.SetMultilined(false)
 	_, token, ok = v.parseDelimiter(">")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(">",
 			"$factor",
-			"$rule")
+			"$definition")
 		panic(message)
 	}
 	var number, _, _ = v.parseNumber() // The number is optional.
-	grouping = Grouping(rule, MinimumNumber, number)
+	grouping = Grouping(definition, MinimumNumber, number)
 	return grouping, token, true
 }
 
@@ -493,32 +493,32 @@ func (v *parser) parseNote() (Note, *Token, bool) {
 func (v *parser) parseOptional() (GroupingLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var rule RuleLike
+	var definition DefinitionLike
 	var grouping GroupingLike
 	_, token, ok = v.parseDelimiter("[")
 	if !ok {
 		// This is not a zero or one grouping.
 		return grouping, token, false
 	}
-	rule, token, ok = v.parseRule()
+	definition, token, ok = v.parseDefinition()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("rule",
+		message += generateGrammar("definition",
 			"$factor",
-			"$rule")
+			"$definition")
 		panic(message)
 	}
-	rule.SetMultilined(false)
+	definition.SetMultilined(false)
 	_, token, ok = v.parseDelimiter("]")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("]",
 			"$factor",
-			"$rule")
+			"$definition")
 		panic(message)
 	}
 	var number, _, _ = v.parseNumber() // The number is optional.
-	grouping = Grouping(rule, Optional, number)
+	grouping = Grouping(definition, Optional, number)
 	return grouping, token, true
 }
 
@@ -528,7 +528,7 @@ func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var symbol Symbol
-	var rule RuleLike
+	var definition DefinitionLike
 	var production ProductionLike
 	symbol, token, ok = v.parseSymbol()
 	if !ok {
@@ -541,19 +541,19 @@ func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
 		message += generateGrammar(":",
 			"$production",
 			"$SYMBOL",
-			"$rule")
+			"$definition")
 		panic(message)
 	}
-	rule, token, ok = v.parseRule()
+	definition, token, ok = v.parseDefinition()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("rule",
+		message += generateGrammar("definition",
 			"$production",
 			"$SYMBOL",
-			"$rule")
+			"$definition")
 		panic(message)
 	}
-	production = Production(symbol, rule)
+	production = Production(symbol, definition)
 	return production, token, true
 }
 
@@ -588,20 +588,20 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	return range_, token, true
 }
 
-// This method attempts to parse a rule. It returns the rule and whether or not
-// the rule was successfully parsed.
-func (v *parser) parseRule() (RuleLike, *Token, bool) {
+// This method attempts to parse a definition. It returns the definition and whether or not
+// the definition was successfully parsed.
+func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var alternative AlternativeLike
 	var alternatives = col.List[AlternativeLike]()
-	var rule RuleLike
+	var definition DefinitionLike
 	v.parseEOL() // The EOL is optional.
 	alternative, token, ok = v.parseAlternative()
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("alternative",
-			"$rule",
+			"$definition",
 			"$alternative")
 		panic(message)
 	}
@@ -617,13 +617,13 @@ func (v *parser) parseRule() (RuleLike, *Token, bool) {
 		if !ok {
 			var message = v.formatError(token)
 			message += generateGrammar("alternative",
-				"$rule",
+				"$definition",
 				"$alternative")
 			panic(message)
 		}
 	}
-	rule = Rule(alternatives)
-	return rule, token, true
+	definition = Definition(alternatives)
+	return definition, token, true
 }
 
 // This method attempts to parse a statement. It returns the statement and
@@ -668,14 +668,14 @@ func (v *parser) parseSymbol() (Symbol, *Token, bool) {
 
 // GRAMMAR UTILITIES
 
-// This map captures the syntax rules for Crater Dog Syntax Notation.
+// This map captures the syntax definitions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar_ = map[string]string{
 
 	"$grammar":     `<statement> EOF  ! Terminated by an end-of-file marker.`,
 	"$statement":   `(COMMENT | production) <EOL>`,
-	"$production":  `SYMBOL ":" rule`,
-	"$rule":        `[EOL] alternative {[EOL] "|" alternative}`,
+	"$production":  `SYMBOL ":" definition`,
+	"$definition":  `[EOL] alternative {[EOL] "|" alternative}`,
 	"$alternative": `<factor> [NOTE]`,
 	"$range":       `CHARACTER ".." CHARACTER`,
 	"$CHARACTER":   `"'" ~"'" "'"`,
@@ -689,10 +689,10 @@ var grammar_ = map[string]string{
 	"$factor": `
       range  ! A range of runes.
     | "~" factor  ! The inversion of the factor.
-    | "[" rule "]"  ! Zero or one instances of the rule.
-    | "(" rule ")" [NUMBER]  ! Exact (default one) number of instances of the rule.
-    | "<" rule ">" [NUMBER]  ! Minimum (default one) number of instances of the rule.
-    | "{" rule "}" [NUMBER]  ! Maximum (default unlimited) number of instances of the rule.
+    | "[" definition "]"  ! Zero or one instances of the definition.
+    | "(" definition ")" [NUMBER]  ! Exact (default one) number of instances of the definition.
+    | "<" definition ">" [NUMBER]  ! Minimum (default one) number of instances of the definition.
+    | "{" definition "}" [NUMBER]  ! Maximum (default unlimited) number of instances of the definition.
     | CHARACTER
     | LITERAL
     | INTRINSIC

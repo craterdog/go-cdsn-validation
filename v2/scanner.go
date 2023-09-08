@@ -490,9 +490,9 @@ const (
 	number     = digit + `+`
 	letter     = lowercase + `|` + uppercase
 	character  = letter + `|` + digit
-	rule_      = lowercase + `(?:` + character + `)*`
+	rule       = lowercase + `(?:` + character + `)*`
 	token      = uppercase + `(?:` + character + `)*`
-	identifier = rule_ + `|` + token
+	identifier = rule + `|` + token
 	symbol     = `\$(` + identifier + `)`
 	note       = `! [^\n]*`
 	delimiter  = `[~:|()[\]{}<>]|\.\.`

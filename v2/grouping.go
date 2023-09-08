@@ -13,9 +13,9 @@ package cdsn
 // GROUPING IMPLEMENTATION
 
 // This constructor creates a new grouping.
-func Grouping(rule RuleLike, type_ GroupingType, number Number) GroupingLike {
+func Grouping(definition DefinitionLike, type_ GroupingType, number Number) GroupingLike {
 	var v = &grouping{}
-	v.SetRule(rule)
+	v.SetDefinition(definition)
 	v.SetType(type_)
 	v.SetNumber(number)
 	return v
@@ -23,22 +23,22 @@ func Grouping(rule RuleLike, type_ GroupingType, number Number) GroupingLike {
 
 // This type defines the structure and methods associated with a grouping.
 type grouping struct {
-	rule   RuleLike
-	type_  GroupingType
-	number Number
+	definition DefinitionLike
+	type_      GroupingType
+	number     Number
 }
 
-// This method returns the rule for this grouping.
-func (v *grouping) GetRule() RuleLike {
-	return v.rule
+// This method returns the definition for this grouping.
+func (v *grouping) GetDefinition() DefinitionLike {
+	return v.definition
 }
 
-// This method sets the rule for this grouping.
-func (v *grouping) SetRule(rule RuleLike) {
-	if rule == nil {
-		panic("A grouping requires a rule.")
+// This method sets the definition for this grouping.
+func (v *grouping) SetDefinition(definition DefinitionLike) {
+	if definition == nil {
+		panic("A grouping requires a definition.")
 	}
-	v.rule = rule
+	v.definition = definition
 }
 
 // This method returns the grouping type for this grouping.
