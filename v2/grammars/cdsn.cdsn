@@ -5,7 +5,8 @@
 
     Each rule name begins with a lowercase letter.  The rules are applied in the
     order listed. So—for example—within a factor, a range of RUNEs takes
-    precedence over an individual RUNE.  The starting rule is the "$grammar" rule.
+    precedence over an individual RUNE.  The starting rule is the "$grammar"
+    rule.
 
     Each token name begins with an uppercase letter.  The INTRINSIC tokens are
     environment and language specific, and are therefore left undefined. The
