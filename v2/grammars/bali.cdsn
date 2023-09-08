@@ -1,7 +1,7 @@
 !>
     A formal definition of Bali Document Notation™ (Bali) using Crater Dog
-	Syntax Notation™.  Token names are identified by all CAPITAL letters and
-	rule names are identified by lowerCamelCase letters.
+    Syntax Notation™.  Token names are identified by all CAPITAL letters and
+    rule names are identified by lowerCamelCase letters.
 
     The INTRINSIC tokens are environment dependent and therefore left undefined.
     The tokens are scanned in the order listed so an INTRINSIC token takes

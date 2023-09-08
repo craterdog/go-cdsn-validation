@@ -1,16 +1,16 @@
 !>
     A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
     Syntax Notation™ itself.  This language grammar consists of rule definitions
-	and token definitions.
+    and token definitions.
 
     Each rule name begins with a lowercase letter.  The rules are applied in the
-	order listed. So—for example—within a factor, a range of RUNEs takes
-	precedence over an individual RUNE.  The starting rule is the "$grammar" rule.
+    order listed. So—for example—within a factor, a range of RUNEs takes
+    precedence over an individual RUNE.  The starting rule is the "$grammar" rule.
 
-	Each token name begins with an uppercase letter.  The INTRINSIC tokens are
-	environment and language specific, and are therefore left undefined. The
-	tokens are also scanned in the order listed.  So an INTRINSIC token takes
-	precedence over an IDENTIFIER token.
+    Each token name begins with an uppercase letter.  The INTRINSIC tokens are
+    environment and language specific, and are therefore left undefined. The
+    tokens are also scanned in the order listed.  So an INTRINSIC token takes
+    precedence over an IDENTIFIER token.
 <!
 
 ! *** Rules Begin with a Lowercase Letter ***
