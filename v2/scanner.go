@@ -487,7 +487,7 @@ const (
 	lowercase  = `\p{Ll}` // All unicode lowercase letters.
 	uppercase  = `\p{Lu}` // All unicode upppercase letters.
 	digit      = `\p{Nd}` // All unicode digits.
-	eol        = `\n` // Contains the actual characters `\` and `n`, not EOF.
+	eol        = `\n`     // Contains the actual characters `\` and `n`, not EOF.
 	number     = digit + `+`
 	letter     = lowercase + `|` + uppercase
 	character  = letter + `|` + digit
