@@ -14,6 +14,8 @@ import (
 	reg "regexp"
 )
 
+type #Token# string
+
 // This token type is used to refer to all #token#s.
 const Token#Token# TokenType = "#Token#"
 

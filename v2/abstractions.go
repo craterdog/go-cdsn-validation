@@ -20,12 +20,11 @@ import (
 
 // TYPE DEFINITIONS
 
+// The following define the native Go token types.
 type (
 	Annotation   string
 	Comment      string
 	Digit        string
-	Factor       any
-	GroupingType int64
 	Identifier   string
 	Intrinsic    string
 	Letter       string
@@ -34,6 +33,12 @@ type (
 	Rune         string
 	String       string
 	Symbol       string
+)
+
+// The following define the Go rule related types.
+type (
+	Factor       any
+	GroupingType int64
 )
 
 // CONSTANTS
@@ -58,6 +63,15 @@ type AlternativeLike interface {
 	SetFactors(factors col.Sequential[Factor])
 	GetNote() Note
 	SetNote(note Note)
+}
+
+// This interface defines the methods supported by all definition-like
+// components.
+type DefinitionLike interface {
+	IsMultilined() bool
+	SetMultilined(multilined bool)
+	GetAlternatives() col.Sequential[AlternativeLike]
+	SetAlternatives(alternatives col.Sequential[AlternativeLike])
 }
 
 // This interface defines the methods supported by all grammar-like
@@ -100,15 +114,6 @@ type RangeLike interface {
 	SetFirstRune(first Rune)
 	GetLastRune() Rune
 	SetLastRune(last Rune)
-}
-
-// This interface defines the methods supported by all definition-like
-// components.
-type DefinitionLike interface {
-	IsMultilined() bool
-	SetMultilined(multilined bool)
-	GetAlternatives() col.Sequential[AlternativeLike]
-	SetAlternatives(alternatives col.Sequential[AlternativeLike])
 }
 
 // This interface defines the methods supported by all statement-like

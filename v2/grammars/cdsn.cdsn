@@ -5,8 +5,7 @@
 
     Each rule name begins with a lowercase letter.  The rules are applied in the
     order listed. So—for example—within a factor, a range of RUNEs takes
-    precedence over an individual RUNE.  The starting rule is the "$grammar"
-    rule.
+    precedence over an individual RUNE.
 
     Each token name begins with an uppercase letter.  The INTRINSIC tokens are
     environment and language specific, and are therefore left undefined. The
@@ -16,39 +15,58 @@
 
 ! *** Rules Begin with a Lowercase Letter ***
 
-$grammar: <statement> EOF  ! Terminated by an end-of-file marker.
+$grammar: <statement> EOF  ! Terminated with an end-of-file marker.
 
 $statement: (annotation | production) <EOL>
 
 $annotation: NOTE | COMMENT
 
-$production: SYMBOL ":" definition
+$production: SYMBOL ":" definition  ! This works for both tokens and rules.
 
 $definition: [EOL] alternative {[EOL] "|" alternative}
 
 $alternative: <factor> [NOTE]
 
 $factor:
-      range  ! A range of runes.
-    | "~" factor  ! The inversion of the factor.
-    | "[" definition "]"  ! Zero or one instances of the definition.
-    | "(" definition ")" [NUMBER]  ! Exact (default one) number of instances of the definition.
-    | "<" definition ">" [NUMBER]  ! Minimum (default one) number of instances of the definition.
-    | "{" definition "}" [NUMBER]  ! Maximum (default unlimited) number of instances of the definition.
+      inverse
+    | zeroOrOne
+    | zeroOrMore
+    | oneOrMore
+    | exactlyN
+    | range  ! A range must be checked before a RUNE.
     | RUNE
     | STRING
     | NUMBER
     | INTRINSIC
-    | IDENTIFIER
+    | TOKEN
+    | RULE
     | DELIMITER
 
 $range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
 
+$inverse: "~" factor
+
+$zeroOrOne: "[" definition "]"
+
+$zeroOrMore: "{" definition "}"
+
+$oneOrMore: "<" definition ">"
+
+$exactlyN: "(" definition ")" [NUMBER]  ! The default is exactly one.
+
 ! *** Tokens Begin with an Uppercase Letter ***
+
+$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
 
 $NOTE: "! " {~EOL}
 
 $COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
+
+$SYMBOL: "$" LETTER {CHARACTER}
+
+$LETTER: LOWERCASE | UPPERCASE
+
+$CHARACTER: LETTER | DIGIT
 
 $RUNE: "'" ~"'" "'"
 
@@ -56,19 +74,9 @@ $STRING: '"' <~'"'> '"'
 
 $NUMBER: <DIGIT>
 
-$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
+$TOKEN: UPPERCASE {CHARACTER}  ! Token names must be scanned after intrinsics.
 
-$IDENTIFIER: RULE | TOKEN
-
-$SYMBOL: "$" IDENTIFIER
-
-$RULE: LOWERCASE {CHARACTER}
-
-$TOKEN: UPPERCASE {CHARACTER}
-
-$LETTER: LOWERCASE | UPPERCASE
-
-$CHARACTER: LETTER | DIGIT
+$RULE: LOWERCASE {CHARACTER}  ! Rule names must be scanned after intrinsics.
 
 $DELIMITER: "~" | ":" | "|" | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">" | ".."
 
