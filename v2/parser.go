@@ -714,51 +714,44 @@ func (v *parser) parseZeroOrOne() (GroupLike, *Token, bool) {
 // This map captures the syntax definitions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar_ = map[string]string{
-	"$grammar":     `<statement> EOF  ! Terminated by an end-of-file marker.`,
-	"$statement":   `(annotation | production) <EOL>`,
+	"$grammar":     `<statement> EOF  ! Terminated with an end-of-file marker.`,
+	"$statement":   `annotation | production`,
 	"$annotation":  `NOTE | COMMENT`,
-	"$production":  `SYMBOL ":" definition`,
-	"$definition":  `[EOL] alternative {[EOL] "|" alternative}`,
+	"$production":  `symbol ":" definition  ! This works for both tokens and rules.`,
+	"$symbol":      `RULESYMBOL | TOKENSYMBOL`,
+	"$definition":  `alternative {"|" alternative}`,
 	"$alternative": `<factor> [NOTE]`,
-	"$range":       `RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.`,
-	"$CHARACTER":   `"'" ~"'" "'"`,
-	"$LITERAL":     `'"' <~'"'> '"'`,
-	"$INTRINSIC":   `"LETTER" | "DIGIT" | "EOL" | "EOF"`,
-	"$SYMBOL":      `"$" IDENTIFIER`,
-	"$IDENTIFIER":  `LETTER {LETTER | DIGIT}`,
-	"$NUMBER":      `<DIGIT>`,
-	"$NOTE":        `"! " {~EOL}`,
-	"$COMMENT":     `"!>" EOL {COMMENT | ~"<!"} EOL "<!"`,
 	"$factor": `
-      range  ! A range of runes.
-    | "~" factor  ! The inverse of the factor.
-    | "[" definition "]"  ! Zero or one instances of the definition.
-    | "(" definition ")" [NUMBER]  ! Exact (default one) number of instances of the definition.
-    | "<" definition ">" [NUMBER]  ! Minimum (default one) number of instances of the definition.
-    | "{" definition "}" [NUMBER]  ! Maximum (default unlimited) number of instances of the definition.
-    | RUNE
-    | STRING
-    | NUMBER
-    | INTRINSIC
-    | IDENTIFIER
-    | DELIMITER`,
+      inverse
+    | exactlyN
+    | zeroOrOne
+    | zeroOrMore
+    | oneOrMore
+    | range  ! Ranges must be parsed before RUNEs.
+   	| token`,
+	"$token":      `RUNE | STRING | NUMBER | RULENAME | TOKENNAME | INTRINSIC`,
+	"$inverse":    `"~" factor`,
+	"$exactlyN":   `"(" definition ")" [NUMBER]  ! The default is exactly one.`,
+	"$zeroOrOne":  `"[" definition "]"`,
+	"$zeroOrMore": `"{" definition "}"`,
+	"$oneOrMore":  `"<" definition ">"`,
+	"$range":      `RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.`,
 }
 
 const header = `!>
     A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
     Syntax Notation™ itself.  This language grammar consists of rule definitions
-	and token definitions.
+    and token definitions.
 
     Each rulename begins with a lowercase letter.  The rules are applied in the
-	order listed. So—for example—within a factor, a range of RUNEs takes
-	precedence over an individual RUNE.  The starting rule is the "$grammar" rule.
+    order listed. So—for example—within a factor, a range of RUNEs takes
+    precedence over an individual RUNE.
 
-	Each tokenname begins with an uppercase letter.  The INTRINSIC tokens are
-	environment and language specific, and are therefore left undefined. The
-	tokens are also scanned in the order listed.  So an INTRINSIC token takes
-	precedence over an IDENTIFIER token.
+    Each tokenname begins with an uppercase letter.  The INTRINSIC tokens are
+    environment and language specific, and are therefore left undefined. The
+    tokens are also scanned in the order listed.  So an INTRINSIC token takes
+    precedence over an IDENTIFIER token.
 <!
-
 `
 
 func FormatGrammar() string {
