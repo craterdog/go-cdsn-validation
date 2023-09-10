@@ -287,13 +287,7 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	var ok bool
 	var token *Token
 	var factor Factor
-	factor, token, ok = v.parseRange() // This must be first.
-	if !ok {
-		factor, token, ok = v.parseInverse()
-	}
-	if !ok {
-		factor, token, ok = v.parseExactlyN()
-	}
+	factor, token, ok = v.parseInverse()
 	if !ok {
 		factor, token, ok = v.parseZeroOrOne()
 	}
@@ -304,10 +298,19 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseOneOrMore()
 	}
 	if !ok {
+		factor, token, ok = v.parseExactlyN()
+	}
+	if !ok {
+		factor, token, ok = v.parseRange()
+	}
+	if !ok {
 		factor, token, ok = v.parseRune()
 	}
 	if !ok {
 		factor, token, ok = v.parseString()
+	}
+	if !ok {
+		factor, token, ok = v.parseNumber()
 	}
 	if !ok {
 		factor, token, ok = v.parseIntrinsic()

@@ -33,16 +33,13 @@ $factor:
     | zeroOrMore
     | oneOrMore
     | exactlyN
-    | range  ! A range must be checked before a RUNE.
+    | range  ! Ranges must be checked before RUNEs.
     | RUNE
     | STRING
     | NUMBER
-    | INTRINSIC
-    | TOKEN
-    | RULE
-    | DELIMITER
-
-$range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
+    | INTRINSIC  ! INTRINSICs must be checked before TOKENNAMEs.
+    | TOKENNAME
+    | RULENAME
 
 $inverse: "~" factor
 
@@ -54,25 +51,27 @@ $oneOrMore: "<" definition ">"
 
 $exactlyN: "(" definition ")" [NUMBER]  ! The default is exactly one.
 
-! *** Tokens Begin with an Uppercase Letter ***
+$range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
 
-$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
+! *** Tokens Begin with an Uppercase Letter ***
 
 $NOTE: "! " {~EOL}
 
 $COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
-
-$SYMBOL: "$" LETTER {CHARACTER}
-
-$LETTER: LOWERCASE | UPPERCASE
-
-$CHARACTER: LETTER | DIGIT
 
 $RUNE: "'" ~"'" "'"
 
 $STRING: '"' <~'"'> '"'
 
 $NUMBER: <DIGIT>
+
+$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
+
+$SYMBOL: "$" LETTER {CHARACTER}
+
+$LETTER: LOWERCASE | UPPERCASE
+
+$CHARACTER: LETTER | DIGIT
 
 $TOKENNAME: UPPERCASE {CHARACTER}  ! Token names must be scanned after intrinsics.
 
