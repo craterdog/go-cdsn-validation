@@ -31,27 +31,27 @@ $alternative: <factor> [NOTE]
 
 $factor:
       inverse
+    | exactlyN
     | zeroOrOne
     | zeroOrMore
     | oneOrMore
-    | exactlyN
-    | range  ! Ranges must be checked before RUNEs.
+    | range  ! Ranges must be parsed before RUNEs.
     | RUNE
     | STRING
     | NUMBER
-    | INTRINSIC  ! INTRINSICs must be checked before TOKENNAMEs.
-    | TOKENNAME
     | RULENAME
+    | TOKENNAME
+    | INTRINSIC
 
 $inverse: "~" factor
+
+$exactlyN: "(" definition ")" [NUMBER]  ! The default is exactly one.
 
 $zeroOrOne: "[" definition "]"
 
 $zeroOrMore: "{" definition "}"
 
 $oneOrMore: "<" definition ">"
-
-$exactlyN: "(" definition ")" [NUMBER]  ! The default is exactly one.
 
 $range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
 
@@ -76,9 +76,9 @@ $LETTER: LOWERCASE | UPPERCASE
 
 $CHARACTER: LETTER | DIGIT
 
-$TOKENNAME: UPPERCASE {CHARACTER}  ! Token names must be scanned after intrinsics.
-
 $RULENAME: LOWERCASE {CHARACTER}
+
+$TOKENNAME: UPPERCASE {CHARACTER}  ! TOKENNAMEs must be scanned after INTRINSICs.
 
 $DELIMITER: "~" | ":" | "|" | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">" | ".."
 
