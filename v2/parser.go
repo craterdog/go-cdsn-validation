@@ -291,22 +291,7 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseRange()
 	}
 	if !ok {
-		factor, token, ok = v.parseRune()
-	}
-	if !ok {
-		factor, token, ok = v.parseString()
-	}
-	if !ok {
-		factor, token, ok = v.parseNumber()
-	}
-	if !ok {
-		factor, token, ok = v.parseRulename()
-	}
-	if !ok {
-		factor, token, ok = v.parseTokenname()
-	}
-	if !ok {
-		factor, token, ok = v.parseIntrinsic()
+		factor, token, ok = v.parseToken()
 	}
 	return factor, token, ok
 }
@@ -376,6 +361,7 @@ func (v *parser) parseInverse() (InverseLike, *Token, bool) {
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("factor",
+			"$inverse",
 			"$factor")
 		panic(message)
 	}
@@ -602,6 +588,31 @@ func (v *parser) parseSymbol() (Symbol, *Token, bool) {
 		symbol = Symbol(string(tokensymbol))
 	}
 	return symbol, token, true
+}
+
+// This method attempts to parse a token. It returns the token and whether or
+// not the token was successfully parsed.
+func (v *parser) parseToken() (Factor, *Token, bool) {
+	var ok bool
+	var token *Token
+	var factor Factor
+	factor, token, ok = v.parseRune()
+	if !ok {
+		factor, token, ok = v.parseString()
+	}
+	if !ok {
+		factor, token, ok = v.parseNumber()
+	}
+	if !ok {
+		factor, token, ok = v.parseRulename()
+	}
+	if !ok {
+		factor, token, ok = v.parseTokenname()
+	}
+	if !ok {
+		factor, token, ok = v.parseIntrinsic()
+	}
+	return factor, token, ok
 }
 
 // This method attempts to parse a tokenname token. It returns the token and

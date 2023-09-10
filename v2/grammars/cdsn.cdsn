@@ -19,7 +19,7 @@
 
 $grammar: <statement> EOF  ! Terminated with an end-of-file marker.
 
-$statement: (annotation | production)
+$statement: annotation | production
 
 $annotation: NOTE | COMMENT
 
@@ -38,12 +38,9 @@ $factor:
     | zeroOrMore
     | oneOrMore
     | range  ! Ranges must be parsed before RUNEs.
-    | RUNE
-    | STRING
-    | NUMBER
-    | RULENAME
-    | TOKENNAME
-    | INTRINSIC
+    | token
+
+$token: RUNE | STRING | NUMBER | RULENAME | TOKENNAME | INTRINSIC
 
 $inverse: "~" factor
 
