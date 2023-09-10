@@ -181,7 +181,6 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	var alternative AlternativeLike
 	var alternatives = col.List[AlternativeLike]()
 	var definition DefinitionLike
-	v.parseEOL() // The EOL is optional.
 	alternative, token, ok = v.parseAlternative()
 	if !ok {
 		var message = v.formatError(token)
@@ -192,7 +191,6 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	}
 	for {
 		alternatives.AddValue(alternative)
-		v.parseEOL() // The EOL is optional.
 		_, _, ok = v.parseDelimiter("|")
 		if !ok {
 			// No more alternatives.
@@ -270,17 +268,6 @@ func (v *parser) parseEOF() (*Token, *Token, bool) {
 	return token, token, true
 }
 
-// This method attempts to parse the end-of-line (EOL) token. It returns
-// the token and whether or not an EOF token was found.
-func (v *parser) parseEOL() (*Token, *Token, bool) {
-	var token = v.nextToken()
-	if token.Type != TokenEOL {
-		v.backupOne()
-		return token, token, false
-	}
-	return token, token, true
-}
-
 // This method attempts to parse a factor. It returns the factor and whether or
 // not the factor was successfully parsed.
 func (v *parser) parseFactor() (Factor, *Token, bool) {
@@ -313,10 +300,10 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseNumber()
 	}
 	if !ok {
-		factor, token, ok = v.parseRuleName()
+		factor, token, ok = v.parseRulename()
 	}
 	if !ok {
-		factor, token, ok = v.parseTokenName()
+		factor, token, ok = v.parseTokenname()
 	}
 	if !ok {
 		factor, token, ok = v.parseIntrinsic()
@@ -360,29 +347,29 @@ func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
 	return grammar, token, true
 }
 
-// This method attempts to parse a token name token. It returns the token and
-// whether or not a token name token was found.
-func (v *parser) parseTokenName() (TokenName, *Token, bool) {
-	var identifier TokenName
+// This method attempts to parse a tokenname token. It returns the token and
+// whether or not a tokenname token was found.
+func (v *parser) parseTokenname() (Tokenname, *Token, bool) {
+	var identifier Tokenname
 	var token = v.nextToken()
-	if token.Type != TokenTokenName {
+	if token.Type != TokenTokenname {
 		v.backupOne()
 		return identifier, token, false
 	}
-	identifier = TokenName(token.Value)
+	identifier = Tokenname(token.Value)
 	return identifier, token, true
 }
 
-// This method attempts to parse a token name token. It returns the token and
-// whether or not a token name token was found.
-func (v *parser) parseRuleName() (RuleName, *Token, bool) {
-	var identifier RuleName
+// This method attempts to parse a tokenname token. It returns the token and
+// whether or not a tokenname token was found.
+func (v *parser) parseRulename() (Rulename, *Token, bool) {
+	var identifier Rulename
 	var token = v.nextToken()
-	if token.Type != TokenRuleName {
+	if token.Type != TokenRulename {
 		v.backupOne()
 		return identifier, token, false
 	}
-	identifier = RuleName(token.Value)
+	identifier = Rulename(token.Value)
 	return identifier, token, true
 }
 
@@ -570,26 +557,12 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	var annotation Annotation
 	var production ProductionLike
 	var statement StatementLike
-	for {
-		_, _, ok = v.parseEOL()
-		if !ok {
-			// No more blank lines.
-			break
-		}
-	}
 	annotation, _, ok = v.parseAnnotation()
 	if !ok {
 		production, token, ok = v.parseProduction()
 		if !ok {
 			// This is not a statement.
 			return statement, token, false
-		}
-	}
-	for {
-		_, _, ok = v.parseEOL()
-		if !ok {
-			// No more blank lines.
-			break
 		}
 	}
 	statement = Statement(annotation, production)
@@ -732,11 +705,11 @@ const header = `!>
     Syntax Notation™ itself.  This language grammar consists of rule definitions
 	and token definitions.
 
-    Each rule name begins with a lowercase letter.  The rules are applied in the
+    Each rulename begins with a lowercase letter.  The rules are applied in the
 	order listed. So—for example—within a factor, a range of RUNEs takes
 	precedence over an individual RUNE.  The starting rule is the "$grammar" rule.
 
-	Each token name begins with an uppercase letter.  The INTRINSIC tokens are
+	Each tokenname begins with an uppercase letter.  The INTRINSIC tokens are
 	environment and language specific, and are therefore left undefined. The
 	tokens are also scanned in the order listed.  So an INTRINSIC token takes
 	precedence over an IDENTIFIER token.

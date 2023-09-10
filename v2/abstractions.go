@@ -29,11 +29,11 @@ type (
 	Letter     string
 	Note       string
 	Number     string
-	RuleName   string
+	Rulename   string
 	Rune       string
 	String     string
 	Symbol     string
-	TokenName  string
+	Tokenname  string
 )
 
 // The following define the Go rule related types.

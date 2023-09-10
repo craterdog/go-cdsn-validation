@@ -19,13 +19,13 @@
 
 $grammar: <statement> EOF  ! Terminated with an end-of-file marker.
 
-$statement: (annotation | production) <EOL>
+$statement: (annotation | production)
 
 $annotation: NOTE | COMMENT
 
 $production: SYMBOL ":" definition  ! This works for both tokens and rules.
 
-$definition: [EOL] alternative {[EOL] "|" alternative}
+$definition: alternative {"|" alternative}
 
 $alternative: <factor> [NOTE]
 

@@ -111,10 +111,10 @@ func (v *formatter) formatFactor(factor Factor) {
 		v.formatString(f)
 	case Intrinsic:
 		v.formatIntrinsic(f)
-	case TokenName:
-		v.formatTokenName(f)
-	case RuleName:
-		v.formatRuleName(f)
+	case Tokenname:
+		v.formatTokenname(f)
+	case Rulename:
+		v.formatRulename(f)
 	case InverseLike:
 		v.formatInverse(f)
 	case GroupLike:
@@ -212,9 +212,9 @@ func (v *formatter) formatRange(range_ RangeLike) {
 	v.formatRune(last)
 }
 
-// This private method appends a formatted rule name to the result.
-func (v *formatter) formatRuleName(ruleName RuleName) {
-	v.appendString(string(ruleName))
+// This private method appends a formatted rulename to the result.
+func (v *formatter) formatRulename(rulename Rulename) {
+	v.appendString(string(rulename))
 }
 
 // This private method appends a formatted rune to the result.
@@ -246,7 +246,7 @@ func (v *formatter) formatSymbol(symbol Symbol) {
 	v.appendString(string(symbol))
 }
 
-// This private method appends a formatted token name to the result.
-func (v *formatter) formatTokenName(tokenName TokenName) {
-	v.appendString(string(tokenName))
+// This private method appends a formatted tokenname to the result.
+func (v *formatter) formatTokenname(tokenname Tokenname) {
+	v.appendString(string(tokenname))
 }
