@@ -347,32 +347,6 @@ func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
 	return grammar, token, true
 }
 
-// This method attempts to parse a tokenname token. It returns the token and
-// whether or not a tokenname token was found.
-func (v *parser) parseTokenname() (Tokenname, *Token, bool) {
-	var identifier Tokenname
-	var token = v.nextToken()
-	if token.Type != TokenTokenname {
-		v.backupOne()
-		return identifier, token, false
-	}
-	identifier = Tokenname(token.Value)
-	return identifier, token, true
-}
-
-// This method attempts to parse a tokenname token. It returns the token and
-// whether or not a tokenname token was found.
-func (v *parser) parseRulename() (Rulename, *Token, bool) {
-	var identifier Rulename
-	var token = v.nextToken()
-	if token.Type != TokenRulename {
-		v.backupOne()
-		return identifier, token, false
-	}
-	identifier = Rulename(token.Value)
-	return identifier, token, true
-}
-
 // This method attempts to parse a intrinsic. It returns the intrinsic and
 // whether or not the intrinsic was successfully parsed.
 func (v *parser) parseIntrinsic() (Intrinsic, *Token, bool) {
@@ -536,6 +510,32 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	return range_, token, true
 }
 
+// This method attempts to parse a tokenname token. It returns the token and
+// whether or not a tokenname token was found.
+func (v *parser) parseRulename() (Rulename, *Token, bool) {
+	var identifier Rulename
+	var token = v.nextToken()
+	if token.Type != TokenRulename {
+		v.backupOne()
+		return identifier, token, false
+	}
+	identifier = Rulename(token.Value)
+	return identifier, token, true
+}
+
+// This method attempts to parse a rulesymbol. It returns the rulesymbol and
+// whether or not the rulesymbol was successfully parsed.
+func (v *parser) parseRulesymbol() (Rulesymbol, *Token, bool) {
+	var rulesymbol Rulesymbol
+	var token = v.nextToken()
+	if token.Type != TokenRulesymbol {
+		v.backupOne()
+		return rulesymbol, token, false
+	}
+	rulesymbol = Rulesymbol(token.Value)
+	return rulesymbol, token, true
+}
+
 // This method attempts to parse a rune. It returns the rune and
 // whether or not a rune was successfully parsed.
 func (v *parser) parseRune() (Rune, *Token, bool) {
@@ -585,19 +585,53 @@ func (v *parser) parseString() (String, *Token, bool) {
 // This method attempts to parse a symbol. It returns the symbol and whether
 // or not the symbol was successfully parsed.
 func (v *parser) parseSymbol() (Symbol, *Token, bool) {
+	var ok bool
+	var token *Token
+	var tokensymbol Tokensymbol
+	var rulesymbol Rulesymbol
 	var symbol Symbol
-	var token = v.nextToken()
-	if token.Type != TokenSymbol {
-		v.backupOne()
-		return symbol, token, false
+	tokensymbol, _, ok = v.parseTokensymbol()
+	if !ok {
+		rulesymbol, token, ok = v.parseRulesymbol()
+		if !ok {
+			// This is not an symbol.
+			return symbol, token, false
+		}
+		symbol = Symbol(string(rulesymbol))
+	} else {
+		symbol = Symbol(string(tokensymbol))
 	}
-	symbol = Symbol(token.Value)
 	return symbol, token, true
 }
 
+// This method attempts to parse a tokenname token. It returns the token and
+// whether or not a tokenname token was found.
+func (v *parser) parseTokenname() (Tokenname, *Token, bool) {
+	var identifier Tokenname
+	var token = v.nextToken()
+	if token.Type != TokenTokenname {
+		v.backupOne()
+		return identifier, token, false
+	}
+	identifier = Tokenname(token.Value)
+	return identifier, token, true
+}
+
+// This method attempts to parse a tokensymbol. It returns the tokensymbol and
+// whether or not the tokensymbol was successfully parsed.
+func (v *parser) parseTokensymbol() (Tokensymbol, *Token, bool) {
+	var tokensymbol Tokensymbol
+	var token = v.nextToken()
+	if token.Type != TokenTokensymbol {
+		v.backupOne()
+		return tokensymbol, token, false
+	}
+	tokensymbol = Tokensymbol(token.Value)
+	return tokensymbol, token, true
+}
+
 // This method attempts to parse a zero or more group. It returns the zero or
-// more group and whether or not the zero or more group was successfully
-// parsed.
+// more group and whether or not the zero or more group was successfully parsed.
 func (v *parser) parseZeroOrMore() (GroupLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -631,8 +665,7 @@ func (v *parser) parseZeroOrMore() (GroupLike, *Token, bool) {
 }
 
 // This method attempts to parse a zero or one group. It returns the zero or
-// one group and whether or not the zero or one group was successfully
-// parsed.
+// one group and whether or not the zero or one group was successfully parsed.
 func (v *parser) parseZeroOrOne() (GroupLike, *Token, bool) {
 	var ok bool
 	var token *Token
