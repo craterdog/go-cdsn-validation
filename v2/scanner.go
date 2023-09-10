@@ -128,15 +128,15 @@ func (v *scanner) generateTokens() {
 func (v *scanner) processToken() bool {
 	v.skipSpaces()
 	switch {
+	case v.foundIntrinsic():
 	case v.foundNote():
 	case v.foundComment():
-	case v.foundIntrinsic():
-	case v.foundTokenName():
-	case v.foundRuleName():
-	case v.foundSymbol():
-	case v.foundNumber():
 	case v.foundRune():
 	case v.foundString():
+	case v.foundNumber():
+	case v.foundSymbol():
+	case v.foundRuleName():
+	case v.foundTokenName():
 	case v.foundDelimiter():
 	case v.foundEOL():
 	case v.foundEOF():

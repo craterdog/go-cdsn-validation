@@ -58,6 +58,8 @@ $range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
 
 ! *** Tokens Begin with an Uppercase Letter ***
 
+$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
+
 $NOTE: "! " {~EOL}
 
 $COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
@@ -67,8 +69,6 @@ $RUNE: "'" ~"'" "'"
 $STRING: '"' <~'"'> '"'
 
 $NUMBER: <DIGIT>
-
-$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
 
 $SYMBOL: "$" LETTER {CHARACTER}
 
