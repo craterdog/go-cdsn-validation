@@ -25,20 +25,21 @@ type (
 	Annotation string
 	Comment    string
 	Digit      string
-	Identifier string
 	Intrinsic  string
 	Letter     string
 	Note       string
 	Number     string
+	RuleName   string
 	Rune       string
 	String     string
 	Symbol     string
+	TokenName  string
 )
 
 // The following define the Go rule related types.
 type (
-	Factor       any
-	GroupingType int64
+	Factor    any
+	GroupType int64
 )
 
 // CONSTANTS
@@ -46,12 +47,12 @@ type (
 // The POSIX standard end-of-line character.
 const EOL = "\n"
 
-// The allowed grouping types.
+// The allowed group types.
 const (
-	Optional GroupingType = iota
-	ExactNumber
-	MinimumNumber
-	MaximumNumber
+	ExactlyN GroupType = iota
+	ZeroOrOne
+	ZeroOrMore
+	OneOrMore
 )
 
 // INDIVIDUAL INTERFACES
@@ -81,20 +82,20 @@ type GrammarLike interface {
 	SetStatements(statements col.Sequential[StatementLike])
 }
 
-// This interface defines the methods supported by all grouping-like
+// This interface defines the methods supported by all group-like
 // components.
-type GroupingLike interface {
+type GroupLike interface {
 	GetDefinition() DefinitionLike
 	SetDefinition(definition DefinitionLike)
-	GetType() GroupingType
-	SetType(type_ GroupingType)
+	GetType() GroupType
+	SetType(type_ GroupType)
 	GetNumber() Number
 	SetNumber(count Number)
 }
 
-// This interface defines the methods supported by all inversion-like
+// This interface defines the methods supported by all inverse-like
 // components.
-type InversionLike interface {
+type InverseLike interface {
 	GetFactor() Factor
 	SetFactor(factor Factor)
 }

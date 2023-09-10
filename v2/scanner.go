@@ -30,13 +30,14 @@ const (
 	TokenDelimiter
 	TokenEOF
 	TokenEOL
-	TokenIdentifier
 	TokenIntrinsic
-	TokenString
 	TokenNote
 	TokenNumber
+	TokenRuleName
 	TokenRune
+	TokenString
 	TokenSymbol
+	TokenTokenName
 )
 
 // This method returns the string representation for each token type.
@@ -47,13 +48,14 @@ func (v TokenType) String() string {
 		"Delimiter",
 		"EOF",
 		"EOL",
-		"Identifier",
 		"Intrinsic",
-		"String",
 		"Note",
 		"Number",
+		"RuleName",
 		"Rune",
+		"String",
 		"Symbol",
+		"TokenName",
 	}[v]
 }
 
@@ -89,7 +91,7 @@ func (v Token) String() string {
 // expressions.
 func Scanner(source []byte, tokens chan Token) *scanner {
 	var v = &scanner{source: source, line: 1, position: 1, tokens: tokens}
-	go v.scanTokens() // Start scanning in the background.
+	go v.generateTokens() // Start scanning in the background.
 	return v
 }
 
@@ -112,8 +114,8 @@ type scanner struct {
 
 // This method continues scanning tokens from the source bytes until an error
 // occurs or the end of file is reached. It then closes the token channel.
-func (v *scanner) scanTokens() {
-	for v.scanToken() {
+func (v *scanner) generateTokens() {
+	for v.processToken() {
 	}
 	close(v.tokens)
 }
@@ -123,13 +125,14 @@ func (v *scanner) scanTokens() {
 // statement. If that token type is found, this method returns true and skips
 // the rest of the cases.  If no valid token is found, or a TokenEOF is found
 // this method returns false.
-func (v *scanner) scanToken() bool {
+func (v *scanner) processToken() bool {
 	v.skipSpaces()
 	switch {
 	case v.foundNote():
 	case v.foundComment():
 	case v.foundIntrinsic():
-	case v.foundIdentifier():
+	case v.foundTokenName():
+	case v.foundRuleName():
 	case v.foundSymbol():
 	case v.foundNumber():
 	case v.foundRune():
@@ -258,19 +261,6 @@ func (v *scanner) foundEOL() bool {
 	return false
 }
 
-// This method adds an identifier token with the current scanner information
-// to the token channel. It returns true if an identifier token was found.
-func (v *scanner) foundIdentifier() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanIdentifier(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenIdentifier)
-		return true
-	}
-	return false
-}
-
 // This method adds an intrinsic token with the current scanner information
 // to the token channel. It returns true if an intrinsic token was found.
 func (v *scanner) foundIntrinsic() bool {
@@ -310,6 +300,19 @@ func (v *scanner) foundNumber() bool {
 	return false
 }
 
+// This method adds a rule name token with the current scanner information
+// to the token channel. It returns true if a rule name token was found.
+func (v *scanner) foundRuleName() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanRuleName(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenRuleName)
+		return true
+	}
+	return false
+}
+
 // This method adds a rune token with the current scanner information
 // to the token channel. It returns true if a rune token was found.
 func (v *scanner) foundRune() bool {
@@ -344,6 +347,19 @@ func (v *scanner) foundSymbol() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenSymbol)
+		return true
+	}
+	return false
+}
+
+// This method adds a token name token with the current scanner information
+// to the token channel. It returns true if a token name token was found.
+func (v *scanner) foundTokenName() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanTokenName(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenTokenName)
 		return true
 	}
 	return false
@@ -406,14 +422,24 @@ func scanDelimiter(v []byte) []string {
 	return bytesToStrings(delimiterScanner.FindSubmatch(v))
 }
 
-// This scanner is used for matching identifier tokens.
-var identifierScanner = reg.MustCompile(`^(?:` + identifier + `)`)
+// This scanner is used for matching token name tokens.
+var tokenNameScanner = reg.MustCompile(`^(?:` + tokenname + `)`)
 
 // This function returns for the specified string an array of the matching
-// subgroups for an identifier token. The first string in the array is the
+// subgroups for an token name token. The first string in the array is the
 // entire matched string.
-func scanIdentifier(v []byte) []string {
-	return bytesToStrings(identifierScanner.FindSubmatch(v))
+func scanTokenName(v []byte) []string {
+	return bytesToStrings(tokenNameScanner.FindSubmatch(v))
+}
+
+// This scanner is used for matching rule name tokens.
+var ruleNameScanner = reg.MustCompile(`^(?:` + rulename + `)`)
+
+// This function returns for the specified string an array of the matching
+// subgroups for an rule name token. The first string in the array is the
+// entire matched string.
+func scanRuleName(v []byte) []string {
+	return bytesToStrings(ruleNameScanner.FindSubmatch(v))
 }
 
 // This scanner is used for matching intrinsic tokens.
@@ -490,11 +516,10 @@ const (
 	eol        = `\n`     // Contains the actual characters `\` and `n`, not EOF.
 	number     = digit + `+`
 	letter     = lowercase + `|` + uppercase
-	character  = letter + `|` + digit
-	rule       = lowercase + `(?:` + character + `)*`
-	token      = uppercase + `(?:` + character + `)*`
-	identifier = rule + `|` + token
-	symbol     = `\$(` + identifier + `)`
+	characters = `(?:` + letter + `|` + digit + `)*`
+	rulename   = lowercase + characters
+	tokenname  = uppercase + characters
+	symbol     = `\$((?:` + letter + `)` + characters + `)`
 	note       = `! [^\n]*`
 	delimiter  = `[~:|()[\]{}<>]|\.\.`
 )

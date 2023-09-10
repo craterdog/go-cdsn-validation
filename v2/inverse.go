@@ -12,27 +12,27 @@ package cdsn
 
 // INVERSION IMPLEMENTATION
 
-// This constructor creates a new inversion.
-func Inversion(factor Factor) InversionLike {
-	var v = &inversion{}
+// This constructor creates a new inverse.
+func Inverse(factor Factor) InverseLike {
+	var v = &inverse{}
 	v.SetFactor(factor)
 	return v
 }
 
-// This type defines the structure and methods associated with an inversion.
-type inversion struct {
+// This type defines the structure and methods associated with an inverse.
+type inverse struct {
 	factor Factor
 }
 
-// This method returns the factor for this inversion.
-func (v *inversion) GetFactor() Factor {
+// This method returns the factor for this inverse.
+func (v *inverse) GetFactor() Factor {
 	return v.factor
 }
 
-// This method sets the factor for this inversion.
-func (v *inversion) SetFactor(factor Factor) {
+// This method sets the factor for this inverse.
+func (v *inverse) SetFactor(factor Factor) {
 	if factor == nil {
-		panic("An inversion requires a factor.")
+		panic("An inverse requires a factor.")
 	}
 	v.factor = factor
 }

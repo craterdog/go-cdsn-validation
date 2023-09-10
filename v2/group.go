@@ -12,51 +12,51 @@ package cdsn
 
 // GROUPING IMPLEMENTATION
 
-// This constructor creates a new grouping.
-func Grouping(definition DefinitionLike, type_ GroupingType, number Number) GroupingLike {
-	var v = &grouping{}
+// This constructor creates a new group.
+func Group(definition DefinitionLike, type_ GroupType, number Number) GroupLike {
+	var v = &group{}
 	v.SetDefinition(definition)
 	v.SetType(type_)
 	v.SetNumber(number)
 	return v
 }
 
-// This type defines the structure and methods associated with a grouping.
-type grouping struct {
+// This type defines the structure and methods associated with a group.
+type group struct {
 	definition DefinitionLike
-	type_      GroupingType
+	type_      GroupType
 	number     Number
 }
 
-// This method returns the definition for this grouping.
-func (v *grouping) GetDefinition() DefinitionLike {
+// This method returns the definition for this group.
+func (v *group) GetDefinition() DefinitionLike {
 	return v.definition
 }
 
-// This method sets the definition for this grouping.
-func (v *grouping) SetDefinition(definition DefinitionLike) {
+// This method sets the definition for this group.
+func (v *group) SetDefinition(definition DefinitionLike) {
 	if definition == nil {
-		panic("A grouping requires a definition.")
+		panic("A group requires a definition.")
 	}
 	v.definition = definition
 }
 
-// This method returns the grouping type for this grouping.
-func (v *grouping) GetType() GroupingType {
+// This method returns the group type for this group.
+func (v *group) GetType() GroupType {
 	return v.type_
 }
 
-// This method sets the grouping type for this grouping.
-func (v *grouping) SetType(type_ GroupingType) {
+// This method sets the group type for this group.
+func (v *group) SetType(type_ GroupType) {
 	v.type_ = type_
 }
 
-// This method returns the number for this grouping.
-func (v *grouping) GetNumber() Number {
+// This method returns the number for this group.
+func (v *group) GetNumber() Number {
 	return v.number
 }
 
-// This method sets the number for this grouping.
-func (v *grouping) SetNumber(number Number) {
+// This method sets the number for this group.
+func (v *group) SetNumber(number Number) {
 	v.number = number
 }

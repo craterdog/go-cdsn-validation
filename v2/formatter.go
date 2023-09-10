@@ -84,14 +84,22 @@ func (v *formatter) formatAnnotation(annotation Annotation) {
 	v.appendString(string(annotation))
 }
 
-// This private method appends a formatted rune to the result.
-func (v *formatter) formatRune(rune_ Rune) {
-	v.appendString(string(rune_))
-}
-
-// This private method appends a formatted number to the result.
-func (v *formatter) formatNumber(number Number) {
-	v.appendString(string(number))
+// This private method appends a formatted definition to the result.
+func (v *formatter) formatDefinition(definition DefinitionLike) {
+	var alternatives = definition.GetAlternatives()
+	var iterator = col.Iterator(alternatives)
+	var alternative = iterator.GetNext()
+	v.formatAlternative(alternative)
+	for iterator.HasNext() {
+		alternative = iterator.GetNext()
+		if definition.IsMultilined() {
+			v.appendNewline()
+		} else {
+			v.appendString(" ")
+		}
+		v.appendString("| ")
+		v.formatAlternative(alternative)
+	}
 }
 
 // This private method appends a formatted factor to the result.
@@ -103,12 +111,14 @@ func (v *formatter) formatFactor(factor Factor) {
 		v.formatString(f)
 	case Intrinsic:
 		v.formatIntrinsic(f)
-	case Identifier:
-		v.formatIdentifier(f)
-	case InversionLike:
-		v.formatInversion(f)
-	case GroupingLike:
-		v.formatGrouping(f)
+	case TokenName:
+		v.formatTokenName(f)
+	case RuleName:
+		v.formatRuleName(f)
+	case InverseLike:
+		v.formatInverse(f)
+	case GroupLike:
+		v.formatGroup(f)
 	case RangeLike:
 		v.formatRange(f)
 	default:
@@ -126,37 +136,32 @@ func (v *formatter) formatGrammar(grammar GrammarLike) {
 	}
 }
 
-// This private method appends a formatted grouping to the result.
-func (v *formatter) formatGrouping(grouping GroupingLike) {
-	var definition = grouping.GetDefinition()
-	var type_ = grouping.GetType()
-	var number = grouping.GetNumber()
+// This private method appends a formatted group to the result.
+func (v *formatter) formatGroup(group GroupLike) {
+	var definition = group.GetDefinition()
+	var type_ = group.GetType()
+	var number = group.GetNumber()
 	switch type_ {
-	case Optional:
-		v.appendString("[")
-		v.formatDefinition(definition)
-		v.appendString("]")
-	case ExactNumber:
+	case ExactlyN:
 		v.appendString("(")
 		v.formatDefinition(definition)
 		v.appendString(")")
-	case MinimumNumber:
-		v.appendString("<")
+	case ZeroOrOne:
+		v.appendString("[")
 		v.formatDefinition(definition)
-		v.appendString(">")
-	case MaximumNumber:
+		v.appendString("]")
+	case ZeroOrMore:
 		v.appendString("{")
 		v.formatDefinition(definition)
 		v.appendString("}")
+	case OneOrMore:
+		v.appendString("<")
+		v.formatDefinition(definition)
+		v.appendString(">")
 	default:
-		panic(fmt.Sprintf("Attempted to format an invalid grouping type: %v\n", type_))
+		panic(fmt.Sprintf("Attempted to format an invalid group type: %v\n", type_))
 	}
 	v.formatNumber(number)
-}
-
-// This private method appends a formatted identifier to the result.
-func (v *formatter) formatIdentifier(identifier Identifier) {
-	v.appendString(string(identifier))
 }
 
 // This private method appends a formatted intrinsic to the result.
@@ -164,21 +169,21 @@ func (v *formatter) formatIntrinsic(intrinsic Intrinsic) {
 	v.appendString(string(intrinsic))
 }
 
-// This private method appends a formatted inversion to the result.
-func (v *formatter) formatInversion(inversion InversionLike) {
+// This private method appends a formatted inverse to the result.
+func (v *formatter) formatInverse(inverse InverseLike) {
 	v.appendString("~")
-	var factor = inversion.GetFactor()
+	var factor = inverse.GetFactor()
 	v.formatFactor(factor)
-}
-
-// This private method appends a formatted string to the result.
-func (v *formatter) formatString(string_ String) {
-	v.appendString(string(string_))
 }
 
 // This private method appends a formatted note to the result.
 func (v *formatter) formatNote(note Note) {
 	v.appendString(string(note))
+}
+
+// This private method appends a formatted number to the result.
+func (v *formatter) formatNumber(number Number) {
+	v.appendString(string(number))
 }
 
 // This private method appends a formatted production to the result.
@@ -207,22 +212,14 @@ func (v *formatter) formatRange(range_ RangeLike) {
 	v.formatRune(last)
 }
 
-// This private method appends a formatted definition to the result.
-func (v *formatter) formatDefinition(definition DefinitionLike) {
-	var alternatives = definition.GetAlternatives()
-	var iterator = col.Iterator(alternatives)
-	var alternative = iterator.GetNext()
-	v.formatAlternative(alternative)
-	for iterator.HasNext() {
-		alternative = iterator.GetNext()
-		if definition.IsMultilined() {
-			v.appendNewline()
-		} else {
-			v.appendString(" ")
-		}
-		v.appendString("| ")
-		v.formatAlternative(alternative)
-	}
+// This private method appends a formatted rule name to the result.
+func (v *formatter) formatRuleName(ruleName RuleName) {
+	v.appendString(string(ruleName))
+}
+
+// This private method appends a formatted rune to the result.
+func (v *formatter) formatRune(rune_ Rune) {
+	v.appendString(string(rune_))
 }
 
 // This private method appends a formatted statement to the result.
@@ -238,7 +235,17 @@ func (v *formatter) formatStatement(statement StatementLike) {
 	v.appendNewline()
 }
 
+// This private method appends a formatted string to the result.
+func (v *formatter) formatString(string_ String) {
+	v.appendString(string(string_))
+}
+
 // This private method appends a formatted symbol to the result.
 func (v *formatter) formatSymbol(symbol Symbol) {
 	v.appendString(string(symbol))
+}
+
+// This private method appends a formatted token name to the result.
+func (v *formatter) formatTokenName(tokenName TokenName) {
+	v.appendString(string(tokenName))
 }

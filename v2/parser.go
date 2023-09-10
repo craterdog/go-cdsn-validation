@@ -222,18 +222,18 @@ func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
 	return delimiter, token, true
 }
 
-// This method attempts to parse an exact count grouping. It returns the
-// exact count grouping and whether or not the exact count grouping was
+// This method attempts to parse an exact count group. It returns the
+// exact count group and whether or not the exact count group was
 // successfully parsed.
-func (v *parser) parseExactNumber() (GroupingLike, *Token, bool) {
+func (v *parser) parseExactlyN() (GroupLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var definition DefinitionLike
-	var grouping GroupingLike
+	var group GroupLike
 	_, token, ok = v.parseDelimiter("(")
 	if !ok {
-		// This is not a precedence grouping.
-		return grouping, token, false
+		// This is not a precedence group.
+		return group, token, false
 	}
 	definition, token, ok = v.parseDefinition()
 	if !ok {
@@ -253,8 +253,8 @@ func (v *parser) parseExactNumber() (GroupingLike, *Token, bool) {
 		panic(message)
 	}
 	var number, _, _ = v.parseNumber() // The number is optional.
-	grouping = Grouping(definition, ExactNumber, number)
-	return grouping, token, true
+	group = Group(definition, ExactlyN, number)
+	return group, token, true
 }
 
 // This method attempts to parse the end-of-file (EOF) marker. It returns
@@ -289,19 +289,19 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	var factor Factor
 	factor, token, ok = v.parseRange() // This must be first.
 	if !ok {
-		factor, token, ok = v.parseInversion()
+		factor, token, ok = v.parseInverse()
 	}
 	if !ok {
-		factor, token, ok = v.parseOptional()
+		factor, token, ok = v.parseExactlyN()
 	}
 	if !ok {
-		factor, token, ok = v.parseExactNumber()
+		factor, token, ok = v.parseZeroOrOne()
 	}
 	if !ok {
-		factor, token, ok = v.parseMinimumNumber()
+		factor, token, ok = v.parseZeroOrMore()
 	}
 	if !ok {
-		factor, token, ok = v.parseMaximumNumber()
+		factor, token, ok = v.parseOneOrMore()
 	}
 	if !ok {
 		factor, token, ok = v.parseRune()
@@ -313,7 +313,10 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseIntrinsic()
 	}
 	if !ok {
-		factor, token, ok = v.parseIdentifier()
+		factor, token, ok = v.parseTokenName()
+	}
+	if !ok {
+		factor, token, ok = v.parseRuleName()
 	}
 	return factor, token, ok
 }
@@ -354,16 +357,29 @@ func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
 	return grammar, token, true
 }
 
-// This method attempts to parse an identifier token. It returns the token and
-// whether or not an identifier token was found.
-func (v *parser) parseIdentifier() (Identifier, *Token, bool) {
-	var identifier Identifier
+// This method attempts to parse a token name token. It returns the token and
+// whether or not a token name token was found.
+func (v *parser) parseTokenName() (TokenName, *Token, bool) {
+	var identifier TokenName
 	var token = v.nextToken()
-	if token.Type != TokenIdentifier {
+	if token.Type != TokenTokenName {
 		v.backupOne()
 		return identifier, token, false
 	}
-	identifier = Identifier(token.Value)
+	identifier = TokenName(token.Value)
+	return identifier, token, true
+}
+
+// This method attempts to parse a token name token. It returns the token and
+// whether or not a token name token was found.
+func (v *parser) parseRuleName() (RuleName, *Token, bool) {
+	var identifier RuleName
+	var token = v.nextToken()
+	if token.Type != TokenRuleName {
+		v.backupOne()
+		return identifier, token, false
+	}
+	identifier = RuleName(token.Value)
 	return identifier, token, true
 }
 
@@ -380,17 +396,17 @@ func (v *parser) parseIntrinsic() (Intrinsic, *Token, bool) {
 	return intrinsic, token, true
 }
 
-// This method attempts to parse an inversion. It returns the inversion and
-// whether or not the inversion was successfully parsed.
-func (v *parser) parseInversion() (InversionLike, *Token, bool) {
+// This method attempts to parse an inverse. It returns the inverse and
+// whether or not the inverse was successfully parsed.
+func (v *parser) parseInverse() (InverseLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var factor Factor
-	var inversion InversionLike
+	var inverse InverseLike
 	_, token, ok = v.parseDelimiter("~")
 	if !ok {
-		// This is not an inversion.
-		return inversion, token, false
+		// This is not an inverse.
+		return inverse, token, false
 	}
 	factor, token, ok = v.parseFactor()
 	if !ok {
@@ -399,78 +415,8 @@ func (v *parser) parseInversion() (InversionLike, *Token, bool) {
 			"$factor")
 		panic(message)
 	}
-	inversion = Inversion(factor)
-	return inversion, token, true
-}
-
-// This method attempts to parse a zero or more grouping. It returns the zero or
-// more grouping and whether or not the zero or more grouping was successfully
-// parsed.
-func (v *parser) parseMaximumNumber() (GroupingLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var definition DefinitionLike
-	var grouping GroupingLike
-	_, token, ok = v.parseDelimiter("{")
-	if !ok {
-		// This is not a zero or more grouping.
-		return grouping, token, false
-	}
-	definition, token, ok = v.parseDefinition()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("definition",
-			"$factor",
-			"$definition")
-		panic(message)
-	}
-	definition.SetMultilined(false)
-	_, token, ok = v.parseDelimiter("}")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("}",
-			"$factor",
-			"$definition")
-		panic(message)
-	}
-	var number, _, _ = v.parseNumber() // The number is optional.
-	grouping = Grouping(definition, MaximumNumber, number)
-	return grouping, token, true
-}
-
-// This method attempts to parse a one or more grouping. It returns the one or
-// more grouping and whether or not the one or more grouping was successfully
-// parsed.
-func (v *parser) parseMinimumNumber() (GroupingLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var definition DefinitionLike
-	var grouping GroupingLike
-	_, token, ok = v.parseDelimiter("<")
-	if !ok {
-		// This is not a one or more grouping.
-		return grouping, token, false
-	}
-	definition, token, ok = v.parseDefinition()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("definition",
-			"$factor",
-			"$definition")
-		panic(message)
-	}
-	definition.SetMultilined(false)
-	_, token, ok = v.parseDelimiter(">")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar(">",
-			"$factor",
-			"$definition")
-		panic(message)
-	}
-	var number, _, _ = v.parseNumber() // The number is optional.
-	grouping = Grouping(definition, MinimumNumber, number)
-	return grouping, token, true
+	inverse = Inverse(factor)
+	return inverse, token, true
 }
 
 // This method attempts to parse a note. It returns the note and whether or not
@@ -499,18 +445,18 @@ func (v *parser) parseNumber() (Number, *Token, bool) {
 	return number, token, true
 }
 
-// This method attempts to parse a zero or one grouping. It returns the zero or
-// one grouping and whether or not the zero or one grouping was successfully
+// This method attempts to parse a one or more group. It returns the one or
+// more group and whether or not the one or more group was successfully
 // parsed.
-func (v *parser) parseOptional() (GroupingLike, *Token, bool) {
+func (v *parser) parseOneOrMore() (GroupLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var definition DefinitionLike
-	var grouping GroupingLike
-	_, token, ok = v.parseDelimiter("[")
+	var group GroupLike
+	_, token, ok = v.parseDelimiter("<")
 	if !ok {
-		// This is not a zero or one grouping.
-		return grouping, token, false
+		// This is not a one or more group.
+		return group, token, false
 	}
 	definition, token, ok = v.parseDefinition()
 	if !ok {
@@ -521,17 +467,17 @@ func (v *parser) parseOptional() (GroupingLike, *Token, bool) {
 		panic(message)
 	}
 	definition.SetMultilined(false)
-	_, token, ok = v.parseDelimiter("]")
+	_, token, ok = v.parseDelimiter(">")
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("]",
+		message += generateGrammar(">",
 			"$factor",
 			"$definition")
 		panic(message)
 	}
 	var number, _, _ = v.parseNumber() // The number is optional.
-	grouping = Grouping(definition, Optional, number)
-	return grouping, token, true
+	group = Group(definition, OneOrMore, number)
+	return group, token, true
 }
 
 // This method attempts to parse a production. It returns the production and
@@ -666,6 +612,76 @@ func (v *parser) parseSymbol() (Symbol, *Token, bool) {
 	return symbol, token, true
 }
 
+// This method attempts to parse a zero or more group. It returns the zero or
+// more group and whether or not the zero or more group was successfully
+// parsed.
+func (v *parser) parseZeroOrMore() (GroupLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var definition DefinitionLike
+	var group GroupLike
+	_, token, ok = v.parseDelimiter("{")
+	if !ok {
+		// This is not a zero or more group.
+		return group, token, false
+	}
+	definition, token, ok = v.parseDefinition()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("definition",
+			"$factor",
+			"$definition")
+		panic(message)
+	}
+	definition.SetMultilined(false)
+	_, token, ok = v.parseDelimiter("}")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("}",
+			"$factor",
+			"$definition")
+		panic(message)
+	}
+	var number, _, _ = v.parseNumber() // The number is optional.
+	group = Group(definition, ZeroOrMore, number)
+	return group, token, true
+}
+
+// This method attempts to parse a zero or one group. It returns the zero or
+// one group and whether or not the zero or one group was successfully
+// parsed.
+func (v *parser) parseZeroOrOne() (GroupLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var definition DefinitionLike
+	var group GroupLike
+	_, token, ok = v.parseDelimiter("[")
+	if !ok {
+		// This is not a zero or one group.
+		return group, token, false
+	}
+	definition, token, ok = v.parseDefinition()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("definition",
+			"$factor",
+			"$definition")
+		panic(message)
+	}
+	definition.SetMultilined(false)
+	_, token, ok = v.parseDelimiter("]")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("]",
+			"$factor",
+			"$definition")
+		panic(message)
+	}
+	var number, _, _ = v.parseNumber() // The number is optional.
+	group = Group(definition, ZeroOrOne, number)
+	return group, token, true
+}
+
 // GRAMMAR UTILITIES
 
 // This map captures the syntax definitions for Crater Dog Syntax Notation.
@@ -688,7 +704,7 @@ var grammar_ = map[string]string{
 	"$COMMENT":     `"!>" EOL {COMMENT | ~"<!"} EOL "<!"`,
 	"$factor": `
       range  ! A range of runes.
-    | "~" factor  ! The inversion of the factor.
+    | "~" factor  ! The inverse of the factor.
     | "[" definition "]"  ! Zero or one instances of the definition.
     | "(" definition ")" [NUMBER]  ! Exact (default one) number of instances of the definition.
     | "<" definition ">" [NUMBER]  ! Minimum (default one) number of instances of the definition.

@@ -74,9 +74,9 @@ $STRING: '"' <~'"'> '"'
 
 $NUMBER: <DIGIT>
 
-$TOKEN: UPPERCASE {CHARACTER}  ! Token names must be scanned after intrinsics.
+$TOKENNAME: UPPERCASE {CHARACTER}  ! Token names must be scanned after intrinsics.
 
-$RULE: LOWERCASE {CHARACTER}  ! Rule names must be scanned after intrinsics.
+$RULENAME: LOWERCASE {CHARACTER}  ! Rule names must be scanned after intrinsics.
 
 $DELIMITER: "~" | ":" | "|" | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">" | ".."
 
