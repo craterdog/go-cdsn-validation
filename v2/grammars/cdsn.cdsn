@@ -4,18 +4,18 @@
     Syntax Notation™ itself.  This language grammar consists of rule definitions
     and token definitions.
 
-    Each rule name begins with a lowercase letter.  The rules are applied in the
+    Each rulename begins with a lowercase letter.  The rules are applied in the
     order listed. So—for example—within a factor, a range of RUNEs takes
     precedence over an individual RUNE.
 
-    Each token name begins with an uppercase letter.  The INTRINSIC tokens are
+    Each tokenname begins with an uppercase letter.  The INTRINSIC tokens are
     environment and language specific, and are therefore left undefined. The
     tokens are also scanned in the order listed.  So an INTRINSIC token takes
     precedence over an IDENTIFIER token.
 <!
 
 
-! *** Rules Begin with a Lowercase Letter ***
+! *** Rulenames Begin with a Lowercase Letter ***
 
 $grammar: <statement> EOF  ! Terminated with an end-of-file marker.
 
@@ -56,7 +56,7 @@ $oneOrMore: "<" definition ">"
 $range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
 
 
-! *** Tokens Begin with an Uppercase Letter ***
+! *** Tokennames Begin with an Uppercase Letter ***
 
 $INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
 
