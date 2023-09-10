@@ -78,7 +78,7 @@ $CHARACTER: LETTER | DIGIT
 
 $TOKENNAME: UPPERCASE {CHARACTER}  ! Token names must be scanned after intrinsics.
 
-$RULENAME: LOWERCASE {CHARACTER}  ! Rule names must be scanned after intrinsics.
+$RULENAME: LOWERCASE {CHARACTER}
 
 $DELIMITER: "~" | ":" | "|" | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">" | ".."
 
