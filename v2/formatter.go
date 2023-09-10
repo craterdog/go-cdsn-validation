@@ -226,6 +226,7 @@ func (v *formatter) formatRune(rune_ Rune) {
 func (v *formatter) formatStatement(statement StatementLike) {
 	var annotation = statement.GetAnnotation()
 	if len(annotation) > 0 {
+		v.appendNewline()
 		v.formatAnnotation(annotation)
 	} else {
 		var production = statement.GetProduction()

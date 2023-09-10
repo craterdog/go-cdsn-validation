@@ -1,3 +1,4 @@
+
 !>
     A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
     Syntax Notation™ itself.  This language grammar consists of rule definitions
@@ -12,6 +13,7 @@
     tokens are also scanned in the order listed.  So an INTRINSIC token takes
     precedence over an IDENTIFIER token.
 <!
+
 
 ! *** Rules Begin with a Lowercase Letter ***
 
@@ -52,6 +54,7 @@ $oneOrMore: "<" definition ">"
 $exactlyN: "(" definition ")" [NUMBER]  ! The default is exactly one.
 
 $range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
+
 
 ! *** Tokens Begin with an Uppercase Letter ***
 

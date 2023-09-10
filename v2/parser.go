@@ -570,6 +570,13 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	var annotation Annotation
 	var production ProductionLike
 	var statement StatementLike
+	for {
+		_, _, ok = v.parseEOL()
+		if !ok {
+			// No more blank lines.
+			break
+		}
+	}
 	annotation, _, ok = v.parseAnnotation()
 	if !ok {
 		production, token, ok = v.parseProduction()
