@@ -50,12 +50,16 @@ $oneOrMore: "<" definition ">"
 
 $range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
 
-$token: RUNE | STRING | NUMBER | NAME | INTRINSIC
+$token: INTRINSIC | RUNE | STRING | NUMBER | NAME
 
 
 ! *** Token Names Begin with Uppercase and Cannot Reference Rules ***
 
 $INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
+
+$LETTER: LOWERCASE | UPPERCASE
+
+$CHARACTER: LETTER | DIGIT
 
 $IGNORE: " " | EOL
 
@@ -68,10 +72,6 @@ $RUNE: "'" ~"'" "'"
 $STRING: '"' <~'"'> '"'
 
 $NUMBER: <DIGIT>
-
-$LETTER: LOWERCASE | UPPERCASE
-
-$CHARACTER: LETTER | DIGIT
 
 $NAME: LETTER {CHARACTER}  ! NAMEs must be scanned after INTRINSICs.
 
