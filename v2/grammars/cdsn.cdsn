@@ -1,6 +1,6 @@
 
 !>
-    CDSN
+    CRATER DOG SYNTAX NOTATION
     This document contains a formal definition of the Crater Dog Syntax Notation™
     (CDSN) language grammar using CDSN itself.  This grammar consists of a set of
     rule definitions and token definitions.
