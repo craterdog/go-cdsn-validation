@@ -38,8 +38,6 @@ $factor:
     | range
     | token  ! Must be checked last.
 
-$token: RUNE | STRING | NUMBER | NAME | INTRINSIC
-
 $inverse: "~" factor
 
 $exactlyN: "(" definition ")" [NUMBER]  ! The default is exactly one.
@@ -51,6 +49,8 @@ $zeroOrMore: "{" definition "}"
 $oneOrMore: "<" definition ">"
 
 $range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
+
+$token: RUNE | STRING | NUMBER | NAME | INTRINSIC
 
 
 ! *** Token Names Begin with Uppercase and Cannot Reference Rules ***
