@@ -4,18 +4,18 @@
     Syntax Notation™ itself.  This language grammar consists of rule definitions
     and token definitions.
 
-    Each rulename begins with a lowercase letter.  The rules are applied in the
+    Each rule name begins with a lowercase letter.  The rules are applied in the
     order listed. So—for example—within a factor, a range of RUNEs takes
     precedence over an individual RUNE.
 
-    Each tokenname begins with an uppercase letter.  The INTRINSIC tokens are
+    Each token name begins with an uppercase letter.  The INTRINSIC tokens are
     environment and language specific, and are therefore left undefined. The
     tokens are also scanned in the order listed.  So an INTRINSIC token takes
     precedence over an IDENTIFIER token.
 <!
 
 
-! *** Rulenames Begin with Lowercase and May Contain Whitespace ***
+! *** Rule Names Begin with Lowercase and May Contain Whitespace ***
 
 $grammar: <statement> EOF  ! Terminated with an end-of-file marker.
 
@@ -23,9 +23,7 @@ $statement: annotation | production
 
 $annotation: NOTE | COMMENT
 
-$production: symbol ":" definition  ! This works for both tokens and rules.
-
-$symbol: RULESYMBOL | TOKENSYMBOL
+$production: SYMBOL ":" definition  ! This works for both tokens and rules.
 
 $definition: alternative {"|" alternative}
 
@@ -37,10 +35,10 @@ $factor:
     | zeroOrOne
     | zeroOrMore
     | oneOrMore
-    | range  ! Ranges must be parsed before RUNEs.
-    | token
+    | range
+    | token  ! Must be checked last.
 
-$token: RUNE | STRING | NUMBER | RULENAME | TOKENNAME | INTRINSIC
+$token: RUNE | STRING | NUMBER | NAME | INTRINSIC
 
 $inverse: "~" factor
 
@@ -55,15 +53,15 @@ $oneOrMore: "<" definition ">"
 $range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
 
 
-! *** Tokennames Begin with Uppercase and Cannot Reference Rules ***
+! *** Token Names Begin with Uppercase and Cannot Reference Rules ***
 
 $INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
+
+$IGNORE: " " | EOL
 
 $NOTE: "! " {~EOL}
 
 $COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
-
-$CHARACTER: LOWERCASE | UPPERCASE | DIGIT
 
 $RUNE: "'" ~"'" "'"
 
@@ -71,13 +69,13 @@ $STRING: '"' <~'"'> '"'
 
 $NUMBER: <DIGIT>
 
-$RULENAME: LOWERCASE {CHARACTER}
+$LETTER: LOWERCASE | UPPERCASE
 
-$RULESYMBOL: "$" RULENAME
+$CHARACTER: LETTER | DIGIT
 
-$TOKENNAME: UPPERCASE {CHARACTER}  ! TOKENNAMEs must be scanned after INTRINSICs.
+$NAME: LETTER {CHARACTER}  ! NAMEs must be scanned after INTRINSICs.
 
-$TOKENSYMBOL: "$" TOKENNAME
+$SYMBOL: "$" NAME
 
 $DELIMITER: "~" | ":" | "|" | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">" | ".."
 
