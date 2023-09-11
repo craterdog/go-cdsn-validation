@@ -369,6 +369,19 @@ func (v *parser) parseInverse() (InverseLike, *Token, bool) {
 	return inverse, token, true
 }
 
+// This method attempts to parse a name token. It returns the token and
+// whether or not a name token was found.
+func (v *parser) parseName() (Name, *Token, bool) {
+	var name Name
+	var token = v.nextToken()
+	if token.Type != TokenName {
+		v.backupOne()
+		return name, token, false
+	}
+	name = Name(token.Value)
+	return name, token, true
+}
+
 // This method attempts to parse a note. It returns the note and whether or not
 // the note was successfully parsed.
 func (v *parser) parseNote() (Note, *Token, bool) {
@@ -496,32 +509,6 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	return range_, token, true
 }
 
-// This method attempts to parse a tokenname token. It returns the token and
-// whether or not a tokenname token was found.
-func (v *parser) parseRulename() (Rulename, *Token, bool) {
-	var identifier Rulename
-	var token = v.nextToken()
-	if token.Type != TokenRulename {
-		v.backupOne()
-		return identifier, token, false
-	}
-	identifier = Rulename(token.Value)
-	return identifier, token, true
-}
-
-// This method attempts to parse a rulesymbol. It returns the rulesymbol and
-// whether or not the rulesymbol was successfully parsed.
-func (v *parser) parseRulesymbol() (Rulesymbol, *Token, bool) {
-	var rulesymbol Rulesymbol
-	var token = v.nextToken()
-	if token.Type != TokenRulesymbol {
-		v.backupOne()
-		return rulesymbol, token, false
-	}
-	rulesymbol = Rulesymbol(token.Value)
-	return rulesymbol, token, true
-}
-
 // This method attempts to parse a rune. It returns the rune and
 // whether or not a rune was successfully parsed.
 func (v *parser) parseRune() (Rune, *Token, bool) {
@@ -568,25 +555,16 @@ func (v *parser) parseString() (String, *Token, bool) {
 	return string_, token, true
 }
 
-// This method attempts to parse a symbol. It returns the symbol and whether
-// or not the symbol was successfully parsed.
+// This method attempts to parse a symbol. It returns the symbol and
+// whether or not the symbol was successfully parsed.
 func (v *parser) parseSymbol() (Symbol, *Token, bool) {
-	var ok bool
-	var token *Token
-	var tokensymbol Tokensymbol
-	var rulesymbol Rulesymbol
 	var symbol Symbol
-	tokensymbol, _, ok = v.parseTokensymbol()
-	if !ok {
-		rulesymbol, token, ok = v.parseRulesymbol()
-		if !ok {
-			// This is not an symbol.
-			return symbol, token, false
-		}
-		symbol = Symbol(string(rulesymbol))
-	} else {
-		symbol = Symbol(string(tokensymbol))
+	var token = v.nextToken()
+	if token.Type != TokenSymbol {
+		v.backupOne()
+		return symbol, token, false
 	}
+	symbol = Symbol(token.Value)
 	return symbol, token, true
 }
 
@@ -596,7 +574,10 @@ func (v *parser) parseToken() (Factor, *Token, bool) {
 	var ok bool
 	var token *Token
 	var factor Factor
-	factor, token, ok = v.parseRune()
+	factor, token, ok = v.parseIntrinsic()
+	if !ok {
+		factor, token, ok = v.parseRune()
+	}
 	if !ok {
 		factor, token, ok = v.parseString()
 	}
@@ -604,41 +585,9 @@ func (v *parser) parseToken() (Factor, *Token, bool) {
 		factor, token, ok = v.parseNumber()
 	}
 	if !ok {
-		factor, token, ok = v.parseRulename()
-	}
-	if !ok {
-		factor, token, ok = v.parseTokenname()
-	}
-	if !ok {
-		factor, token, ok = v.parseIntrinsic()
+		factor, token, ok = v.parseName()
 	}
 	return factor, token, ok
-}
-
-// This method attempts to parse a tokenname token. It returns the token and
-// whether or not a tokenname token was found.
-func (v *parser) parseTokenname() (Tokenname, *Token, bool) {
-	var identifier Tokenname
-	var token = v.nextToken()
-	if token.Type != TokenTokenname {
-		v.backupOne()
-		return identifier, token, false
-	}
-	identifier = Tokenname(token.Value)
-	return identifier, token, true
-}
-
-// This method attempts to parse a tokensymbol. It returns the tokensymbol and
-// whether or not the tokensymbol was successfully parsed.
-func (v *parser) parseTokensymbol() (Tokensymbol, *Token, bool) {
-	var tokensymbol Tokensymbol
-	var token = v.nextToken()
-	if token.Type != TokenTokensymbol {
-		v.backupOne()
-		return tokensymbol, token, false
-	}
-	tokensymbol = Tokensymbol(token.Value)
-	return tokensymbol, token, true
 }
 
 // This method attempts to parse a zero or more group. It returns the zero or
@@ -729,7 +678,7 @@ var grammar_ = map[string]string{
     | oneOrMore
     | range  ! Ranges must be parsed before RUNEs.
    	| token`,
-	"$token":      `RUNE | STRING | NUMBER | RULENAME | TOKENNAME | INTRINSIC`,
+	"$token":      `INTRINSIC | RUNE | STRING | NUMBER | NAME`,
 	"$inverse":    `"~" factor`,
 	"$exactlyN":   `"(" definition ")" [NUMBER]  ! The default is exactly one.`,
 	"$zeroOrOne":  `"[" definition "]"`,
@@ -743,11 +692,11 @@ const header = `!>
     Syntax Notation™ itself.  This language grammar consists of rule definitions
     and token definitions.
 
-    Each rulename begins with a lowercase letter.  The rules are applied in the
+    Each rule name begins with a lowercase letter.  The rules are applied in the
     order listed. So—for example—within a factor, a range of RUNEs takes
     precedence over an individual RUNE.
 
-    Each tokenname begins with an uppercase letter.  The INTRINSIC tokens are
+    Each token name begins with an uppercase letter.  The INTRINSIC tokens are
     environment and language specific, and are therefore left undefined. The
     tokens are also scanned in the order listed.  So an INTRINSIC token takes
     precedence over an IDENTIFIER token.

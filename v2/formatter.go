@@ -105,22 +105,22 @@ func (v *formatter) formatDefinition(definition DefinitionLike) {
 // This private method appends a formatted factor to the result.
 func (v *formatter) formatFactor(factor Factor) {
 	switch f := factor.(type) {
-	case Rune:
-		v.formatRune(f)
-	case String:
-		v.formatString(f)
-	case Intrinsic:
-		v.formatIntrinsic(f)
-	case Tokenname:
-		v.formatTokenname(f)
-	case Rulename:
-		v.formatRulename(f)
 	case InverseLike:
 		v.formatInverse(f)
 	case GroupLike:
 		v.formatGroup(f)
 	case RangeLike:
 		v.formatRange(f)
+	case Intrinsic:
+		v.formatIntrinsic(f)
+	case Rune:
+		v.formatRune(f)
+	case String:
+		v.formatString(f)
+	case Number:
+		v.formatNumber(f)
+	case Name:
+		v.formatName(f)
 	default:
 		panic(fmt.Sprintf("Attempted to format:\n    factor: %v\n    type: %t\n", f, factor))
 	}
@@ -176,6 +176,11 @@ func (v *formatter) formatInverse(inverse InverseLike) {
 	v.formatFactor(factor)
 }
 
+// This private method appends a formatted name to the result.
+func (v *formatter) formatName(name Name) {
+	v.appendString(string(name))
+}
+
 // This private method appends a formatted note to the result.
 func (v *formatter) formatNote(note Note) {
 	v.appendString(string(note))
@@ -212,11 +217,6 @@ func (v *formatter) formatRange(range_ RangeLike) {
 	v.formatRune(last)
 }
 
-// This private method appends a formatted rulename to the result.
-func (v *formatter) formatRulename(rulename Rulename) {
-	v.appendString(string(rulename))
-}
-
 // This private method appends a formatted rune to the result.
 func (v *formatter) formatRune(rune_ Rune) {
 	v.appendString(string(rune_))
@@ -244,9 +244,4 @@ func (v *formatter) formatString(string_ String) {
 // This private method appends a formatted symbol to the result.
 func (v *formatter) formatSymbol(symbol Symbol) {
 	v.appendString(string(symbol))
-}
-
-// This private method appends a formatted tokenname to the result.
-func (v *formatter) formatTokenname(tokenname Tokenname) {
-	v.appendString(string(tokenname))
 }

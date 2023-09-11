@@ -28,14 +28,11 @@ type (
 	Intrinsic   string
 	Letter      string
 	Note        string
+	Name        string
 	Number      string
-	Rulename    string
-	Rulesymbol  string
 	Rune        string
 	String      string
 	Symbol      string
-	Tokenname   string
-	Tokensymbol string
 )
 
 // The following define the Go rule related types.

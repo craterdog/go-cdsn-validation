@@ -30,14 +30,12 @@ const (
 	TokenDelimiter
 	TokenEOF
 	TokenIntrinsic
+	TokenName
 	TokenNote
 	TokenNumber
-	TokenRulename
-	TokenRulesymbol
 	TokenRune
 	TokenString
-	TokenTokenname
-	TokenTokensymbol
+	TokenSymbol
 )
 
 // This method returns the string representation for each token type.
@@ -48,14 +46,12 @@ func (v TokenType) String() string {
 		"Delimiter",
 		"EOF",
 		"Intrinsic",
+		"Name",
 		"Note",
 		"Number",
-		"Rulename",
-		"Rulesymbol",
 		"Rune",
 		"String",
-		"Tokenname",
-		"Tokensymbol",
+		"Symbol",
 	}[v]
 }
 
@@ -132,10 +128,8 @@ func (v *scanner) processToken() bool {
 	case v.foundRune():
 	case v.foundString():
 	case v.foundNumber():
-	case v.foundRulename():
-	case v.foundRulesymbol():
-	case v.foundTokenname():
-	case v.foundTokensymbol():
+	case v.foundName():
+	case v.foundSymbol():
 	case v.foundDelimiter():
 	case v.foundEOF():
 		// We are at the end of the source bytes.
@@ -263,6 +257,19 @@ func (v *scanner) foundIntrinsic() bool {
 	return false
 }
 
+// This method adds a name token with the current scanner information
+// to the token channel. It returns true if a name token was found.
+func (v *scanner) foundName() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanName(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenName)
+		return true
+	}
+	return false
+}
+
 // This method adds a note token with the current scanner information to the
 // token channel. It returns true if a note token was found.
 func (v *scanner) foundNote() bool {
@@ -284,32 +291,6 @@ func (v *scanner) foundNumber() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenNumber)
-		return true
-	}
-	return false
-}
-
-// This method adds a rulename token with the current scanner information
-// to the token channel. It returns true if a rulename token was found.
-func (v *scanner) foundRulename() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanRulename(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenRulename)
-		return true
-	}
-	return false
-}
-
-// This method adds a rulesymbol token with the current scanner information to
-// the token channel. It returns true if a rulesymbol token was found.
-func (v *scanner) foundRulesymbol() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanRulesymbol(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenRulesymbol)
 		return true
 	}
 	return false
@@ -341,27 +322,14 @@ func (v *scanner) foundString() bool {
 	return false
 }
 
-// This method adds a tokenname token with the current scanner information
-// to the token channel. It returns true if a tokenname token was found.
-func (v *scanner) foundTokenname() bool {
+// This method adds a symbol token with the current scanner information to
+// the token channel. It returns true if a symbol token was found.
+func (v *scanner) foundSymbol() bool {
 	var s = v.source[v.nextByte:]
-	var matches = scanTokenname(s)
+	var matches = scanSymbol(s)
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenTokenname)
-		return true
-	}
-	return false
-}
-
-// This method adds a tokensymbol token with the current scanner information to
-// the token channel. It returns true if a tokensymbol token was found.
-func (v *scanner) foundTokensymbol() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanTokensymbol(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenTokensymbol)
+		v.emitToken(TokenSymbol)
 		return true
 	}
 	return false
@@ -434,6 +402,16 @@ func scanIntrinsic(v []byte) []string {
 	return bytesToStrings(intrinsicScanner.FindSubmatch(v))
 }
 
+// This scanner is used for matching name tokens.
+var nameScanner = reg.MustCompile(`^(?:` + name + `)`)
+
+// This function returns for the specified string an array of the matching
+// subgroups for an name token. The first string in the array is the
+// entire matched string.
+func scanName(v []byte) []string {
+	return bytesToStrings(nameScanner.FindSubmatch(v))
+}
+
 // This scanner is used for matching note tokens.
 var noteScanner = reg.MustCompile(`^(?:` + note + `)`)
 
@@ -452,26 +430,6 @@ var numberScanner = reg.MustCompile(`^(?:` + number + `)`)
 // entire matched string.
 func scanNumber(v []byte) []string {
 	return bytesToStrings(numberScanner.FindSubmatch(v))
-}
-
-// This scanner is used for matching rulename tokens.
-var rulenameScanner = reg.MustCompile(`^(?:` + rulename + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for an rulename token. The first string in the array is the
-// entire matched string.
-func scanRulename(v []byte) []string {
-	return bytesToStrings(rulenameScanner.FindSubmatch(v))
-}
-
-// This scanner is used for matching rulesymbol tokens.
-var rulesymbolScanner = reg.MustCompile(`^(?:` + rulesymbol + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for a rulesymbol token. The first string in the array is the
-// entire matched string.
-func scanRulesymbol(v []byte) []string {
-	return bytesToStrings(rulesymbolScanner.FindSubmatch(v))
 }
 
 // This scanner is used for matching rune tokens.
@@ -494,24 +452,14 @@ func scanString(v []byte) []string {
 	return bytesToStrings(stringScanner.FindSubmatch(v))
 }
 
-// This scanner is used for matching tokenname tokens.
-var tokennameScanner = reg.MustCompile(`^(?:` + tokenname + `)`)
+// This scanner is used for matching symbol tokens.
+var symbolScanner = reg.MustCompile(`^(?:` + symbol + `)`)
 
 // This function returns for the specified string an array of the matching
-// subgroups for a tokenname token. The first string in the array is the
+// subgroups for a symbol token. The first string in the array is the
 // entire matched string.
-func scanTokenname(v []byte) []string {
-	return bytesToStrings(tokennameScanner.FindSubmatch(v))
-}
-
-// This scanner is used for matching tokensymbol tokens.
-var tokensymbolScanner = reg.MustCompile(`^(?:` + tokensymbol + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for a tokensymbol token. The first string in the array is the
-// entire matched string.
-func scanTokensymbol(v []byte) []string {
-	return bytesToStrings(tokensymbolScanner.FindSubmatch(v))
+func scanSymbol(v []byte) []string {
+	return bytesToStrings(symbolScanner.FindSubmatch(v))
 }
 
 // CONSTANT DEFINITIONS
@@ -526,14 +474,13 @@ const (
 	uppercase   = `\p{Lu}` // All unicode upppercase letters.
 	digit       = `\p{Nd}` // All unicode digits.
 	eol         = `\n`     // Contains the actual characters `\` and `n`, not EOL.
+	skip        = ` |` + eol
 	number      = digit + `+`
 	letter      = lowercase + `|` + uppercase
-	characters  = `(?:` + letter + `|` + digit + `)*`
-	rulename    = lowercase + characters
-	rulesymbol  = `\$(` + rulename + `)`
-	tokenname   = uppercase + characters
-	tokensymbol = `\$(` + tokenname + `)`
-	note        = `! [^\n]*`
+	character   = letter + `|` + digit
+	name        = `(?:` + letter + `)(?:` + character + `)*`
+	symbol      = `\$(` + name + `)`
+	note        = `! [^` + eol + `]*`
 	delimiter   = `[~:|()[\]{}<>]|\.\.`
 )
 
