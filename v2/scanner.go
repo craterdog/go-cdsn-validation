@@ -406,7 +406,7 @@ func scanIntrinsic(v []byte) []string {
 var nameScanner = reg.MustCompile(`^(?:` + name + `)`)
 
 // This function returns for the specified string an array of the matching
-// subgroups for an name token. The first string in the array is the
+// subgroups for a name token. The first string in the array is the
 // entire matched string.
 func scanName(v []byte) []string {
 	return bytesToStrings(nameScanner.FindSubmatch(v))
@@ -467,21 +467,21 @@ func scanSymbol(v []byte) []string {
 // These constant definitions capture regular expression subpatterns. They
 // should only be used within regexp strings.
 const (
-	intrinsic   = `LOWERCASE|UPPERCASE|DIGIT|EOL|EOF`
-	rune_       = `['][^'][']`
-	string_     = `["][^"]+["]`
-	lowercase   = `\p{Ll}` // All unicode lowercase letters.
-	uppercase   = `\p{Lu}` // All unicode upppercase letters.
-	digit       = `\p{Nd}` // All unicode digits.
-	eol         = `\n`     // Contains the actual characters `\` and `n`, not EOL.
-	skip        = ` |` + eol
-	number      = digit + `+`
-	letter      = lowercase + `|` + uppercase
-	character   = letter + `|` + digit
-	name        = `(?:` + letter + `)(?:` + character + `)*`
-	symbol      = `\$(` + name + `)`
-	note        = `! [^` + eol + `]*`
-	delimiter   = `[~:|()[\]{}<>]|\.\.`
+	intrinsic = `LOWERCASE|UPPERCASE|DIGIT|EOL|EOF`
+	rune_     = `['][^'][']`
+	string_   = `["][^"]+["]`
+	lowercase = `\p{Ll}` // All unicode lowercase letters.
+	uppercase = `\p{Lu}` // All unicode upppercase letters.
+	digit     = `\p{Nd}` // All unicode digits.
+	eol       = `\n`     // Contains the actual characters `\` and `n`, not EOL.
+	ignored   = ` |` + eol
+	number    = digit + `+`
+	letter    = lowercase + `|` + uppercase
+	character = letter + `|` + digit
+	name      = `(?:` + letter + `)(?:` + character + `)*`
+	symbol    = `\$(` + name + `)`
+	note      = `! [^` + eol + `]*`
+	delimiter = `[~:|()[\]{}<>]|\.\.`
 )
 
 // PRIVATE FUNCTIONS

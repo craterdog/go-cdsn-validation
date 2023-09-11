@@ -138,28 +138,6 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	return alternative, token, true
 }
 
-// This method attempts to parse an annotation. It returns the annotation and
-// whether or not the annotation was successfully parsed.
-func (v *parser) parseAnnotation() (Annotation, *Token, bool) {
-	var ok bool
-	var token *Token
-	var note Note
-	var comment Comment
-	var annotation Annotation
-	note, _, ok = v.parseNote()
-	if !ok {
-		comment, token, ok = v.parseComment()
-		if !ok {
-			// This is not an annotation.
-			return annotation, token, false
-		}
-		annotation = Annotation(string(comment))
-	} else {
-		annotation = Annotation(string(note))
-	}
-	return annotation, token, true
-}
-
 // This method attempts to parse a comment. It returns the comment and whether
 // or not a comment was successfully parsed.
 func (v *parser) parseComment() (Comment, *Token, bool) {
@@ -527,10 +505,10 @@ func (v *parser) parseRune() (Rune, *Token, bool) {
 func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var annotation Annotation
+	var comment Comment
 	var production ProductionLike
 	var statement StatementLike
-	annotation, _, ok = v.parseAnnotation()
+	comment, _, ok = v.parseComment()
 	if !ok {
 		production, token, ok = v.parseProduction()
 		if !ok {
@@ -538,7 +516,7 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 			return statement, token, false
 		}
 	}
-	statement = Statement(annotation, production)
+	statement = Statement(comment, production)
 	return statement, token, true
 }
 
@@ -664,8 +642,7 @@ func (v *parser) parseZeroOrOne() (GroupLike, *Token, bool) {
 // It is useful when creating scanner and parser error messages.
 var grammar_ = map[string]string{
 	"$grammar":     `<statement> EOF  ! Terminated with an end-of-file marker.`,
-	"$statement":   `annotation | production`,
-	"$annotation":  `NOTE | COMMENT`,
+	"$statement":   `COMMENT | production`,
 	"$production":  `symbol ":" definition  ! This works for both tokens and rules.`,
 	"$symbol":      `RULESYMBOL | TOKENSYMBOL`,
 	"$definition":  `alternative {"|" alternative}`,

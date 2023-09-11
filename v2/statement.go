@@ -13,27 +13,27 @@ package cdsn
 // STATEMENT IMPLEMENTATION
 
 // This constructor creates a new statement.
-func Statement(annotation Annotation, production ProductionLike) StatementLike {
+func Statement(comment Comment, production ProductionLike) StatementLike {
 	var v = &statement{}
-	v.SetAnnotation(annotation)
+	v.SetComment(comment)
 	v.SetProduction(production)
 	return v
 }
 
 // This type defines the structure and methods associated with a statement.
 type statement struct {
-	annotation Annotation
+	comment    Comment
 	production ProductionLike
 }
 
-// This method returns the annotation for this statement.
-func (v *statement) GetAnnotation() Annotation {
-	return v.annotation
+// This method returns the comment for this statement.
+func (v *statement) GetComment() Comment {
+	return v.comment
 }
 
-// This method sets the annotation for this statement.
-func (v *statement) SetAnnotation(annotation Annotation) {
-	v.annotation = annotation
+// This method sets the comment for this statement.
+func (v *statement) SetComment(comment Comment) {
+	v.comment = comment
 }
 
 // This method returns the production for this statement.
@@ -43,8 +43,8 @@ func (v *statement) GetProduction() ProductionLike {
 
 // This method sets the production for this statement.
 func (v *statement) SetProduction(production ProductionLike) {
-	if len(v.annotation) == 0 && production == nil {
-		panic("A statement requires either an annotation or a production.")
+	if len(v.comment) == 0 && production == nil {
+		panic("A statement requires either a comment or a production.")
 	}
 	v.production = production
 }

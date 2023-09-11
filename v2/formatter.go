@@ -79,9 +79,9 @@ func (v *formatter) formatAlternative(alternative AlternativeLike) {
 	}
 }
 
-// This private method appends a formatted annotation to the result.
-func (v *formatter) formatAnnotation(annotation Annotation) {
-	v.appendString(string(annotation))
+// This private method appends a formatted comment to the result.
+func (v *formatter) formatComment(comment Comment) {
+	v.appendString(string(comment))
 }
 
 // This private method appends a formatted definition to the result.
@@ -224,10 +224,10 @@ func (v *formatter) formatRune(rune_ Rune) {
 
 // This private method appends a formatted statement to the result.
 func (v *formatter) formatStatement(statement StatementLike) {
-	var annotation = statement.GetAnnotation()
-	if len(annotation) > 0 {
+	var comment = statement.GetComment()
+	if len(comment) > 0 {
 		v.appendNewline()
-		v.formatAnnotation(annotation)
+		v.formatComment(comment)
 	} else {
 		var production = statement.GetProduction()
 		v.formatProduction(production)

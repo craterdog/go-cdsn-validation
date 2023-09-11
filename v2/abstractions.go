@@ -22,17 +22,16 @@ import (
 
 // The following define the native Go token types.
 type (
-	Annotation  string
-	Comment     string
-	Digit       string
-	Intrinsic   string
-	Letter      string
-	Note        string
-	Name        string
-	Number      string
-	Rune        string
-	String      string
-	Symbol      string
+	Comment   string
+	Digit     string
+	Intrinsic string
+	Letter    string
+	Note      string
+	Name      string
+	Number    string
+	Rune      string
+	String    string
+	Symbol    string
 )
 
 // The following define the Go rule related types.
@@ -119,8 +118,8 @@ type RangeLike interface {
 // This interface defines the methods supported by all statement-like
 // components.
 type StatementLike interface {
-	GetAnnotation() Annotation
-	SetAnnotation(annotation Annotation)
+	GetComment() Comment
+	SetComment(comment Comment)
 	GetProduction() ProductionLike
 	SetProduction(production ProductionLike)
 }
