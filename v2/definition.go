@@ -10,52 +10,44 @@
 
 package cdsn
 
-import (
-	col "github.com/craterdog/go-collection-framework/v2"
-)
-
-// RULE IMPLEMENTATION
+// PRODUCTION IMPLEMENTATION
 
 // This constructor creates a new definition.
-func Definition(alternatives col.Sequential[AlternativeLike]) DefinitionLike {
+func Definition(symbol Symbol, expression ExpressionLike) DefinitionLike {
 	var v = &definition{}
-	v.SetAlternatives(alternatives)
+	v.SetSymbol(symbol)
+	v.SetExpression(expression)
 	return v
 }
 
 // This type defines the structure and methods associated with a definition.
 type definition struct {
-	multilined   bool
-	alternatives col.Sequential[AlternativeLike]
+	symbol     Symbol
+	expression ExpressionLike
 }
 
-// This method determines whether or not this definition is multlined.
-func (v *definition) IsMultilined() bool {
-	return v.multilined
+// This method returns the symbol for this definition.
+func (v *definition) GetSymbol() Symbol {
+	return v.symbol
 }
 
-// This method sets whether or not this definition is multlined.
-func (v *definition) SetMultilined(multilined bool) {
-	v.multilined = multilined
-}
-
-// This method returns the alternatives for this definition.
-func (v *definition) GetAlternatives() col.Sequential[AlternativeLike] {
-	return v.alternatives
-}
-
-// This method sets the alternatives for this definition.
-func (v *definition) SetAlternatives(alternatives col.Sequential[AlternativeLike]) {
-	if alternatives == nil || alternatives.IsEmpty() {
-		panic("A definition requires at least one alternative.")
+// This method sets the symbol for this definition.
+func (v *definition) SetSymbol(symbol Symbol) {
+	if len(symbol) == 0 {
+		panic("A definition requires a symbol.")
 	}
-	var iterator = col.Iterator(alternatives)
-	for iterator.HasNext() {
-		var alternative = iterator.GetNext()
-		if alternatives.GetSize() > 1 && (alternative.GetFactors().GetSize() > 2 || len(alternative.GetNote()) > 0) {
-			v.multilined = true
-			break
-		}
+	v.symbol = symbol
+}
+
+// This method returns the expression for this definition.
+func (v *definition) GetExpression() ExpressionLike {
+	return v.expression
+}
+
+// This method sets the expression for this definition.
+func (v *definition) SetExpression(expression ExpressionLike) {
+	if expression == nil {
+		panic("A definition requires an expression.")
 	}
-	v.alternatives = alternatives
+	v.expression = expression
 }

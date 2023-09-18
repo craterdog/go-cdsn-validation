@@ -151,19 +151,19 @@ func (v *parser) parseComment() (Comment, *Token, bool) {
 	return comment, token, true
 }
 
-// This method attempts to parse a definition. It returns the definition and
-// whether or not the definition was successfully parsed.
-func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
+// This method attempts to parse an expression. It returns the expression and
+// whether or not the expression was successfully parsed.
+func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var alternative AlternativeLike
 	var alternatives = col.List[AlternativeLike]()
-	var definition DefinitionLike
+	var expression ExpressionLike
 	alternative, token, ok = v.parseAlternative()
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("alternative",
-			"$definition",
+			"$expression",
 			"$alternative")
 		panic(message)
 	}
@@ -178,13 +178,13 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 		if !ok {
 			var message = v.formatError(token)
 			message += generateGrammar("alternative",
-				"$definition",
+				"$expression",
 				"$alternative")
 			panic(message)
 		}
 	}
-	definition = Definition(alternatives)
-	return definition, token, true
+	expression = Expression(alternatives)
+	return expression, token, true
 }
 
 // This method attempts to parse the specified delimiter. It returns
@@ -204,32 +204,32 @@ func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
 func (v *parser) parseExactlyN() (GroupLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var definition DefinitionLike
+	var expression ExpressionLike
 	var group GroupLike
 	_, token, ok = v.parseDelimiter("(")
 	if !ok {
 		// This is not a precedence group.
 		return group, token, false
 	}
-	definition, token, ok = v.parseDefinition()
+	expression, token, ok = v.parseExpression()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("definition",
+		message += generateGrammar("expression",
 			"$factor",
-			"$definition")
+			"$expression")
 		panic(message)
 	}
-	definition.SetMultilined(false)
+	expression.SetMultilined(false)
 	_, token, ok = v.parseDelimiter(")")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(")",
 			"$factor",
-			"$definition")
+			"$expression")
 		panic(message)
 	}
 	var number, _, _ = v.parseNumber() // The number is optional.
-	group = Group(definition, ExactlyN, number)
+	group = Group(expression, ExactlyN, number)
 	return group, token, true
 }
 
@@ -310,7 +310,7 @@ func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
 	return grammar, token, true
 }
 
-// This method attempts to parse a intrinsic. It returns the intrinsic and
+// This method attempts to parse an intrinsic. It returns the intrinsic and
 // whether or not the intrinsic was successfully parsed.
 func (v *parser) parseIntrinsic() (Intrinsic, *Token, bool) {
 	var intrinsic Intrinsic
@@ -386,74 +386,74 @@ func (v *parser) parseNumber() (Number, *Token, bool) {
 	return number, token, true
 }
 
-// This method attempts to parse a one or more group. It returns the one or
+// This method attempts to parse a one-or-more group. It returns the one or
 // more group and whether or not the one or more group was successfully
 // parsed.
 func (v *parser) parseOneOrMore() (GroupLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var definition DefinitionLike
+	var expression ExpressionLike
 	var group GroupLike
 	_, token, ok = v.parseDelimiter("<")
 	if !ok {
-		// This is not a one or more group.
+		// This is not a one-or-more group.
 		return group, token, false
 	}
-	definition, token, ok = v.parseDefinition()
+	expression, token, ok = v.parseExpression()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("definition",
+		message += generateGrammar("expression",
 			"$factor",
-			"$definition")
+			"$expression")
 		panic(message)
 	}
-	definition.SetMultilined(false)
+	expression.SetMultilined(false)
 	_, token, ok = v.parseDelimiter(">")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(">",
 			"$factor",
-			"$definition")
+			"$expression")
 		panic(message)
 	}
 	var number, _, _ = v.parseNumber() // The number is optional.
-	group = Group(definition, OneOrMore, number)
+	group = Group(expression, OneOrMore, number)
 	return group, token, true
 }
 
-// This method attempts to parse a production. It returns the production and
-// whether or not the production was successfully parsed.
-func (v *parser) parseProduction() (ProductionLike, *Token, bool) {
+// This method attempts to parse a definition. It returns the definition and
+// whether or not the definition was successfully parsed.
+func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var symbol Symbol
+	var expression ExpressionLike
 	var definition DefinitionLike
-	var production ProductionLike
 	symbol, token, ok = v.parseSymbol()
 	if !ok {
-		// This is not a production.
-		return production, token, false
+		// This is not a definition.
+		return definition, token, false
 	}
 	_, token, ok = v.parseDelimiter(":")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(":",
-			"$production",
+			"$definition",
 			"$SYMBOL",
-			"$definition")
+			"$expression")
 		panic(message)
 	}
-	definition, token, ok = v.parseDefinition()
+	expression, token, ok = v.parseExpression()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("definition",
-			"$production",
+		message += generateGrammar("expression",
+			"$definition",
 			"$SYMBOL",
-			"$definition")
+			"$expression")
 		panic(message)
 	}
-	production = Production(symbol, definition)
-	return production, token, true
+	definition = Definition(symbol, expression)
+	return definition, token, true
 }
 
 // This method attempts to parse a range. It returns the range and whether or
@@ -506,17 +506,17 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var comment Comment
-	var production ProductionLike
+	var definition DefinitionLike
 	var statement StatementLike
 	comment, _, ok = v.parseComment()
 	if !ok {
-		production, token, ok = v.parseProduction()
+		definition, token, ok = v.parseDefinition()
 		if !ok {
 			// This is not a statement.
 			return statement, token, false
 		}
 	}
-	statement = Statement(comment, production)
+	statement = Statement(comment, definition)
 	return statement, token, true
 }
 
@@ -573,32 +573,32 @@ func (v *parser) parseToken() (Factor, *Token, bool) {
 func (v *parser) parseZeroOrMore() (GroupLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var definition DefinitionLike
+	var expression ExpressionLike
 	var group GroupLike
 	_, token, ok = v.parseDelimiter("{")
 	if !ok {
 		// This is not a zero or more group.
 		return group, token, false
 	}
-	definition, token, ok = v.parseDefinition()
+	expression, token, ok = v.parseExpression()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("definition",
+		message += generateGrammar("expression",
 			"$factor",
-			"$definition")
+			"$expression")
 		panic(message)
 	}
-	definition.SetMultilined(false)
+	expression.SetMultilined(false)
 	_, token, ok = v.parseDelimiter("}")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("}",
 			"$factor",
-			"$definition")
+			"$expression")
 		panic(message)
 	}
 	var number, _, _ = v.parseNumber() // The number is optional.
-	group = Group(definition, ZeroOrMore, number)
+	group = Group(expression, ZeroOrMore, number)
 	return group, token, true
 }
 
@@ -607,45 +607,45 @@ func (v *parser) parseZeroOrMore() (GroupLike, *Token, bool) {
 func (v *parser) parseZeroOrOne() (GroupLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var definition DefinitionLike
+	var expression ExpressionLike
 	var group GroupLike
 	_, token, ok = v.parseDelimiter("[")
 	if !ok {
 		// This is not a zero or one group.
 		return group, token, false
 	}
-	definition, token, ok = v.parseDefinition()
+	expression, token, ok = v.parseExpression()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("definition",
+		message += generateGrammar("expression",
 			"$factor",
-			"$definition")
+			"$expression")
 		panic(message)
 	}
-	definition.SetMultilined(false)
+	expression.SetMultilined(false)
 	_, token, ok = v.parseDelimiter("]")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("]",
 			"$factor",
-			"$definition")
+			"$expression")
 		panic(message)
 	}
 	var number, _, _ = v.parseNumber() // The number is optional.
-	group = Group(definition, ZeroOrOne, number)
+	group = Group(expression, ZeroOrOne, number)
 	return group, token, true
 }
 
 // GRAMMAR UTILITIES
 
-// This map captures the syntax definitions for Crater Dog Syntax Notation.
+// This map captures the syntax expressions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar_ = map[string]string{
 	"$grammar":     `<statement> EOF  ! Terminated with an end-of-file marker.`,
-	"$statement":   `COMMENT | production`,
-	"$production":  `symbol ":" definition  ! This works for both tokens and rules.`,
+	"$statement":   `COMMENT | definition`,
+	"$definition":  `symbol ":" expression  ! This works for both tokens and rules.`,
 	"$symbol":      `RULESYMBOL | TOKENSYMBOL`,
-	"$definition":  `alternative {"|" alternative}`,
+	"$expression":  `alternative {"|" alternative}`,
 	"$alternative": `<factor> [NOTE]`,
 	"$factor": `
       inverse
@@ -657,17 +657,17 @@ var grammar_ = map[string]string{
    	| token`,
 	"$token":      `INTRINSIC | RUNE | STRING | NUMBER | NAME`,
 	"$inverse":    `"~" factor`,
-	"$exactlyN":   `"(" definition ")" [NUMBER]  ! The default is exactly one.`,
-	"$zeroOrOne":  `"[" definition "]"`,
-	"$zeroOrMore": `"{" definition "}"`,
-	"$oneOrMore":  `"<" definition ">"`,
+	"$exactlyN":   `"(" expression ")" [NUMBER]  ! The default is exactly one.`,
+	"$zeroOrOne":  `"[" expression "]"`,
+	"$zeroOrMore": `"{" expression "}"`,
+	"$oneOrMore":  `"<" expression ">"`,
 	"$range":      `RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.`,
 }
 
 const header = `!>
-    A formal definition of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
-    Syntax Notation™ itself.  This language grammar consists of rule definitions
-    and token definitions.
+    A formal expression of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
+    Syntax Notation™ itself.  This language grammar consists of rule expressions
+    and token expressions.
 
     Each rule name begins with a lowercase letter.  The rules are applied in the
     order listed. So—for example—within a factor, a range of RUNEs takes

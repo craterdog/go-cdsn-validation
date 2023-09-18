@@ -84,15 +84,15 @@ func (v *formatter) formatComment(comment Comment) {
 	v.appendString(string(comment))
 }
 
-// This private method appends a formatted definition to the result.
-func (v *formatter) formatDefinition(definition DefinitionLike) {
-	var alternatives = definition.GetAlternatives()
+// This private method appends a formatted expression to the result.
+func (v *formatter) formatExpression(expression ExpressionLike) {
+	var alternatives = expression.GetAlternatives()
 	var iterator = col.Iterator(alternatives)
 	var alternative = iterator.GetNext()
 	v.formatAlternative(alternative)
 	for iterator.HasNext() {
 		alternative = iterator.GetNext()
-		if definition.IsMultilined() {
+		if expression.IsMultilined() {
 			v.appendNewline()
 		} else {
 			v.appendString(" ")
@@ -138,25 +138,25 @@ func (v *formatter) formatGrammar(grammar GrammarLike) {
 
 // This private method appends a formatted group to the result.
 func (v *formatter) formatGroup(group GroupLike) {
-	var definition = group.GetDefinition()
+	var expression = group.GetExpression()
 	var type_ = group.GetType()
 	var number = group.GetNumber()
 	switch type_ {
 	case ExactlyN:
 		v.appendString("(")
-		v.formatDefinition(definition)
+		v.formatExpression(expression)
 		v.appendString(")")
 	case ZeroOrOne:
 		v.appendString("[")
-		v.formatDefinition(definition)
+		v.formatExpression(expression)
 		v.appendString("]")
 	case ZeroOrMore:
 		v.appendString("{")
-		v.formatDefinition(definition)
+		v.formatExpression(expression)
 		v.appendString("}")
 	case OneOrMore:
 		v.appendString("<")
-		v.formatDefinition(definition)
+		v.formatExpression(expression)
 		v.appendString(">")
 	default:
 		panic(fmt.Sprintf("Attempted to format an invalid group type: %v\n", type_))
@@ -191,20 +191,20 @@ func (v *formatter) formatNumber(number Number) {
 	v.appendString(string(number))
 }
 
-// This private method appends a formatted production to the result.
-func (v *formatter) formatProduction(production ProductionLike) {
-	var symbol = production.GetSymbol()
+// This private method appends a formatted definition to the result.
+func (v *formatter) formatDefinition(definition DefinitionLike) {
+	var symbol = definition.GetSymbol()
 	v.formatSymbol(symbol)
 	v.appendString(":")
 	v.depth++
-	var definition = production.GetDefinition()
-	if definition.IsMultilined() {
+	var expression = definition.GetExpression()
+	if expression.IsMultilined() {
 		v.appendNewline()
 		v.appendString("  ")
 	} else {
 		v.appendString(" ")
 	}
-	v.formatDefinition(definition)
+	v.formatExpression(expression)
 	v.depth--
 }
 
@@ -229,8 +229,8 @@ func (v *formatter) formatStatement(statement StatementLike) {
 		v.appendNewline()
 		v.formatComment(comment)
 	} else {
-		var production = statement.GetProduction()
-		v.formatProduction(production)
+		var definition = statement.GetDefinition()
+		v.formatDefinition(definition)
 	}
 	v.appendNewline()
 	v.appendNewline()

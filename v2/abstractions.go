@@ -64,9 +64,9 @@ type AlternativeLike interface {
 	SetNote(note Note)
 }
 
-// This interface defines the methods supported by all definition-like
+// This interface defines the methods supported by all expression-like
 // components.
-type DefinitionLike interface {
+type ExpressionLike interface {
 	IsMultilined() bool
 	SetMultilined(multilined bool)
 	GetAlternatives() col.Sequential[AlternativeLike]
@@ -83,8 +83,8 @@ type GrammarLike interface {
 // This interface defines the methods supported by all group-like
 // components.
 type GroupLike interface {
-	GetDefinition() DefinitionLike
-	SetDefinition(definition DefinitionLike)
+	GetExpression() ExpressionLike
+	SetExpression(expression ExpressionLike)
 	GetType() GroupType
 	SetType(type_ GroupType)
 	GetNumber() Number
@@ -98,13 +98,13 @@ type InverseLike interface {
 	SetFactor(factor Factor)
 }
 
-// This interface defines the methods supported by all production-like
+// This interface defines the methods supported by all definition-like
 // components.
-type ProductionLike interface {
+type DefinitionLike interface {
 	GetSymbol() Symbol
 	SetSymbol(symbol Symbol)
-	GetDefinition() DefinitionLike
-	SetDefinition(definition DefinitionLike)
+	GetExpression() ExpressionLike
+	SetExpression(expression ExpressionLike)
 }
 
 // This interface defines the methods supported by all range-like components.
@@ -120,6 +120,6 @@ type RangeLike interface {
 type StatementLike interface {
 	GetComment() Comment
 	SetComment(comment Comment)
-	GetProduction() ProductionLike
-	SetProduction(production ProductionLike)
+	GetDefinition() DefinitionLike
+	SetDefinition(definition DefinitionLike)
 }

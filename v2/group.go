@@ -13,9 +13,9 @@ package cdsn
 // GROUPING IMPLEMENTATION
 
 // This constructor creates a new group.
-func Group(definition DefinitionLike, type_ GroupType, number Number) GroupLike {
+func Group(expression ExpressionLike, type_ GroupType, number Number) GroupLike {
 	var v = &group{}
-	v.SetDefinition(definition)
+	v.SetExpression(expression)
 	v.SetType(type_)
 	v.SetNumber(number)
 	return v
@@ -23,22 +23,22 @@ func Group(definition DefinitionLike, type_ GroupType, number Number) GroupLike 
 
 // This type defines the structure and methods associated with a group.
 type group struct {
-	definition DefinitionLike
+	expression ExpressionLike
 	type_      GroupType
 	number     Number
 }
 
-// This method returns the definition for this group.
-func (v *group) GetDefinition() DefinitionLike {
-	return v.definition
+// This method returns the expression for this group.
+func (v *group) GetExpression() ExpressionLike {
+	return v.expression
 }
 
-// This method sets the definition for this group.
-func (v *group) SetDefinition(definition DefinitionLike) {
-	if definition == nil {
-		panic("A group requires a definition.")
+// This method sets the expression for this group.
+func (v *group) SetExpression(expression ExpressionLike) {
+	if expression == nil {
+		panic("A group requires an expression.")
 	}
-	v.definition = definition
+	v.expression = expression
 }
 
 // This method returns the group type for this group.

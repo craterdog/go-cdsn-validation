@@ -13,17 +13,17 @@ package cdsn
 // STATEMENT IMPLEMENTATION
 
 // This constructor creates a new statement.
-func Statement(comment Comment, production ProductionLike) StatementLike {
+func Statement(comment Comment, definition DefinitionLike) StatementLike {
 	var v = &statement{}
 	v.SetComment(comment)
-	v.SetProduction(production)
+	v.SetDefinition(definition)
 	return v
 }
 
 // This type defines the structure and methods associated with a statement.
 type statement struct {
 	comment    Comment
-	production ProductionLike
+	definition DefinitionLike
 }
 
 // This method returns the comment for this statement.
@@ -36,15 +36,15 @@ func (v *statement) SetComment(comment Comment) {
 	v.comment = comment
 }
 
-// This method returns the production for this statement.
-func (v *statement) GetProduction() ProductionLike {
-	return v.production
+// This method returns the definition for this statement.
+func (v *statement) GetDefinition() DefinitionLike {
+	return v.definition
 }
 
-// This method sets the production for this statement.
-func (v *statement) SetProduction(production ProductionLike) {
-	if len(v.comment) == 0 && production == nil {
-		panic("A statement requires either a comment or a production.")
+// This method sets the definition for this statement.
+func (v *statement) SetDefinition(definition DefinitionLike) {
+	if len(v.comment) == 0 && definition == nil {
+		panic("A statement requires either a comment or a definition.")
 	}
-	v.production = production
+	v.definition = definition
 }
