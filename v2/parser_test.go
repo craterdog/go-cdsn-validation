@@ -34,6 +34,7 @@ func TestParsingRoundtrips(t *tes.T) {
 			fmt.Println(filename)
 			var expected, _ = osx.ReadFile(filename)
 			var grammar = cds.ParseDocument(expected)
+			cds.ValidateGrammar(grammar)
 			var document = cds.FormatDocument(grammar)
 			ass.Equal(t, string(expected), string(document))
 		}

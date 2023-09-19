@@ -34,7 +34,7 @@ func (v *rng) GetFirstCharacter() Character {
 // This method sets the first character for this range.
 func (v *rng) SetFirstCharacter(first Character) {
 	if len(first) == 0 {
-		panic("A range requires two characters.")
+		panic("A range requires at least one character.")
 	}
 	v.first = first
 }
@@ -46,8 +46,5 @@ func (v *rng) GetLastCharacter() Character {
 
 // This method sets the last character for this range.
 func (v *rng) SetLastCharacter(last Character) {
-	if len(last) == 0 {
-		panic("A range requires two characters.")
-	}
 	v.last = last
 }

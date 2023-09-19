@@ -138,6 +138,19 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	return alternative, token, true
 }
 
+// This method attempts to parse a character. It returns the character and
+// whether or not a character was successfully parsed.
+func (v *parser) parseCharacter() (Character, *Token, bool) {
+	var character Character
+	var token = v.nextToken()
+	if token.Type != TokenCharacter {
+		v.backupOne()
+		return character, token, false
+	}
+	character = Character(token.Value)
+	return character, token, true
+}
+
 // This method attempts to parse a comment. It returns the comment and whether
 // or not a comment was successfully parsed.
 func (v *parser) parseComment() (Comment, *Token, bool) {
@@ -151,40 +164,39 @@ func (v *parser) parseComment() (Comment, *Token, bool) {
 	return comment, token, true
 }
 
-// This method attempts to parse an expression. It returns the expression and
-// whether or not the expression was successfully parsed.
-func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
+// This method attempts to parse a definition. It returns the definition and
+// whether or not the definition was successfully parsed.
+func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var alternative AlternativeLike
-	var alternatives = col.List[AlternativeLike]()
+	var symbol Symbol
 	var expression ExpressionLike
-	alternative, token, ok = v.parseAlternative()
+	var definition DefinitionLike
+	symbol, token, ok = v.parseSymbol()
+	if !ok {
+		// This is not a definition.
+		return definition, token, false
+	}
+	_, token, ok = v.parseDelimiter(":")
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("alternative",
-			"$expression",
-			"$alternative")
+		message += generateGrammar(":",
+			"$definition",
+			"$SYMBOL",
+			"$expression")
 		panic(message)
 	}
-	for {
-		alternatives.AddValue(alternative)
-		_, _, ok = v.parseDelimiter("|")
-		if !ok {
-			// No more alternatives.
-			break
-		}
-		alternative, token, ok = v.parseAlternative()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("alternative",
-				"$expression",
-				"$alternative")
-			panic(message)
-		}
+	expression, token, ok = v.parseExpression()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("expression",
+			"$definition",
+			"$SYMBOL",
+			"$expression")
+		panic(message)
 	}
-	expression = Expression(alternatives)
-	return expression, token, true
+	definition = Definition(symbol, expression)
+	return definition, token, true
 }
 
 // This method attempts to parse the specified delimiter. It returns
@@ -233,6 +245,42 @@ func (v *parser) parseExactlyN() (GroupLike, *Token, bool) {
 	return group, token, true
 }
 
+// This method attempts to parse an expression. It returns the expression and
+// whether or not the expression was successfully parsed.
+func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var alternative AlternativeLike
+	var alternatives = col.List[AlternativeLike]()
+	var expression ExpressionLike
+	alternative, token, ok = v.parseAlternative()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("alternative",
+			"$expression",
+			"$alternative")
+		panic(message)
+	}
+	for {
+		alternatives.AddValue(alternative)
+		_, _, ok = v.parseDelimiter("|")
+		if !ok {
+			// No more alternatives.
+			break
+		}
+		alternative, token, ok = v.parseAlternative()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("alternative",
+				"$expression",
+				"$alternative")
+			panic(message)
+		}
+	}
+	expression = Expression(alternatives)
+	return expression, token, true
+}
+
 // This method attempts to parse the end-of-file (EOF) marker. It returns
 // the token and whether or not an EOF marker was found. Note that the POSIX
 // standard requires that the last byte in a file be an end-of-line (EOL)
@@ -252,7 +300,13 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	var ok bool
 	var token *Token
 	var factor Factor
-	factor, token, ok = v.parseInverse()
+	factor, token, ok = v.parseToken()
+	if !ok {
+		factor, token, ok = v.parseRange()
+	}
+	if !ok {
+		factor, token, ok = v.parseInverse()
+	}
 	if !ok {
 		factor, token, ok = v.parseExactlyN()
 	}
@@ -264,12 +318,6 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	}
 	if !ok {
 		factor, token, ok = v.parseOneOrMore()
-	}
-	if !ok {
-		factor, token, ok = v.parseRange()
-	}
-	if !ok {
-		factor, token, ok = v.parseToken()
 	}
 	return factor, token, ok
 }
@@ -421,41 +469,6 @@ func (v *parser) parseOneOrMore() (GroupLike, *Token, bool) {
 	return group, token, true
 }
 
-// This method attempts to parse a definition. It returns the definition and
-// whether or not the definition was successfully parsed.
-func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var symbol Symbol
-	var expression ExpressionLike
-	var definition DefinitionLike
-	symbol, token, ok = v.parseSymbol()
-	if !ok {
-		// This is not a definition.
-		return definition, token, false
-	}
-	_, token, ok = v.parseDelimiter(":")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar(":",
-			"$definition",
-			"$SYMBOL",
-			"$expression")
-		panic(message)
-	}
-	expression, token, ok = v.parseExpression()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("expression",
-			"$definition",
-			"$SYMBOL",
-			"$expression")
-		panic(message)
-	}
-	definition = Definition(symbol, expression)
-	return definition, token, true
-}
-
 // This method attempts to parse a range. It returns the range and whether or
 // not the range was successfully parsed.
 func (v *parser) parseRange() (RangeLike, *Token, bool) {
@@ -469,35 +482,19 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 		// This is not a range.
 		return range_, token, false
 	}
-	_, token, ok = v.parseDelimiter("..")
-	if !ok {
-		// This is not a range.
-		v.backupOne() // Put back the character.
-		return range_, token, false
-	}
-	last, token, ok = v.parseCharacter()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("CHARACTER",
-			"$range",
-			"$CHARACTER")
-		panic(message)
+	_, _, ok = v.parseDelimiter("..")
+	if ok {
+		last, token, ok = v.parseCharacter()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("CHARACTER",
+				"$range",
+				"$CHARACTER")
+			panic(message)
+		}
 	}
 	range_ = Range(first, last)
 	return range_, token, true
-}
-
-// This method attempts to parse a character. It returns the character and
-// whether or not a character was successfully parsed.
-func (v *parser) parseCharacter() (Character, *Token, bool) {
-	var character Character
-	var token = v.nextToken()
-	if token.Type != TokenCharacter {
-		v.backupOne()
-		return character, token, false
-	}
-	character = Character(token.Value)
-	return character, token, true
 }
 
 // This method attempts to parse a statement. It returns the statement and
@@ -553,9 +550,6 @@ func (v *parser) parseToken() (Factor, *Token, bool) {
 	var token *Token
 	var factor Factor
 	factor, token, ok = v.parseIntrinsic()
-	if !ok {
-		factor, token, ok = v.parseCharacter()
-	}
 	if !ok {
 		factor, token, ok = v.parseString()
 	}

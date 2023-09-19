@@ -79,9 +79,31 @@ func (v *formatter) formatAlternative(alternative AlternativeLike) {
 	}
 }
 
+// This private method appends a formatted character to the result.
+func (v *formatter) formatCharacter(character Character) {
+	v.appendString(string(character))
+}
+
 // This private method appends a formatted comment to the result.
 func (v *formatter) formatComment(comment Comment) {
 	v.appendString(string(comment))
+}
+
+// This private method appends a formatted definition to the result.
+func (v *formatter) formatDefinition(definition DefinitionLike) {
+	var symbol = definition.GetSymbol()
+	v.formatSymbol(symbol)
+	v.appendString(":")
+	v.depth++
+	var expression = definition.GetExpression()
+	if expression.IsMultilined() {
+		v.appendNewline()
+		v.appendString("  ")
+	} else {
+		v.appendString(" ")
+	}
+	v.formatExpression(expression)
+	v.depth--
 }
 
 // This private method appends a formatted expression to the result.
@@ -105,22 +127,20 @@ func (v *formatter) formatExpression(expression ExpressionLike) {
 // This private method appends a formatted factor to the result.
 func (v *formatter) formatFactor(factor Factor) {
 	switch f := factor.(type) {
-	case InverseLike:
-		v.formatInverse(f)
-	case GroupLike:
-		v.formatGroup(f)
-	case RangeLike:
-		v.formatRange(f)
 	case Intrinsic:
 		v.formatIntrinsic(f)
-	case Character:
-		v.formatCharacter(f)
 	case String:
 		v.formatString(f)
 	case Number:
 		v.formatNumber(f)
 	case Name:
 		v.formatName(f)
+	case RangeLike:
+		v.formatRange(f)
+	case InverseLike:
+		v.formatInverse(f)
+	case GroupLike:
+		v.formatGroup(f)
 	default:
 		panic(fmt.Sprintf("Attempted to format:\n    factor: %v\n    type: %t\n", f, factor))
 	}
@@ -191,35 +211,15 @@ func (v *formatter) formatNumber(number Number) {
 	v.appendString(string(number))
 }
 
-// This private method appends a formatted definition to the result.
-func (v *formatter) formatDefinition(definition DefinitionLike) {
-	var symbol = definition.GetSymbol()
-	v.formatSymbol(symbol)
-	v.appendString(":")
-	v.depth++
-	var expression = definition.GetExpression()
-	if expression.IsMultilined() {
-		v.appendNewline()
-		v.appendString("  ")
-	} else {
-		v.appendString(" ")
-	}
-	v.formatExpression(expression)
-	v.depth--
-}
-
 // This private method appends a formatted range to the result.
 func (v *formatter) formatRange(range_ RangeLike) {
 	var first = range_.GetFirstCharacter()
-	v.formatCharacter(first)
-	v.appendString("..")
 	var last = range_.GetLastCharacter()
-	v.formatCharacter(last)
-}
-
-// This private method appends a formatted character to the result.
-func (v *formatter) formatCharacter(character Character) {
-	v.appendString(string(character))
+	v.formatCharacter(first)
+	if len(last) > 0 {
+		v.appendString("..")
+		v.formatCharacter(last)
+	}
 }
 
 // This private method appends a formatted statement to the result.
