@@ -2,8 +2,8 @@
 !>
     CRATER DOG SYNTAX NOTATION
     This document contains a formal definition of the Crater Dog Syntax Notation™
-    (CDSN) language grammar using CDSN itself.  This grammar consists of a set of
-    rule definitions and token definitions.
+    (CDSN) language grammar using CDSN itself in homage to Douglas Hofstadter.  A
+	language grammar consists of a set of rule definitions and token definitions.
 <!
 
 
@@ -26,14 +26,11 @@ $expression: alternative {"|" alternative}
 
 $alternative: <factor> [NOTE]
 
-$factor:
-      inverse
-    | exactlyN
-    | zeroOrOne
-    | zeroOrMore
-    | oneOrMore
-    | range
-    | token  ! Must be checked for last.
+$factor: token | range | inverse | exactlyN | zeroOrOne | zeroOrMore | oneOrMore
+
+$token: INTRINSIC | STRING | NUMBER | NAME
+
+$range: CHARACTER [".." CHARACTER]  ! A range of CHARACTERs is inclusive.
 
 $inverse: "~" factor
 
@@ -44,10 +41,6 @@ $zeroOrOne: "[" expression "]"
 $zeroOrMore: "{" expression "}"
 
 $oneOrMore: "<" expression ">"
-
-$range: RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.
-
-$token: INTRINSIC | RUNE | STRING | NUMBER | NAME
 
 
 !>
@@ -65,21 +58,19 @@ $INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
 
 $LETTER: LOWERCASE | UPPERCASE
 
-$CHARACTER: LETTER | DIGIT
-
 $IGNORED: " " | EOL
 
 $NOTE: "! " {~EOL}
 
 $COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
 
-$RUNE: "'" ~"'" "'"
+$CHARACTER: "'" ~"'" "'"
 
 $STRING: '"' <~'"'> '"'
 
 $NUMBER: <DIGIT>
 
-$NAME: LETTER {CHARACTER}  ! NAMEs must be scanned after INTRINSICs.
+$NAME: LETTER {LETTER | DIGIT}  ! NAMEs must be scanned after INTRINSICs.
 
 $SYMBOL: "$" NAME
 

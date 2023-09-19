@@ -113,8 +113,8 @@ func (v *formatter) formatFactor(factor Factor) {
 		v.formatRange(f)
 	case Intrinsic:
 		v.formatIntrinsic(f)
-	case Rune:
-		v.formatRune(f)
+	case Character:
+		v.formatCharacter(f)
 	case String:
 		v.formatString(f)
 	case Number:
@@ -210,16 +210,16 @@ func (v *formatter) formatDefinition(definition DefinitionLike) {
 
 // This private method appends a formatted range to the result.
 func (v *formatter) formatRange(range_ RangeLike) {
-	var first = range_.GetFirstRune()
-	v.formatRune(first)
+	var first = range_.GetFirstCharacter()
+	v.formatCharacter(first)
 	v.appendString("..")
-	var last = range_.GetLastRune()
-	v.formatRune(last)
+	var last = range_.GetLastCharacter()
+	v.formatCharacter(last)
 }
 
-// This private method appends a formatted rune to the result.
-func (v *formatter) formatRune(rune_ Rune) {
-	v.appendString(string(rune_))
+// This private method appends a formatted character to the result.
+func (v *formatter) formatCharacter(character Character) {
+	v.appendString(string(character))
 }
 
 // This private method appends a formatted statement to the result.

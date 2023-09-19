@@ -29,7 +29,7 @@ type (
 	Note      string
 	Name      string
 	Number    string
-	Rune      string
+	Character string
 	String    string
 	Symbol    string
 )
@@ -109,10 +109,10 @@ type DefinitionLike interface {
 
 // This interface defines the methods supported by all range-like components.
 type RangeLike interface {
-	GetFirstRune() Rune
-	SetFirstRune(first Rune)
-	GetLastRune() Rune
-	SetLastRune(last Rune)
+	GetFirstCharacter() Character
+	SetFirstCharacter(first Character)
+	GetLastCharacter() Character
+	SetLastCharacter(last Character)
 }
 
 // This interface defines the methods supported by all statement-like

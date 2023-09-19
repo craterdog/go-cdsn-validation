@@ -33,7 +33,7 @@ const (
 	TokenName
 	TokenNote
 	TokenNumber
-	TokenRune
+	TokenCharacter
 	TokenString
 	TokenSymbol
 )
@@ -49,7 +49,7 @@ func (v TokenType) String() string {
 		"Name",
 		"Note",
 		"Number",
-		"Rune",
+		"Character",
 		"String",
 		"Symbol",
 	}[v]
@@ -125,7 +125,7 @@ func (v *scanner) processToken() bool {
 	case v.foundIntrinsic():
 	case v.foundNote():
 	case v.foundComment():
-	case v.foundRune():
+	case v.foundCharacter():
 	case v.foundString():
 	case v.foundNumber():
 	case v.foundName():
@@ -296,14 +296,14 @@ func (v *scanner) foundNumber() bool {
 	return false
 }
 
-// This method adds a rune token with the current scanner information
-// to the token channel. It returns true if a rune token was found.
-func (v *scanner) foundRune() bool {
+// This method adds a character token with the current scanner information
+// to the token channel. It returns true if a character token was found.
+func (v *scanner) foundCharacter() bool {
 	var s = v.source[v.nextByte:]
-	var matches = scanRune(s)
+	var matches = scanCharacter(s)
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenRune)
+		v.emitToken(TokenCharacter)
 		return true
 	}
 	return false
@@ -432,14 +432,14 @@ func scanNumber(v []byte) []string {
 	return bytesToStrings(numberScanner.FindSubmatch(v))
 }
 
-// This scanner is used for matching rune tokens.
-var runeScanner = reg.MustCompile(`^(?:` + rune_ + `)`)
+// This scanner is used for matching character tokens.
+var characterScanner = reg.MustCompile(`^(?:` + character + `)`)
 
 // This function returns for the specified string an array of the matching
-// subgroups for a rune token. The first string in the array is the
+// subgroups for a character token. The first string in the array is the
 // entire matched string.
-func scanRune(v []byte) []string {
-	return bytesToStrings(runeScanner.FindSubmatch(v))
+func scanCharacter(v []byte) []string {
+	return bytesToStrings(characterScanner.FindSubmatch(v))
 }
 
 // This scanner is used for matching string tokens.
@@ -468,17 +468,16 @@ func scanSymbol(v []byte) []string {
 // should only be used within regexp strings.
 const (
 	intrinsic = `LOWERCASE|UPPERCASE|DIGIT|EOL|EOF`
-	rune_     = `['][^'][']`
+	character = `['][^'][']`
 	string_   = `["][^"]+["]`
 	lowercase = `\p{Ll}` // All unicode lowercase letters.
-	uppercase = `\p{Lu}` // All unicode upppercase letters.
+	uppercase = `\p{Lu}` // All unicode uppercase letters.
 	digit     = `\p{Nd}` // All unicode digits.
 	eol       = `\n`     // Contains the actual characters `\` and `n`, not EOL.
 	ignored   = ` |` + eol
 	number    = digit + `+`
 	letter    = lowercase + `|` + uppercase
-	character = letter + `|` + digit
-	name      = `(?:` + letter + `)(?:` + character + `)*`
+	name      = `(?:` + letter + `)(?:` + letter + `|` + digit + `)*`
 	symbol    = `\$(` + name + `)`
 	note      = `! [^` + eol + `]*`
 	delimiter = `[~:|()[\]{}<>]|\.\.`

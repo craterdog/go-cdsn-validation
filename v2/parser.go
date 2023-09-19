@@ -461,10 +461,10 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var first Rune
-	var last Rune
+	var first Character
+	var last Character
 	var range_ RangeLike
-	first, token, ok = v.parseRune()
+	first, token, ok = v.parseCharacter()
 	if !ok {
 		// This is not a range.
 		return range_, token, false
@@ -472,10 +472,10 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	_, token, ok = v.parseDelimiter("..")
 	if !ok {
 		// This is not a range.
-		v.backupOne() // Put back the rune.
+		v.backupOne() // Put back the character.
 		return range_, token, false
 	}
-	last, token, ok = v.parseRune()
+	last, token, ok = v.parseCharacter()
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("CHARACTER",
@@ -487,17 +487,17 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	return range_, token, true
 }
 
-// This method attempts to parse a rune. It returns the rune and
-// whether or not a rune was successfully parsed.
-func (v *parser) parseRune() (Rune, *Token, bool) {
-	var rune_ Rune
+// This method attempts to parse a character. It returns the character and
+// whether or not a character was successfully parsed.
+func (v *parser) parseCharacter() (Character, *Token, bool) {
+	var character Character
 	var token = v.nextToken()
-	if token.Type != TokenRune {
+	if token.Type != TokenCharacter {
 		v.backupOne()
-		return rune_, token, false
+		return character, token, false
 	}
-	rune_ = Rune(token.Value)
-	return rune_, token, true
+	character = Character(token.Value)
+	return character, token, true
 }
 
 // This method attempts to parse a statement. It returns the statement and
@@ -554,7 +554,7 @@ func (v *parser) parseToken() (Factor, *Token, bool) {
 	var factor Factor
 	factor, token, ok = v.parseIntrinsic()
 	if !ok {
-		factor, token, ok = v.parseRune()
+		factor, token, ok = v.parseCharacter()
 	}
 	if !ok {
 		factor, token, ok = v.parseString()
