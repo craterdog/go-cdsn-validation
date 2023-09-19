@@ -10,13 +10,13 @@
 
 package #package#
 
-// This method attempts to parse a #definition#. It returns the #definition#
-// and whether or not the #definition# was successfully parsed.
-func parse#Definition#(v *parser) (#Definition#Like, *Token, bool) {
+// This method attempts to parse a #zeroOrOne#. It returns the #zeroOrOne#
+// and whether or not the #zeroOrOne# was successfully parsed.
+func parse#ZeroOrOne#(v *parser) (#ZeroOrOne#Like, *Token, bool) {
 	var ok bool
 	var token *Token
-	var #definition# #Definition#Like
+	var #zeroOrOne# #ZeroOrOne#Like
 	// body goes here...
-	#definition# = #Definition#()
-	return #definition#, token, true
+	#zeroOrOne# = #ZeroOrOne#()
+	return #zeroOrOne#, token, true
 }
