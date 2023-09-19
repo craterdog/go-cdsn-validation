@@ -14,6 +14,7 @@ import (
 	fmt "fmt"
 	col "github.com/craterdog/go-collection-framework/v2"
 	sts "strings"
+	uni "unicode"
 )
 
 // PARSER INTERFACE
@@ -52,6 +53,7 @@ type parser struct {
 	next           col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
 	tokens         chan Token            // The queue of unread tokens coming from the scanner.
 	p1, p2, p3, p4 *Token                // The previous four tokens that have been retrieved.
+	isToken        bool                  // Whether or not the current definition is a token definition.
 }
 
 // This method puts back the current token onto the token stream so that it can
@@ -177,6 +179,7 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 		// This is not a definition.
 		return definition, token, false
 	}
+	v.isToken = uni.IsUpper(rune(symbol[1]))
 	_, token, ok = v.parseDelimiter(":")
 	if !ok {
 		var message = v.formatError(token)
@@ -403,6 +406,9 @@ func (v *parser) parseName() (Name, *Token, bool) {
 	if token.Type != TokenName {
 		v.backupOne()
 		return name, token, false
+	}
+	if v.isToken && uni.IsLower(rune(token.Value[0])) {
+		panic(fmt.Sprintf("A token definition contains a rulename: %v\n", token.Value))
 	}
 	name = Name(token.Value)
 	return name, token, true
