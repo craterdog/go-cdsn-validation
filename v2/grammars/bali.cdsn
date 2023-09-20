@@ -75,8 +75,6 @@ $INFINITY: [SIGN] ("infinity" | "∞")
 
 $INSTRUCTION: (BASE16)4
 
-$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
-
 $KEYWORD: "accept" | "as" | "at" | "break" | "checkout" | "continue" | "discard" | "do" | "each" | "from" | "if" | "in" | "let" | "level" | "loop" | "matching" | "notarize" | "on" | "post" | "publish" | "reject" | "retrieve" | "return" | "save" | "select" | "throw" | "to" | "while" | "with"
 
 $LETTER: LOWERCASE | UPPERCASE
