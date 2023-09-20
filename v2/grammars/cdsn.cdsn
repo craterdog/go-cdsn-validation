@@ -54,19 +54,17 @@ $oneOrMore: "<" expression ">"
     listed.
 <!
 
-$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "EOL" | "EOF"
+$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "SEPARATOR" | "WHITESPACE" | "ESCAPE" | "EOL" | "EOF"
 
 $LETTER: LOWERCASE | UPPERCASE
-
-$IGNORED: " " | EOL
 
 $NOTE: "! " {~EOL}
 
 $COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
 
-$CHARACTER: "'" ~"'" "'"
+$CHARACTER: "'" ~("'" | EOL) "'"
 
-$STRING: '"' <~'"'> '"'
+$STRING: '"' <ESCAPE | ~('"' | EOL)> '"'
 
 $NUMBER: <DIGIT>
 

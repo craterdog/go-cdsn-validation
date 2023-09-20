@@ -467,7 +467,7 @@ func scanSymbol(v []byte) []string {
 // These constant definitions capture regular expression subpatterns. They
 // should only be used within regexp strings.
 const (
-	intrinsic = `LOWERCASE|UPPERCASE|DIGIT|EOL|EOF`
+	intrinsic = `LOWERCASE|UPPERCASE|DIGIT|SEPARATOR|WHITESPACE|ESCAPE|EOL|EOF`
 	character = `['][^'][']`
 	string_   = `["][^"]+["]`
 	lowercase = `\p{Ll}` // All unicode lowercase letters.
