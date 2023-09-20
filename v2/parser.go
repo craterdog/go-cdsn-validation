@@ -30,9 +30,10 @@ func ParseDocument(source []byte) GrammarLike {
 	var tokens = make(chan Token, 256)
 	Scanner(source, tokens) // Starts scanning in a separate go routine.
 	var p = &parser{
-		source: source,
-		next:   col.StackWithCapacity[*Token](4),
-		tokens: tokens,
+		symbols: col.Catalog[Symbol, DefinitionLike](),
+		source:  source,
+		next:    col.StackWithCapacity[*Token](4),
+		tokens:  tokens,
 	}
 	grammar, token, ok = p.parseGrammar()
 	if !ok {
@@ -42,6 +43,15 @@ func ParseDocument(source []byte) GrammarLike {
 			"$statement")
 		panic(message)
 	}
+	var iterator = col.Iterator[col.Binding[Symbol, DefinitionLike]](p.symbols)
+	for iterator.HasNext() {
+		var association = iterator.GetNext()
+		var symbol = association.GetKey()
+		var definition = association.GetValue()
+		if definition == nil {
+			panic(fmt.Sprintf("Missing a definition for symbol: %v\n", symbol))
+		}
+	}
 	return grammar
 }
 
@@ -49,6 +59,7 @@ func ParseDocument(source []byte) GrammarLike {
 
 // This type defines the structure and methods for the parser agent.
 type parser struct {
+	symbols        col.CatalogLike[Symbol, DefinitionLike]
 	source         []byte
 	next           col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
 	tokens         chan Token            // The queue of unread tokens coming from the scanner.
@@ -199,6 +210,7 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 		panic(message)
 	}
 	definition = Definition(symbol, expression)
+	v.symbols.SetValue(symbol, definition)
 	return definition, token, true
 }
 
@@ -411,6 +423,9 @@ func (v *parser) parseName() (Name, *Token, bool) {
 		panic(fmt.Sprintf("A token definition contains a rulename: %v\n", token.Value))
 	}
 	name = Name(token.Value)
+	var symbol = Symbol("$" + token.Value)
+	var definition = v.symbols.GetValue(symbol)
+	v.symbols.SetValue(symbol, definition)
 	return name, token, true
 }
 
