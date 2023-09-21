@@ -26,9 +26,9 @@ $expression: alternative {"|" alternative}
 
 $alternative: <factor> [NOTE]
 
-$factor: token | range | inverse | exactlyN | zeroOrOne | zeroOrMore | oneOrMore
+$factor: element | range | inverse | exactlyN | zeroOrOne | zeroOrMore | oneOrMore
 
-$token: INTRINSIC | STRING | NUMBER | NAME
+$element: INTRINSIC | STRING | NUMBER | NAME
 
 $range: CHARACTER [".." CHARACTER]  ! A range of CHARACTERs is inclusive.
 

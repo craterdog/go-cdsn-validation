@@ -1,0 +1,25 @@
+/*******************************************************************************
+ *   Copyright (c) 2009-2023 Crater Dog Technologies™.  All Rights Reserved.   *
+ *******************************************************************************
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.               *
+ *                                                                             *
+ * This code is free software; you can redistribute it and/or modify it under  *
+ * the terms of The MIT License (MIT), as published by the Open Source         *
+ * Initiative. (See http://opensource.org/licenses/MIT)                        *
+ *******************************************************************************/
+
+package #package#
+
+// The following configuration constants are used by regular expressions when
+// scanning for intrinsic tokens.
+const {
+	lowercase   = `\p{Ll}`   // All unicode lowercase letters.
+	uppercase   = `\p{Lu}`   // All unicode uppercase letters.
+	digit       = `\p{Nd}`   // All unicode digits.
+	separator   = `_`        // Allowed separators between letters.
+	eol         = `\n`       // Contains the actual characters `\` and `n`, not EOL.
+	whitespace  = ` |` + eol // These characters are ignored by the parser.
+	base16      = `[0-9a-f]` // Base 16 digits.
+	unicode     = `u` + base16 + `{4}|U` + base16 + `{8}`
+	escape      = `\\(?:(?:` + unicode + `)|[abfnrtv'"\\])`
+}

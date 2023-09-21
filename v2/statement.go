@@ -48,3 +48,23 @@ func (v *statement) SetDefinition(definition DefinitionLike) {
 	}
 	v.definition = definition
 }
+
+// This method attempts to parse a statement. It returns the statement and
+// whether or not the statement was successfully parsed.
+func (v *parser) parseStatement() (StatementLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var comment Comment
+	var definition DefinitionLike
+	var statement StatementLike
+	comment, _, ok = v.parseComment()
+	if !ok {
+		definition, token, ok = v.parseDefinition()
+		if !ok {
+			// This is not a statement.
+			return statement, token, false
+		}
+	}
+	statement = Statement(comment, definition)
+	return statement, token, true
+}

@@ -60,3 +60,141 @@ func (v *group) GetNumber() Number {
 func (v *group) SetNumber(number Number) {
 	v.number = number
 }
+
+// This method attempts to parse a zero or more group. It returns the zero or
+// more group and whether or not the zero or more group was successfully parsed.
+func (v *parser) parseZeroOrMore() (GroupLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var expression ExpressionLike
+	var group GroupLike
+	_, token, ok = v.parseDelimiter("{")
+	if !ok {
+		// This is not a zero or more group.
+		return group, token, false
+	}
+	expression, token, ok = v.parseExpression()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("expression",
+			"$factor",
+			"$expression")
+		panic(message)
+	}
+	expression.SetMultilined(false)
+	_, token, ok = v.parseDelimiter("}")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("}",
+			"$factor",
+			"$expression")
+		panic(message)
+	}
+	var number, _, _ = v.parseNumber() // The number is optional.
+	group = Group(expression, ZeroOrMore, number)
+	return group, token, true
+}
+
+// This method attempts to parse a zero or one group. It returns the zero or
+// one group and whether or not the zero or one group was successfully parsed.
+func (v *parser) parseZeroOrOne() (GroupLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var expression ExpressionLike
+	var group GroupLike
+	_, token, ok = v.parseDelimiter("[")
+	if !ok {
+		// This is not a zero or one group.
+		return group, token, false
+	}
+	expression, token, ok = v.parseExpression()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("expression",
+			"$factor",
+			"$expression")
+		panic(message)
+	}
+	expression.SetMultilined(false)
+	_, token, ok = v.parseDelimiter("]")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("]",
+			"$factor",
+			"$expression")
+		panic(message)
+	}
+	var number, _, _ = v.parseNumber() // The number is optional.
+	group = Group(expression, ZeroOrOne, number)
+	return group, token, true
+}
+
+// This method attempts to parse an exact count group. It returns the
+// exact count group and whether or not the exact count group was
+// successfully parsed.
+func (v *parser) parseExactlyN() (GroupLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var expression ExpressionLike
+	var group GroupLike
+	_, token, ok = v.parseDelimiter("(")
+	if !ok {
+		// This is not a precedence group.
+		return group, token, false
+	}
+	expression, token, ok = v.parseExpression()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("expression",
+			"$factor",
+			"$expression")
+		panic(message)
+	}
+	expression.SetMultilined(false)
+	_, token, ok = v.parseDelimiter(")")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar(")",
+			"$factor",
+			"$expression")
+		panic(message)
+	}
+	var number, _, _ = v.parseNumber() // The number is optional.
+	group = Group(expression, ExactlyN, number)
+	return group, token, true
+}
+
+// This method attempts to parse a one-or-more group. It returns the one or
+// more group and whether or not the one or more group was successfully
+// parsed.
+func (v *parser) parseOneOrMore() (GroupLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var expression ExpressionLike
+	var group GroupLike
+	_, token, ok = v.parseDelimiter("<")
+	if !ok {
+		// This is not a one-or-more group.
+		return group, token, false
+	}
+	expression, token, ok = v.parseExpression()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("expression",
+			"$factor",
+			"$expression")
+		panic(message)
+	}
+	expression.SetMultilined(false)
+	_, token, ok = v.parseDelimiter(">")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar(">",
+			"$factor",
+			"$expression")
+		panic(message)
+	}
+	var number, _, _ = v.parseNumber() // The number is optional.
+	group = Group(expression, OneOrMore, number)
+	return group, token, true
+}

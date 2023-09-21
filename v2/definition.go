@@ -10,6 +10,10 @@
 
 package cdsn
 
+import (
+	uni "unicode"
+)
+
 // PRODUCTION IMPLEMENTATION
 
 // This constructor creates a new definition.
@@ -50,4 +54,41 @@ func (v *definition) SetExpression(expression ExpressionLike) {
 		panic("A definition requires an expression.")
 	}
 	v.expression = expression
+}
+
+// This method attempts to parse a definition. It returns the definition and
+// whether or not the definition was successfully parsed.
+func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var symbol Symbol
+	var expression ExpressionLike
+	var definition DefinitionLike
+	symbol, token, ok = v.parseSymbol()
+	if !ok {
+		// This is not a definition.
+		return definition, token, false
+	}
+	v.isToken = uni.IsUpper(rune(symbol[1]))
+	_, token, ok = v.parseDelimiter(":")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar(":",
+			"$definition",
+			"$SYMBOL",
+			"$expression")
+		panic(message)
+	}
+	expression, token, ok = v.parseExpression()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("expression",
+			"$definition",
+			"$SYMBOL",
+			"$expression")
+		panic(message)
+	}
+	definition = Definition(symbol, expression)
+	v.symbols.SetValue(symbol, definition)
+	return definition, token, true
 }

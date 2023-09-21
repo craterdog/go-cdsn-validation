@@ -48,3 +48,31 @@ func (v *rng) GetLastCharacter() Character {
 func (v *rng) SetLastCharacter(last Character) {
 	v.last = last
 }
+
+// This method attempts to parse a range. It returns the range and whether or
+// not the range was successfully parsed.
+func (v *parser) parseRange() (RangeLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var first Character
+	var last Character
+	var range_ RangeLike
+	first, token, ok = v.parseCharacter()
+	if !ok {
+		// This is not a range.
+		return range_, token, false
+	}
+	_, _, ok = v.parseDelimiter("..")
+	if ok {
+		last, token, ok = v.parseCharacter()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("CHARACTER",
+				"$range",
+				"$CHARACTER")
+			panic(message)
+		}
+	}
+	range_ = Range(first, last)
+	return range_, token, true
+}
