@@ -10,7 +10,16 @@
 
 package cdsn
 
-// STATEMENT IMPLEMENTATION
+// STATEMENT INTERFACE
+
+// This interface defines the methods supported by all statement-like
+// components.
+type StatementLike interface {
+	GetComment() Comment
+	SetComment(comment Comment)
+	GetDefinition() DefinitionLike
+	SetDefinition(definition DefinitionLike)
+}
 
 // This constructor creates a new statement.
 func Statement(comment Comment, definition DefinitionLike) StatementLike {
@@ -19,6 +28,8 @@ func Statement(comment Comment, definition DefinitionLike) StatementLike {
 	v.SetDefinition(definition)
 	return v
 }
+
+// STATEMENT IMPLEMENTATION
 
 // This type defines the structure and methods associated with a statement.
 type statement struct {
@@ -67,4 +78,18 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	}
 	statement = Statement(comment, definition)
 	return statement, token, true
+}
+
+// This private method appends a formatted statement to the result.
+func (v *formatter) formatStatement(statement StatementLike) {
+	var comment = statement.GetComment()
+	if len(comment) > 0 {
+		v.appendNewline()
+		v.formatComment(comment)
+	} else {
+		var definition = statement.GetDefinition()
+		v.formatDefinition(definition)
+	}
+	v.appendNewline()
+	v.appendNewline()
 }

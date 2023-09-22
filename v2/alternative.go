@@ -14,7 +14,16 @@ import (
 	col "github.com/craterdog/go-collection-framework/v2"
 )
 
-// ALTERNATIVE IMPLEMENTATION
+// ALTERNATIVE INTERFACE
+
+// This interface defines the methods supported by all alternative-like
+// components.
+type AlternativeLike interface {
+	GetFactors() col.Sequential[Factor]
+	SetFactors(factors col.Sequential[Factor])
+	GetNote() Note
+	SetNote(note Note)
+}
 
 // This constructor creates a new alternative.
 func Alternative(factors col.Sequential[Factor], note Note) AlternativeLike {
@@ -23,6 +32,8 @@ func Alternative(factors col.Sequential[Factor], note Note) AlternativeLike {
 	v.SetNote(note)
 	return v
 }
+
+// ALTERNATIVE IMPLEMENTATION
 
 // This type defines the structure and methods associated with an alternative.
 type alternative struct {
@@ -78,4 +89,25 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	note, _, _ = v.parseNote() // The note is optional.
 	alternative = Alternative(factors, note)
 	return alternative, token, true
+}
+
+// This private method appends a formatted alternative to the result.
+func (v *formatter) formatAlternative(alternative AlternativeLike) {
+	var factor Factor
+	var factors = alternative.GetFactors()
+	var iterator = col.Iterator(factors)
+	if iterator.HasNext() {
+		factor = iterator.GetNext()
+		v.formatFactor(factor)
+	}
+	for iterator.HasNext() {
+		v.appendString(" ")
+		factor = iterator.GetNext()
+		v.formatFactor(factor)
+	}
+	var note = alternative.GetNote()
+	if len(note) > 0 {
+		v.appendString("  ")
+		v.formatNote(note)
+	}
 }

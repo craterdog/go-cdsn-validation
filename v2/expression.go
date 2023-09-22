@@ -14,7 +14,16 @@ import (
 	col "github.com/craterdog/go-collection-framework/v2"
 )
 
-// RULE IMPLEMENTATION
+// EXPRESSION INTERFACE
+
+// This interface defines the methods supported by all expression-like
+// components.
+type ExpressionLike interface {
+	IsMultilined() bool
+	SetMultilined(multilined bool)
+	GetAlternatives() col.Sequential[AlternativeLike]
+	SetAlternatives(alternatives col.Sequential[AlternativeLike])
+}
 
 // This constructor creates a new expression.
 func Expression(alternatives col.Sequential[AlternativeLike]) ExpressionLike {
@@ -22,6 +31,8 @@ func Expression(alternatives col.Sequential[AlternativeLike]) ExpressionLike {
 	v.SetAlternatives(alternatives)
 	return v
 }
+
+// EXPRESSION IMPLEMENTATION
 
 // This type defines the structure and methods associated with an expression.
 type expression struct {
@@ -94,4 +105,22 @@ func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 	}
 	expression = Expression(alternatives)
 	return expression, token, true
+}
+
+// This private method appends a formatted expression to the result.
+func (v *formatter) formatExpression(expression ExpressionLike) {
+	var alternatives = expression.GetAlternatives()
+	var iterator = col.Iterator(alternatives)
+	var alternative = iterator.GetNext()
+	v.formatAlternative(alternative)
+	for iterator.HasNext() {
+		alternative = iterator.GetNext()
+		if expression.IsMultilined() {
+			v.appendNewline()
+		} else {
+			v.appendString(" ")
+		}
+		v.appendString("| ")
+		v.formatAlternative(alternative)
+	}
 }

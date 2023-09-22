@@ -10,7 +10,14 @@
 
 package cdsn
 
-// INVERSION IMPLEMENTATION
+// INVERSION INTERFACE
+
+// This interface defines the methods supported by all inverse-like
+// components.
+type InverseLike interface {
+	GetFactor() Factor
+	SetFactor(factor Factor)
+}
 
 // This constructor creates a new inverse.
 func Inverse(factor Factor) InverseLike {
@@ -18,6 +25,8 @@ func Inverse(factor Factor) InverseLike {
 	v.SetFactor(factor)
 	return v
 }
+
+// INVERSION IMPLEMENTATION
 
 // This type defines the structure and methods associated with an inverse.
 type inverse struct {
@@ -59,4 +68,11 @@ func (v *parser) parseInverse() (InverseLike, *Token, bool) {
 	}
 	inverse = Inverse(factor)
 	return inverse, token, true
+}
+
+// This private method appends a formatted inverse to the result.
+func (v *formatter) formatInverse(inverse InverseLike) {
+	v.appendString("~")
+	var factor = inverse.GetFactor()
+	v.formatFactor(factor)
 }

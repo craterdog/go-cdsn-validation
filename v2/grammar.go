@@ -14,7 +14,14 @@ import (
 	col "github.com/craterdog/go-collection-framework/v2"
 )
 
-// GRAMMAR IMPLEMENTATION
+// GRAMMAR INTERFACE
+
+// This interface defines the methods supported by all grammar-like
+// components.
+type GrammarLike interface {
+	GetStatements() col.Sequential[StatementLike]
+	SetStatements(statements col.Sequential[StatementLike])
+}
 
 // This constructor creates a new grammar.
 func Grammar(statements col.Sequential[StatementLike]) GrammarLike {
@@ -22,6 +29,8 @@ func Grammar(statements col.Sequential[StatementLike]) GrammarLike {
 	v.SetStatements(statements)
 	return v
 }
+
+// GRAMMAR IMPLEMENTATION
 
 // This type defines the structure and methods associated with a grammar.
 type grammar struct {
@@ -75,4 +84,14 @@ func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
 	}
 	grammar = Grammar(statements)
 	return grammar, token, true
+}
+
+// This private method appends a formatted grammar to the result.
+func (v *formatter) formatGrammar(grammar GrammarLike) {
+	var statements = grammar.GetStatements()
+	var iterator = col.Iterator(statements)
+	for iterator.HasNext() {
+		var statement = iterator.GetNext()
+		v.formatStatement(statement)
+	}
 }

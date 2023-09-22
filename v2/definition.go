@@ -14,7 +14,16 @@ import (
 	uni "unicode"
 )
 
-// PRODUCTION IMPLEMENTATION
+// DEFINITION INTERFACE
+
+// This interface defines the methods supported by all definition-like
+// components.
+type DefinitionLike interface {
+	GetSymbol() Symbol
+	SetSymbol(symbol Symbol)
+	GetExpression() ExpressionLike
+	SetExpression(expression ExpressionLike)
+}
 
 // This constructor creates a new definition.
 func Definition(symbol Symbol, expression ExpressionLike) DefinitionLike {
@@ -23,6 +32,8 @@ func Definition(symbol Symbol, expression ExpressionLike) DefinitionLike {
 	v.SetExpression(expression)
 	return v
 }
+
+// DEFINITION IMPLEMENTATION
 
 // This type defines the structure and methods associated with a definition.
 type definition struct {
@@ -91,4 +102,21 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	definition = Definition(symbol, expression)
 	v.symbols.SetValue(symbol, definition)
 	return definition, token, true
+}
+
+// This private method appends a formatted definition to the result.
+func (v *formatter) formatDefinition(definition DefinitionLike) {
+	var symbol = definition.GetSymbol()
+	v.formatSymbol(symbol)
+	v.appendString(":")
+	v.depth++
+	var expression = definition.GetExpression()
+	if expression.IsMultilined() {
+		v.appendNewline()
+		v.appendString("  ")
+	} else {
+		v.appendString(" ")
+	}
+	v.formatExpression(expression)
+	v.depth--
 }

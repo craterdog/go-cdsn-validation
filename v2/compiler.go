@@ -52,6 +52,22 @@ func (v *compiler) compileDefinition(definition DefinitionLike) {
 	v.compileExpression(expression)
 }
 
+// This private method compiles an element.
+func (v *compiler) compileElement(element Element) {
+	switch e := element.(type) {
+	case Intrinsic:
+		v.compileIntrinsic(e)
+	case String:
+		v.compileString(e)
+	case Number:
+		v.compileNumber(e)
+	case Name:
+		v.compileName(e)
+	default:
+		panic(fmt.Sprintf("Attempted to compile:\n    element: %v\n    type: %t\n", e, element))
+	}
+}
+
 // This private method compiles an expression.
 func (v *compiler) compileExpression(expression ExpressionLike) {
 	var alternatives = expression.GetAlternatives()
@@ -63,40 +79,26 @@ func (v *compiler) compileExpression(expression ExpressionLike) {
 }
 
 // This private method compiles an exactly N expression.
-func (v *compiler) compileExactlyN(expression ExpressionLike, number Number) {
-}
-
-// This private method compiles a zero or one expression.
-func (v *compiler) compileZeroOrOne(expression ExpressionLike) {
-}
-
-// This private method compiles a zero or more expression.
-func (v *compiler) compileZeroOrMore(expression ExpressionLike) {
-}
-
-// This private method compiles a one or more expression.
-func (v *compiler) compileOneOrMore(expression ExpressionLike) {
+func (v *compiler) compileExactlyN(exactlyN ExactlyNLike) {
 }
 
 // This private method compiles a factor.
 func (v *compiler) compileFactor(factor Factor) {
 	switch f := factor.(type) {
-	case Intrinsic:
-		v.compileIntrinsic(f)
-	case String:
-		v.compileString(f)
-	case Number:
-		v.compileNumber(f)
-	case Name:
-		v.compileName(f)
-	case RangeLike:
+	case *range_:
 		v.compileRange(f)
-	case InverseLike:
+	case *inverse:
 		v.compileInverse(f)
-	case GroupLike:
-		v.compileGroup(f)
+	case *exactlyN:
+		v.compileExactlyN(f)
+	case *zeroOrOne:
+		v.compileZeroOrOne(f)
+	case *zeroOrMore:
+		v.compileZeroOrMore(f)
+	case *oneOrMore:
+		v.compileOneOrMore(f)
 	default:
-		panic(fmt.Sprintf("Attempted to compile:\n    factor: %v\n    type: %t\n", f, factor))
+		v.compileElement(f)
 	}
 }
 
@@ -107,25 +109,6 @@ func (v *compiler) compileGrammar(grammar GrammarLike) {
 	for iterator.HasNext() {
 		var statement = iterator.GetNext()
 		v.compileStatement(statement)
-	}
-}
-
-// This private method compiles a group.
-func (v *compiler) compileGroup(group GroupLike) {
-	var expression = group.GetExpression()
-	var type_ = group.GetType()
-	var number = group.GetNumber()
-	switch type_ {
-	case ExactlyN:
-		v.compileExactlyN(expression, number)
-	case ZeroOrOne:
-		v.compileZeroOrOne(expression)
-	case ZeroOrMore:
-		v.compileZeroOrMore(expression)
-	case OneOrMore:
-		v.compileOneOrMore(expression)
-	default:
-		panic(fmt.Sprintf("Attempted to compile an invalid group type: %v\n", type_))
 	}
 }
 
@@ -145,6 +128,10 @@ func (v *compiler) compileName(name Name) {
 
 // This private method compiles a number.
 func (v *compiler) compileNumber(number Number) {
+}
+
+// This private method compiles a one or more expression.
+func (v *compiler) compileOneOrMore(oneOrMore OneOrMoreLike) {
 }
 
 // This private method compiles a range.
@@ -171,4 +158,12 @@ func (v *compiler) compileSymbol(symbol Symbol) {
 		// The symbol for the first definition defines the package name.
 		v.packageName = string(symbol)[1:]
 	}
+}
+
+// This private method compiles a zero or more expression.
+func (v *compiler) compileZeroOrMore(zeroOrMore ZeroOrMoreLike) {
+}
+
+// This private method compiles a zero or one expression.
+func (v *compiler) compileZeroOrOne(zeroOrOne ZeroOrOneLike) {
 }

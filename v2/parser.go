@@ -14,7 +14,6 @@ import (
 	fmt "fmt"
 	col "github.com/craterdog/go-collection-framework/v2"
 	sts "strings"
-	uni "unicode"
 )
 
 // PARSER INTERFACE
@@ -124,32 +123,6 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
-// This method attempts to parse a character. It returns the character and
-// whether or not a character was successfully parsed.
-func (v *parser) parseCharacter() (Character, *Token, bool) {
-	var character Character
-	var token = v.nextToken()
-	if token.Type != TokenCharacter {
-		v.backupOne()
-		return character, token, false
-	}
-	character = Character(token.Value)
-	return character, token, true
-}
-
-// This method attempts to parse a comment. It returns the comment and whether
-// or not a comment was successfully parsed.
-func (v *parser) parseComment() (Comment, *Token, bool) {
-	var comment Comment
-	var token = v.nextToken()
-	if token.Type != TokenComment {
-		v.backupOne()
-		return comment, token, false
-	}
-	comment = Comment(token.Value)
-	return comment, token, true
-}
-
 // This method attempts to parse the specified delimiter. It returns
 // the token and whether or not the delimiter was found.
 func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
@@ -200,90 +173,6 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 		factor, token, ok = v.parseOneOrMore()
 	}
 	return factor, token, ok
-}
-
-// This method attempts to parse an intrinsic. It returns the intrinsic and
-// whether or not the intrinsic was successfully parsed.
-func (v *parser) parseIntrinsic() (Intrinsic, *Token, bool) {
-	var intrinsic Intrinsic
-	var token = v.nextToken()
-	if token.Type != TokenIntrinsic {
-		v.backupOne()
-		return intrinsic, token, false
-	}
-	intrinsic = Intrinsic(token.Value)
-	return intrinsic, token, true
-}
-
-// This method attempts to parse a name token. It returns the token and
-// whether or not a name token was found.
-func (v *parser) parseName() (Name, *Token, bool) {
-	var name Name
-	var token = v.nextToken()
-	if token.Type != TokenName {
-		v.backupOne()
-		return name, token, false
-	}
-	if v.isToken && uni.IsLower(rune(token.Value[0])) {
-		panic(fmt.Sprintf("A token definition contains a rulename: %v\n", token.Value))
-	}
-	name = Name(token.Value)
-	var symbol = Symbol("$" + token.Value)
-	var definition = v.symbols.GetValue(symbol)
-	v.symbols.SetValue(symbol, definition)
-	return name, token, true
-}
-
-// This method attempts to parse a note. It returns the note and whether or not
-// the note was successfully parsed.
-func (v *parser) parseNote() (Note, *Token, bool) {
-	var note Note
-	var token = v.nextToken()
-	if token.Type != TokenNote {
-		v.backupOne()
-		return note, token, false
-	}
-	note = Note(token.Value)
-	return note, token, true
-}
-
-// This method attempts to parse a number. It returns the number and
-// whether or not a number was successfully parsed.
-func (v *parser) parseNumber() (Number, *Token, bool) {
-	var number Number
-	var token = v.nextToken()
-	if token.Type != TokenNumber {
-		v.backupOne()
-		return number, token, false
-	}
-	number = Number(token.Value)
-	return number, token, true
-}
-
-// This method attempts to parse a string. It returns the string and whether
-// or not the string was successfully parsed.
-func (v *parser) parseString() (String, *Token, bool) {
-	var string_ String
-	var token = v.nextToken()
-	if token.Type != TokenString {
-		v.backupOne()
-		return string_, token, false
-	}
-	string_ = String(token.Value)
-	return string_, token, true
-}
-
-// This method attempts to parse a symbol. It returns the symbol and
-// whether or not the symbol was successfully parsed.
-func (v *parser) parseSymbol() (Symbol, *Token, bool) {
-	var symbol Symbol
-	var token = v.nextToken()
-	if token.Type != TokenSymbol {
-		v.backupOne()
-		return symbol, token, false
-	}
-	symbol = Symbol(token.Value)
-	return symbol, token, true
 }
 
 // This method attempts to parse an element. It returns the element and whether

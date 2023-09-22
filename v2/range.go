@@ -10,29 +10,39 @@
 
 package cdsn
 
-// RANGE IMPLEMENTATION
+// RANGE INTERFACE
+
+// This interface defines the methods supported by all range-like components.
+type RangeLike interface {
+	GetFirstCharacter() Character
+	SetFirstCharacter(first Character)
+	GetLastCharacter() Character
+	SetLastCharacter(last Character)
+}
 
 // This constructor creates a new range.
 func Range(first Character, last Character) RangeLike {
-	var v = &rng{}
+	var v = &range_{}
 	v.SetFirstCharacter(first)
 	v.SetLastCharacter(last)
 	return v
 }
 
+// RANGE IMPLEMENTATION
+
 // This type defines the structure and methods associated with a range.
-type rng struct {
+type range_ struct {
 	first Character
 	last  Character
 }
 
 // This method returns the first character for this range.
-func (v *rng) GetFirstCharacter() Character {
+func (v *range_) GetFirstCharacter() Character {
 	return v.first
 }
 
 // This method sets the first character for this range.
-func (v *rng) SetFirstCharacter(first Character) {
+func (v *range_) SetFirstCharacter(first Character) {
 	if len(first) == 0 {
 		panic("A range requires at least one character.")
 	}
@@ -40,12 +50,12 @@ func (v *rng) SetFirstCharacter(first Character) {
 }
 
 // This method returns the last character for this range.
-func (v *rng) GetLastCharacter() Character {
+func (v *range_) GetLastCharacter() Character {
 	return v.last
 }
 
 // This method sets the last character for this range.
-func (v *rng) SetLastCharacter(last Character) {
+func (v *range_) SetLastCharacter(last Character) {
 	v.last = last
 }
 
@@ -75,4 +85,15 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	}
 	range_ = Range(first, last)
 	return range_, token, true
+}
+
+// This private method appends a formatted range to the result.
+func (v *formatter) formatRange(range_ RangeLike) {
+	var first = range_.GetFirstCharacter()
+	var last = range_.GetLastCharacter()
+	v.formatCharacter(first)
+	if len(last) > 0 {
+		v.appendString("..")
+		v.formatCharacter(last)
+	}
 }
