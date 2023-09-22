@@ -81,7 +81,7 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 		return definition, token, false
 	}
 	v.isToken = uni.IsUpper(rune(symbol[1]))
-	_, token, ok = v.parseDelimiter(":")
+	_, token, ok = v.parseLiteral(":")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(":",

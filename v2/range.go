@@ -72,7 +72,7 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 		// This is not a range.
 		return range_, token, false
 	}
-	_, _, ok = v.parseDelimiter("..")
+	_, _, ok = v.parseLiteral("..")
 	if ok {
 		last, token, ok = v.parseCharacter()
 		if !ok {

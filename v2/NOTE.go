@@ -16,7 +16,8 @@ import (
 
 type Note string
 
-const TokenNote TokenType = 7
+const TokenNote TokenType = "Note"
+const note = `! [^` + eol + `]*`
 
 // This private method appends a formatted note to the result.
 func (v *formatter) formatNote(note Note) {

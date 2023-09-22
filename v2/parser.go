@@ -123,15 +123,15 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
-// This method attempts to parse the specified delimiter. It returns
-// the token and whether or not the delimiter was found.
-func (v *parser) parseDelimiter(delimiter string) (string, *Token, bool) {
+// This method attempts to parse the specified literal. It returns
+// the token and whether or not the literal was found.
+func (v *parser) parseLiteral(literal string) (string, *Token, bool) {
 	var token = v.nextToken()
-	if token.Type == TokenEOF || token.Value != delimiter {
+	if token.Type == TokenEOF || token.Value != literal {
 		v.backupOne()
-		return delimiter, token, false
+		return literal, token, false
 	}
-	return delimiter, token, true
+	return literal, token, true
 }
 
 // This method attempts to parse the end-of-file (EOF) marker. It returns
@@ -145,53 +145,6 @@ func (v *parser) parseEOF() (*Token, *Token, bool) {
 		return token, token, false
 	}
 	return token, token, true
-}
-
-// This method attempts to parse a factor. It returns the factor and whether or
-// not the factor was successfully parsed.
-func (v *parser) parseFactor() (Factor, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor Factor
-	factor, token, ok = v.parseElement()
-	if !ok {
-		factor, token, ok = v.parseRange()
-	}
-	if !ok {
-		factor, token, ok = v.parseInverse()
-	}
-	if !ok {
-		factor, token, ok = v.parseExactlyN()
-	}
-	if !ok {
-		factor, token, ok = v.parseZeroOrOne()
-	}
-	if !ok {
-		factor, token, ok = v.parseZeroOrMore()
-	}
-	if !ok {
-		factor, token, ok = v.parseOneOrMore()
-	}
-	return factor, token, ok
-}
-
-// This method attempts to parse an element. It returns the element and whether
-// or not the element was successfully parsed.
-func (v *parser) parseElement() (Factor, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor Factor
-	factor, token, ok = v.parseIntrinsic()
-	if !ok {
-		factor, token, ok = v.parseString()
-	}
-	if !ok {
-		factor, token, ok = v.parseNumber()
-	}
-	if !ok {
-		factor, token, ok = v.parseName()
-	}
-	return factor, token, ok
 }
 
 // GRAMMAR UTILITIES

@@ -11,3 +11,31 @@
 package cdsn
 
 type Factor any
+
+// This method attempts to parse a factor. It returns the factor and whether or
+// not the factor was successfully parsed.
+func (v *parser) parseFactor() (Factor, *Token, bool) {
+	var ok bool
+	var token *Token
+	var factor Factor
+	factor, token, ok = v.parseElement()
+	if !ok {
+		factor, token, ok = v.parseRange()
+	}
+	if !ok {
+		factor, token, ok = v.parseInverse()
+	}
+	if !ok {
+		factor, token, ok = v.parseExactlyN()
+	}
+	if !ok {
+		factor, token, ok = v.parseZeroOrOne()
+	}
+	if !ok {
+		factor, token, ok = v.parseZeroOrMore()
+	}
+	if !ok {
+		factor, token, ok = v.parseOneOrMore()
+	}
+	return factor, token, ok
+}

@@ -20,32 +20,15 @@ import (
 
 // TOKENS
 
-// This integer type is used as a type identifier for each token.
-type TokenType int
+// This string type is used as a type identifier for each token.
+type TokenType string
 
 // This enumeration defines all possible token types including the error token.
 const (
-	TokenError     TokenType = iota
-	TokenDelimiter TokenType = 1
-	TokenEOF       TokenType = 2
+	TokenError   TokenType = "Error"
+	TokenLiteral TokenType = "Literal"
+	TokenEOF     TokenType = "EOF"
 )
-
-// This method returns the string representation for each token type.
-func (v TokenType) String() string {
-	return [...]string{
-		"Error",
-		"Comment",
-		"Delimiter",
-		"EOF",
-		"Intrinsic",
-		"Name",
-		"Note",
-		"Number",
-		"Character",
-		"String",
-		"Symbol",
-	}[v]
-}
 
 // This type defines the structure and methods for each token returned by the
 // scanner.
@@ -125,7 +108,8 @@ func (v *scanner) processToken() bool {
 	case v.foundNumber():
 	case v.foundName():
 	case v.foundSymbol():
-	case v.foundDelimiter():
+	case v.foundLiteral():
+	case v.foundLetter():
 	case v.foundEOF():
 		// We are at the end of the source bytes.
 		return false
@@ -161,7 +145,7 @@ loop:
 // information to the token channel. It then resets the first byte index to the
 // next byte index position. It returns the token type of the type added to the
 // channel.
-func (v *scanner) emitToken(tType TokenType) TokenType {
+func (v *scanner) emitToken(tType TokenType) {
 	var tValue = string(v.source[v.firstByte:v.nextByte])
 	if tType == TokenEOF {
 		tValue = "<EOF>"
@@ -187,17 +171,16 @@ func (v *scanner) emitToken(tType TokenType) TokenType {
 	v.tokens <- token
 	v.firstByte = v.nextByte
 	v.position += sts.Count(tValue, "") - 1 // Add the number of runes in the token.
-	return tType
 }
 
-// This method adds a delimiter token with the current scanner information to
-// the token channel. It returns true if a delimiter token was found.
-func (v *scanner) foundDelimiter() bool {
+// This method adds a literal token with the current scanner information to
+// the token channel. It returns true if a literal token was found.
+func (v *scanner) foundLiteral() bool {
 	var s = v.source[v.nextByte:]
-	var matches = scanDelimiter(s)
+	var matches = scanLiteral(s)
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenDelimiter)
+		v.emitToken(TokenLiteral)
 		return true
 	}
 	return false
@@ -225,14 +208,14 @@ func (v *scanner) foundEOF() bool {
 	return false
 }
 
-// This scanner is used for matching delimiter tokens.
-var delimiterScanner = reg.MustCompile(`^(?:` + delimiter + `)`)
+// This scanner is used for matching literal tokens.
+var literalScanner = reg.MustCompile(`^(?:` + literal + `)`)
 
 // This function returns for the specified string an array of the matching
-// subgroups for a delimiter. The first string in the array is the entire
+// subgroups for a literal. The first string in the array is the entire
 // matched string.
-func scanDelimiter(v []byte) []string {
-	return bytesToStrings(delimiterScanner.FindSubmatch(v))
+func scanLiteral(v []byte) []string {
+	return bytesToStrings(literalScanner.FindSubmatch(v))
 }
 
 // CONSTANT DEFINITIONS
@@ -240,20 +223,12 @@ func scanDelimiter(v []byte) []string {
 // These constant definitions capture regular expression subpatterns. They
 // should only be used within regexp strings.
 const (
-	intrinsic = `LOWERCASE|UPPERCASE|DIGIT|SEPARATOR|WHITESPACE|ESCAPE|EOL|EOF`
-	character = `['][^'][']`
-	string_   = `["][^"]+["]`
 	lowercase = `\p{Ll}` // All unicode lowercase letters.
 	uppercase = `\p{Lu}` // All unicode uppercase letters.
 	digit     = `\p{Nd}` // All unicode digits.
 	eol       = `\n`     // Contains the actual characters `\` and `n`, not EOL.
 	ignored   = ` |` + eol
-	number    = digit + `+`
-	letter    = lowercase + `|` + uppercase
-	name      = `(?:` + letter + `)(?:` + letter + `|` + digit + `)*`
-	symbol    = `\$(` + name + `)`
-	note      = `! [^` + eol + `]*`
-	delimiter = `[~:|()[\]{}<>]|\.\.`
+	literal   = `[~:|()[\]{}<>]|\.\.`
 )
 
 // PRIVATE FUNCTIONS

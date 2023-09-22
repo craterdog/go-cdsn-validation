@@ -89,7 +89,7 @@ func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 	}
 	for {
 		alternatives.AddValue(alternative)
-		_, _, ok = v.parseDelimiter("|")
+		_, _, ok = v.parseLiteral("|")
 		if !ok {
 			// No more alternatives.
 			break

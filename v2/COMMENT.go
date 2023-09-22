@@ -17,7 +17,7 @@ import (
 
 type Comment string
 
-const TokenComment TokenType = 4
+const TokenComment TokenType = "Comment"
 
 // This private method appends a formatted comment to the result.
 func (v *formatter) formatComment(comment Comment) {
@@ -93,7 +93,7 @@ func scanComment(v []byte) []string {
 			current++ // Accept the next character.
 		}
 	}
-	result = append(result, string(v[:current])) // Includes bang delimiters.
-	result = append(result, string(v[3:last]))   // Excludes bang delimiters.
+	result = append(result, string(v[:current])) // Includes bang literals.
+	result = append(result, string(v[3:last]))   // Excludes bang literals.
 	return result
 }

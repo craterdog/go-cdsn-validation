@@ -68,7 +68,7 @@ func (v *parser) parseExactlyN() (ExactlyNLike, *Token, bool) {
 	var token *Token
 	var expression ExpressionLike
 	var exactlyN ExactlyNLike
-	_, token, ok = v.parseDelimiter("(")
+	_, token, ok = v.parseLiteral("(")
 	if !ok {
 		// This is not an exactly N grouping.
 		return exactlyN, token, false
@@ -82,7 +82,7 @@ func (v *parser) parseExactlyN() (ExactlyNLike, *Token, bool) {
 		panic(message)
 	}
 	expression.SetMultilined(false)
-	_, token, ok = v.parseDelimiter(")")
+	_, token, ok = v.parseLiteral(")")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(")",

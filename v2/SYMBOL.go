@@ -16,7 +16,8 @@ import (
 
 type Symbol string
 
-const TokenSymbol TokenType = 10
+const TokenSymbol TokenType = "Symbol"
+const symbol = `\$(` + name + `)`
 
 // This private method appends a formatted symbol to the result.
 func (v *formatter) formatSymbol(symbol Symbol) {

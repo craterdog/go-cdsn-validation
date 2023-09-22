@@ -68,6 +68,8 @@ func (v *formatter) formatElement(element Element) {
 		v.formatNumber(e)
 	case Name:
 		v.formatName(e)
+	case Letter:
+		v.formatLetter(e)
 	default:
 		panic(fmt.Sprintf("Attempted to format:\n    element: %v\n    type: %t\n", e, element))
 	}

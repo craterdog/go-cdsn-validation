@@ -14,7 +14,8 @@ import (
 	reg "regexp"
 )
 
-const TokenCharacter TokenType = 3
+const TokenCharacter TokenType = "Character"
+const character = `['][^'][']`
 
 type Character string
 

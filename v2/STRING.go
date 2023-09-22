@@ -16,7 +16,8 @@ import (
 
 type String string
 
-const TokenString TokenType = 9
+const TokenString TokenType = "String"
+const string_ = `["][^"]+["]`
 
 // This private method appends a formatted string to the result.
 func (v *formatter) formatString(string_ String) {

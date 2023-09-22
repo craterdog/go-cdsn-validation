@@ -54,7 +54,7 @@ func (v *parser) parseOneOrMore() (OneOrMoreLike, *Token, bool) {
 	var token *Token
 	var expression ExpressionLike
 	var oneOrMore OneOrMoreLike
-	_, token, ok = v.parseDelimiter("<")
+	_, token, ok = v.parseLiteral("<")
 	if !ok {
 		// This is not an one or more grouping.
 		return oneOrMore, token, false
@@ -68,7 +68,7 @@ func (v *parser) parseOneOrMore() (OneOrMoreLike, *Token, bool) {
 		panic(message)
 	}
 	expression.SetMultilined(false)
-	_, token, ok = v.parseDelimiter(">")
+	_, token, ok = v.parseLiteral(">")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(">",

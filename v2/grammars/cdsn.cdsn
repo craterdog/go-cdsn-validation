@@ -62,7 +62,7 @@ $LETTER: LOWERCASE | UPPERCASE
 
 $NOTE: "! " {~EOL}
 
-$COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"  ! Comments may be nested.
+$COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"  ! COMMENTs may be nested.
 
 $CHARACTER: "'" ~("'" | EOL) "'"
 

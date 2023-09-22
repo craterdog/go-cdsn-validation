@@ -53,7 +53,7 @@ func (v *parser) parseInverse() (InverseLike, *Token, bool) {
 	var token *Token
 	var factor Factor
 	var inverse InverseLike
-	_, token, ok = v.parseDelimiter("~")
+	_, token, ok = v.parseLiteral("~")
 	if !ok {
 		// This is not an inverse.
 		return inverse, token, false

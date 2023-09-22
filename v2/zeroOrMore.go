@@ -54,7 +54,7 @@ func (v *parser) parseZeroOrMore() (ZeroOrMoreLike, *Token, bool) {
 	var token *Token
 	var expression ExpressionLike
 	var zeroOrMore ZeroOrMoreLike
-	_, token, ok = v.parseDelimiter("{")
+	_, token, ok = v.parseLiteral("{")
 	if !ok {
 		// This is not an zero or more grouping.
 		return zeroOrMore, token, false
@@ -68,7 +68,7 @@ func (v *parser) parseZeroOrMore() (ZeroOrMoreLike, *Token, bool) {
 		panic(message)
 	}
 	expression.SetMultilined(false)
-	_, token, ok = v.parseDelimiter("}")
+	_, token, ok = v.parseLiteral("}")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("}",

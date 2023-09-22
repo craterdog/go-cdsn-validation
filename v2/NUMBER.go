@@ -16,7 +16,8 @@ import (
 
 type Number string
 
-const TokenNumber TokenType = 8
+const TokenNumber TokenType = "Number"
+const number = digit + `+`
 
 // This private method appends a formatted number to the result.
 func (v *formatter) formatNumber(number Number) {

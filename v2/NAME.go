@@ -18,7 +18,8 @@ import (
 
 type Name string
 
-const TokenName TokenType = 6
+const TokenName TokenType = "Name"
+const name = `(?:` + letter + `)(?:` + letter + `|` + digit + `)*`
 
 // This private method appends a formatted name to the result.
 func (v *formatter) formatName(name Name) {

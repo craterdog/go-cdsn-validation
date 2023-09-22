@@ -16,7 +16,8 @@ import (
 
 type Intrinsic string
 
-const TokenIntrinsic TokenType = 5
+const TokenIntrinsic TokenType = "Intrinsic"
+const intrinsic = `LOWERCASE|UPPERCASE|DIGIT|SEPARATOR|WHITESPACE|ESCAPE|EOL|EOF`
 
 // This private method appends a formatted intrinsic to the result.
 func (v *formatter) formatIntrinsic(intrinsic Intrinsic) {
