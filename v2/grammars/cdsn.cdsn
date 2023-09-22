@@ -26,13 +26,15 @@ $expression: alternative {"|" alternative}
 
 $alternative: <factor> [NOTE]
 
-$factor: element | range | inverse | exactlyN | zeroOrOne | zeroOrMore | oneOrMore
+$factor: element | range | inverse | grouping
 
 $element: INTRINSIC | STRING | NUMBER | NAME
 
 $range: CHARACTER [".." CHARACTER]  ! A range of CHARACTERs is inclusive.
 
 $inverse: "~" factor
+
+$grouping: exactlyN | zeroOrOne | zeroOrMore | oneOrMore
 
 $exactlyN: "(" expression ")" [NUMBER]  ! The default is exactly one.
 
@@ -60,7 +62,7 @@ $LETTER: LOWERCASE | UPPERCASE
 
 $NOTE: "! " {~EOL}
 
-$COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"
+$COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"  ! Comments may be nested.
 
 $CHARACTER: "'" ~("'" | EOL) "'"
 
@@ -71,6 +73,4 @@ $NUMBER: <DIGIT>
 $NAME: LETTER {LETTER | DIGIT}  ! NAMEs must be scanned after INTRINSICs.
 
 $SYMBOL: "$" NAME
-
-$DELIMITER: "~" | ":" | "|" | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">" | ".."
 
