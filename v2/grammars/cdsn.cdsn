@@ -58,8 +58,6 @@ $oneOrMore: "<" expression ">"
 
 $INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "SEPARATOR" | "WHITESPACE" | "ESCAPE" | "EOL" | "EOF"
 
-$LETTER: LOWERCASE | UPPERCASE
-
 $NOTE: "! " {~EOL}
 
 $COMMENT: "!>" EOL {COMMENT | ~"<!"} EOL "<!"  ! COMMENTs may be nested.
@@ -73,4 +71,6 @@ $NUMBER: <DIGIT>
 $NAME: LETTER {LETTER | DIGIT}  ! NAMEs must be scanned after INTRINSICs.
 
 $SYMBOL: "$" NAME
+
+$LETTER: LOWERCASE | UPPERCASE
 
