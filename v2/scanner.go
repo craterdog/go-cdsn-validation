@@ -220,16 +220,7 @@ func scanLiteral(v []byte) []string {
 
 // CONSTANT DEFINITIONS
 
-// These constant definitions capture regular expression subpatterns. They
-// should only be used within regexp strings.
-const (
-	lowercase = `\p{Ll}` // All unicode lowercase letters.
-	uppercase = `\p{Lu}` // All unicode uppercase letters.
-	digit     = `\p{Nd}` // All unicode digits.
-	eol       = `\n`     // Contains the actual characters `\` and `n`, not EOL.
-	ignored   = ` |` + eol
-	literal   = `[~:|()[\]{}<>]|\.\.`
-)
+const literal = `[~:|()[\]{}<>]|\.\.`
 
 // PRIVATE FUNCTIONS
 
