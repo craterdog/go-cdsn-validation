@@ -109,7 +109,6 @@ func (v *scanner) processToken() bool {
 	case v.foundName():
 	case v.foundSymbol():
 	case v.foundLiteral():
-	case v.foundLetter():
 	case v.foundEOF():
 		// We are at the end of the source bytes.
 		return false

@@ -28,8 +28,5 @@ func (v *parser) parseElement() (Factor, *Token, bool) {
 	if !ok {
 		factor, token, ok = v.parseName()
 	}
-	if !ok {
-		factor, token, ok = v.parseLetter()
-	}
 	return factor, token, ok
 }

@@ -51,9 +51,10 @@ $oneOrMore: "<" expression ">"
     stream of tokens that are processed by the parser.  Each token name begins
     with an uppercase letter.  Unlike with rule definitions, a token definition
     cannot reference a rule and the whitespace within a token definition is not
-    ignored.  The INTRINSIC tokens are environment/language specific, and are
-    therefore left undefined. The token definitions are processed in the order
-    listed.
+    ignored.  INTRINSIC tokens are environment/language specific, and are not
+    defined in this specification.  INTRINSICs are scanned for before any other
+	token type.  The token types are scanned for in the order listed in the
+	specification.
 <!
 
 $INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "SEPARATOR" | "WHITESPACE" | "ESCAPE" | "EOL" | "EOF"
@@ -68,9 +69,7 @@ $STRING: '"' <ESCAPE | ~('"' | EOL)> '"'
 
 $NUMBER: <DIGIT>
 
-$NAME: LETTER {LETTER | DIGIT}  ! NAMEs must be scanned after INTRINSICs.
+$NAME: LOWERCASE | UPPERCASE {LOWERCASE | UPPERCASE | DIGIT}
 
 $SYMBOL: "$" NAME
-
-$LETTER: LOWERCASE | UPPERCASE
 
