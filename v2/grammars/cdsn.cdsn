@@ -55,7 +55,7 @@ $oneOrMore: "<" expression ">"
     token types are scanned for in the order listed in the specification.
 <!
 
-$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "SEPARATOR" | "WHITESPACE" | "ESCAPE" | "EOL" | "EOF"
+$INTRINSIC: "LOWERCASE" | "UPPERCASE" | "DIGIT" | "SEPARATOR" | "ESCAPE" | "EOL" | "EOF"
 
 $NOTE: "! " {~EOL}
 

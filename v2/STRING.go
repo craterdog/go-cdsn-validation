@@ -17,7 +17,7 @@ import (
 type String string
 
 const TokenString TokenType = "String"
-const string_ = `["][^"]+["]`
+const string_ = `["](?:` + escape + `|[^"` + eol + `])+["]`
 
 // This private method appends a formatted string to the result.
 func (v *formatter) formatString(string_ String) {

@@ -18,13 +18,27 @@ package cdsn
 
 // CONFIGURATION PARAMETERS
 
-// These constant definitions capture regular expression subpatterns for the
-// intrinsic token types.
+// These characters are treated as whitespace by the scanner and ignored.
+const whitespace = `(?: |\n)+`
+
+// These characters include all lowercase unicode letters.
+const lowercase = `\p{Ll}`
+
+// These characters include all uppercase unicode letters.
+const uppercase = `\p{Lu}`
+
+// These characters include all unicode digits.
+const digit = `\p{Nd}`
+
+// These characters can be used to separate words in names.
+const separator = `_`
+
+// These characters are interpreted as escape characters by the scanner.
 const (
-	eol       = `\n`     // This contains the actual characters `\` and `n`, not EOL.
-	ignored   = ` |\n`   // These characters are treated as whitespace by the parser.
-	lowercase = `\p{Ll}` // This includes all unicode lowercase letters.
-	uppercase = `\p{Lu}` // This includes all unicode uppercase letters.
-	digit     = `\p{Nd}` // This includes all unicode digits.
-	separator = `_`      // This can be used to separate words in names.
+	escape  = `\\(?:(?:` + unicode + `)|[abfnrtv'"\\])`
+	unicode = `u` + base16 + `{4}|U` + base16 + `{8}`
+	base16  = `[0-9a-f]`
 )
+
+// This string contains the actual characters `\` and `n`, not EOL.
+const eol = `\n`

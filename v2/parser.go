@@ -27,7 +27,7 @@ func ParseDocument(source []byte) GrammarLike {
 	var token *Token
 	var grammar GrammarLike
 	var tokens = make(chan Token, 256)
-	Scanner(source, tokens) // Starts scanning in a separate go routine.
+	ScanTokens(source, tokens) // Starts scanning in a separate go routine.
 	var p = &parser{
 		symbols: col.Catalog[Symbol, DefinitionLike](),
 		source:  source,

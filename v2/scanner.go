@@ -53,19 +53,21 @@ func (v Token) String() string {
 	return fmt.Sprintf("Token [type: %s, line: %d, position: %d]: %s", v.Type, v.Line, v.Position, s)
 }
 
-// SCANNER
+// SCANNER INTERFACE
 
 // The POSIX standard end-of-line character.
 const EOL = "\n"
 
-// This constructor creates a new scanner initialized with the specified array
-// of bytes. The scanner will scan in tokens matching the corresponding regular
-// expressions.
-func Scanner(source []byte, tokens chan Token) *scanner {
+// This function creates a new scanner initialized with the specified array
+// of bytes. The scanner will automatically generating tokens that match the
+// corresponding regular expressions.
+func ScanTokens(source []byte, tokens chan Token) *scanner {
 	var v = &scanner{source: source, line: 1, position: 1, tokens: tokens}
 	go v.generateTokens() // Start scanning in the background.
 	return v
 }
+
+// SCANNER IMPLEMENTATION
 
 // This type defines the structure and methods for the scanner agent. The source
 // bytes can be viewed like this:
@@ -82,62 +84,6 @@ type scanner struct {
 	line      int // The line number in the source bytes of the next rune.
 	position  int // The position in the current line of the first rune in the next token.
 	tokens    chan Token
-}
-
-// This method continues scanning tokens from the source bytes until an error
-// occurs or the end of file is reached. It then closes the token channel.
-func (v *scanner) generateTokens() {
-	for v.processToken() {
-	}
-	close(v.tokens)
-}
-
-// This method attempts to scan any token starting with the next rune in the
-// source bytes. It checks for each type of token as the cases for the switch
-// statement. If that token type is found, this method returns true and skips
-// the rest of the cases.  If no valid token is found, or a TokenEOF is found
-// this method returns false.
-func (v *scanner) processToken() bool {
-	v.skipWhitespace()
-	switch {
-	case v.foundIntrinsic():
-	case v.foundNote():
-	case v.foundComment():
-	case v.foundCharacter():
-	case v.foundString():
-	case v.foundNumber():
-	case v.foundName():
-	case v.foundSymbol():
-	case v.foundLiteral():
-	case v.foundEOF():
-		// We are at the end of the source bytes.
-		return false
-	default:
-		// No valid token was found.
-		v.foundError()
-		return false
-	}
-	return true
-}
-
-// This method scans through any whitespace in the source bytes and sets the
-// next byte index to the next non-whitespace rune.
-func (v *scanner) skipWhitespace() {
-loop:
-	for v.nextByte < len(v.source) {
-		switch v.source[v.nextByte] {
-		case ' ':
-			v.nextByte++
-			v.position++
-		case '\n':
-			v.nextByte++
-			v.position = 1
-			v.line++
-		default:
-			break loop
-		}
-		v.firstByte = v.nextByte
-	}
 }
 
 // This method adds a token of the specified type with the current scanner
@@ -172,19 +118,6 @@ func (v *scanner) emitToken(tType TokenType) {
 	v.position += sts.Count(tValue, "") - 1 // Add the number of runes in the token.
 }
 
-// This method adds a literal token with the current scanner information to
-// the token channel. It returns true if a literal token was found.
-func (v *scanner) foundLiteral() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanLiteral(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenLiteral)
-		return true
-	}
-	return false
-}
-
 // This method adds an error token with the current scanner information to the
 // token channel.
 func (v *scanner) foundError() {
@@ -207,19 +140,79 @@ func (v *scanner) foundEOF() bool {
 	return false
 }
 
+// This method adds a literal token with the current scanner information to
+// the token channel. It returns true if a literal token was found.
+func (v *scanner) foundLiteral() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanLiteral(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenLiteral)
+		return true
+	}
+	return false
+}
+
+// This method tells the scanner to ignore any whitespace.  It returns true if
+// whitespace was found.
+func (v *scanner) foundWhitespace() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanWhitespace(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.firstByte = v.nextByte
+		v.line += sts.Count(matches[0], EOL)
+		v.position += len(matches[0]) - sts.LastIndex(matches[0], EOL) - 1
+		return true
+	}
+	return false
+}
+
+// This method continues scanning tokens from the source bytes until an error
+// occurs or the end of file is reached. It then closes the token channel.
+func (v *scanner) generateTokens() {
+	for v.processToken() {
+	}
+	close(v.tokens)
+}
+
+// This method attempts to scan any token starting with the next rune in the
+// source bytes. It checks for each type of token as the cases for the switch
+// statement. If that token type is found, this method returns true and skips
+// the rest of the cases.  If no valid token is found, or a TokenEOF is found
+// this method returns false.
+func (v *scanner) processToken() bool {
+	switch {
+	case v.foundWhitespace():
+	case v.foundIntrinsic():
+	case v.foundNote():
+	case v.foundComment():
+	case v.foundCharacter():
+	case v.foundString():
+	case v.foundNumber():
+	case v.foundName():
+	case v.foundSymbol():
+	case v.foundLiteral():
+	case v.foundEOF():
+		// We are at the end of the source bytes.
+		return false
+	default:
+		// No valid token was found.
+		v.foundError()
+		return false
+	}
+	return true
+}
+
+// PRIVATE DEFINITIONS
+
+const literal = `[~:|()[\]{}<>]|\.\.`
+
 // This scanner is used for matching literal tokens.
 var literalScanner = reg.MustCompile(`^(?:` + literal + `)`)
 
-// This function returns for the specified string an array of the matching
-// subgroups for a literal. The first string in the array is the entire
-// matched string.
-func scanLiteral(v []byte) []string {
-	return bytesToStrings(literalScanner.FindSubmatch(v))
-}
-
-// CONSTANT DEFINITIONS
-
-const literal = `[~:|()[\]{}<>]|\.\.`
+// This scanner is used for matching whitespace.
+var whitespaceScanner = reg.MustCompile(`^(?:` + whitespace + `)`)
 
 // PRIVATE FUNCTIONS
 
@@ -229,4 +222,18 @@ func bytesToStrings(bytes [][]byte) []string {
 		strings[index] = string(array)
 	}
 	return strings
+}
+
+// This function returns for the specified string an array of the matching
+// subgroups for a literal. The first string in the array is the entire
+// matched string.
+func scanLiteral(v []byte) []string {
+	return bytesToStrings(literalScanner.FindSubmatch(v))
+}
+
+// This function returns for the specified string an array of the matching
+// subgroups for any whitespace. The first string in the array is the
+// entire matched string.
+func scanWhitespace(v []byte) []string {
+	return bytesToStrings(whitespaceScanner.FindSubmatch(v))
 }
