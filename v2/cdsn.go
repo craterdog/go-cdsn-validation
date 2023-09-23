@@ -18,9 +18,6 @@ package cdsn
 
 // CONFIGURATION PARAMETERS
 
-// These characters are treated as whitespace by the scanner and ignored.
-const whitespace = `(?: |\n)+`
-
 // These characters include all lowercase unicode letters.
 const lowercase = `\p{Ll}`
 
@@ -42,3 +39,6 @@ const (
 
 // This string contains the actual characters `\` and `n`, not EOL.
 const eol = `\n`
+
+// These characters are treated as whitespace by the scanner and ignored.
+const whitespace = `(?: |` + eol + `)+`
