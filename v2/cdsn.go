@@ -30,6 +30,9 @@ const digit = `\p{Nd}`
 // These characters can be used to separate words in names.
 const separator = `_`
 
+// This string contains the actual characters `\` and `n`, not EOL.
+const eol = `\n`
+
 // These characters are interpreted as escape characters by the scanner.
 const (
 	escape  = `\\(?:(?:` + unicode + `)|[abfnrtv'"\\])`
@@ -37,8 +40,8 @@ const (
 	base16  = `[0-9a-f]`
 )
 
-// This string contains the actual characters `\` and `n`, not EOL.
-const eol = `\n`
-
 // These characters are treated as whitespace by the scanner and ignored.
-const whitespace = `(?: |` + eol + `)+`
+const (
+	whitespace = `(?:` + space + `|` + eol + `)+`
+	space      = ` `
+)
