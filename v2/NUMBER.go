@@ -19,11 +19,6 @@ type Number string
 const TokenNumber TokenType = "Number"
 const number = digit + `+`
 
-// This private method appends a formatted number to the result.
-func (v *formatter) formatNumber(number Number) {
-	v.appendString(string(number))
-}
-
 // This method adds a number token with the current scanner information to the
 // token channel. It returns true if a number token was found.
 func (v *scanner) foundNumber() bool {

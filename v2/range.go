@@ -58,14 +58,3 @@ func (v *range_) GetLastCharacter() Character {
 func (v *range_) SetLastCharacter(last Character) {
 	v.last = last
 }
-
-// This private method appends a formatted range to the result.
-func (v *formatter) formatRange(range_ RangeLike) {
-	var first = range_.GetFirstCharacter()
-	var last = range_.GetLastCharacter()
-	v.formatCharacter(first)
-	if len(last) > 0 {
-		v.appendString("..")
-		v.formatCharacter(last)
-	}
-}

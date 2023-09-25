@@ -19,11 +19,6 @@ type String string
 const TokenString TokenType = "String"
 const string_ = `["](?:` + escape + `|[^"` + eol + `])+["]`
 
-// This private method appends a formatted string to the result.
-func (v *formatter) formatString(string_ String) {
-	v.appendString(string(string_))
-}
-
 // This method adds a string token with the current scanner information to the
 // token channel. It returns true if a string token was found.
 func (v *scanner) foundString() bool {

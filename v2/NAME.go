@@ -19,11 +19,6 @@ type Name string
 const TokenName TokenType = "Name"
 const name = `(?:` + lowercase + `|` + uppercase + `)(?:(?:` + separator + `)?(?:` + lowercase + `|` + uppercase + `|` + digit + `))*`
 
-// This private method appends a formatted name to the result.
-func (v *formatter) formatName(name Name) {
-	v.appendString(string(name))
-}
-
 // This method adds a name token with the current scanner information
 // to the token channel. It returns true if a name token was found.
 func (v *scanner) foundName() bool {

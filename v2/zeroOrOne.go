@@ -46,11 +46,3 @@ func (v *zeroOrOne) SetExpression(expression ExpressionLike) {
 	}
 	v.expression = expression
 }
-
-// This private method appends a formatted zero or one group to the result.
-func (v *formatter) formatZeroOrOne(group ZeroOrOneLike) {
-	var expression = group.GetExpression()
-	v.appendString("[")
-	v.formatExpression(expression)
-	v.appendString("]")
-}

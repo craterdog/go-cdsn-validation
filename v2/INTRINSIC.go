@@ -19,11 +19,6 @@ type Intrinsic string
 const TokenIntrinsic TokenType = "Intrinsic"
 const intrinsic = `LOWERCASE|UPPERCASE|DIGIT|SEPARATOR|WHITESPACE|ESCAPE|EOL|EOF`
 
-// This private method appends a formatted intrinsic to the result.
-func (v *formatter) formatIntrinsic(intrinsic Intrinsic) {
-	v.appendString(string(intrinsic))
-}
-
 // This method adds an intrinsic token with the current scanner information
 // to the token channel. It returns true if an intrinsic token was found.
 func (v *scanner) foundIntrinsic() bool {

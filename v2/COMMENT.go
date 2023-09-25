@@ -19,11 +19,6 @@ type Comment string
 
 const TokenComment TokenType = "Comment"
 
-// This private method appends a formatted comment to the result.
-func (v *formatter) formatComment(comment Comment) {
-	v.appendString(string(comment))
-}
-
 // This method adds a comment token with the current scanner information
 // to the token channel. It returns true if a comment token was found.
 func (v *scanner) foundComment() bool {

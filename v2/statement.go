@@ -59,17 +59,3 @@ func (v *statement) SetDefinition(definition DefinitionLike) {
 	}
 	v.definition = definition
 }
-
-// This private method appends a formatted statement to the result.
-func (v *formatter) formatStatement(statement StatementLike) {
-	var comment = statement.GetComment()
-	if len(comment) > 0 {
-		v.appendNewline()
-		v.formatComment(comment)
-	} else {
-		var definition = statement.GetDefinition()
-		v.formatDefinition(definition)
-	}
-	v.appendNewline()
-	v.appendNewline()
-}

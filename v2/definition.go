@@ -62,20 +62,3 @@ func (v *definition) SetExpression(expression ExpressionLike) {
 	}
 	v.expression = expression
 }
-
-// This private method appends a formatted definition to the result.
-func (v *formatter) formatDefinition(definition DefinitionLike) {
-	var symbol = definition.GetSymbol()
-	v.formatSymbol(symbol)
-	v.appendString(":")
-	v.depth++
-	var expression = definition.GetExpression()
-	if expression.IsMultilined() {
-		v.appendNewline()
-		v.appendString("  ")
-	} else {
-		v.appendString(" ")
-	}
-	v.formatExpression(expression)
-	v.depth--
-}

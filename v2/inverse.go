@@ -45,10 +45,3 @@ func (v *inverse) SetFactor(factor Factor) {
 	}
 	v.factor = factor
 }
-
-// This private method appends a formatted inverse to the result.
-func (v *formatter) formatInverse(inverse InverseLike) {
-	v.appendString("~")
-	var factor = inverse.GetFactor()
-	v.formatFactor(factor)
-}

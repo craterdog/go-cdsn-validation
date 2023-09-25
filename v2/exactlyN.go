@@ -60,15 +60,3 @@ func (v *exactlyN) GetN() Number {
 func (v *exactlyN) SetN(n Number) {
 	v.n = n
 }
-
-// This private method appends a formatted exactly N group to the result.
-func (v *formatter) formatExactlyN(group ExactlyNLike) {
-	var expression = group.GetExpression()
-	v.appendString("(")
-	v.formatExpression(expression)
-	v.appendString(")")
-	var n = group.GetN()
-	if len(n) > 0 {
-		v.formatNumber(n)
-	}
-}

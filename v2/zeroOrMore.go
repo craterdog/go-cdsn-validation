@@ -46,11 +46,3 @@ func (v *zeroOrMore) SetExpression(expression ExpressionLike) {
 	}
 	v.expression = expression
 }
-
-// This private method appends a formatted zero or more group to the result.
-func (v *formatter) formatZeroOrMore(group ZeroOrMoreLike) {
-	var expression = group.GetExpression()
-	v.appendString("{")
-	v.formatExpression(expression)
-	v.appendString("}")
-}

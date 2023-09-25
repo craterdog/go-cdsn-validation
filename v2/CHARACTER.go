@@ -19,11 +19,6 @@ const character = `['][^'][']`
 
 type Character string
 
-// This private method appends a formatted character to the result.
-func (v *formatter) formatCharacter(character Character) {
-	v.appendString(string(character))
-}
-
 // This method adds a character token with the current scanner information
 // to the token channel. It returns true if a character token was found.
 func (v *scanner) foundCharacter() bool {

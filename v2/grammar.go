@@ -49,13 +49,3 @@ func (v *grammar) SetStatements(statements col.Sequential[StatementLike]) {
 	}
 	v.statements = statements
 }
-
-// This private method appends a formatted grammar to the result.
-func (v *formatter) formatGrammar(grammar GrammarLike) {
-	var statements = grammar.GetStatements()
-	var iterator = col.Iterator(statements)
-	for iterator.HasNext() {
-		var statement = iterator.GetNext()
-		v.formatStatement(statement)
-	}
-}

@@ -63,24 +63,3 @@ func (v *alternative) GetNote() Note {
 func (v *alternative) SetNote(note Note) {
 	v.note = note
 }
-
-// This private method appends a formatted alternative to the result.
-func (v *formatter) formatAlternative(alternative AlternativeLike) {
-	var factor Factor
-	var factors = alternative.GetFactors()
-	var iterator = col.Iterator(factors)
-	if iterator.HasNext() {
-		factor = iterator.GetNext()
-		v.formatFactor(factor)
-	}
-	for iterator.HasNext() {
-		v.appendString(" ")
-		factor = iterator.GetNext()
-		v.formatFactor(factor)
-	}
-	var note = alternative.GetNote()
-	if len(note) > 0 {
-		v.appendString("  ")
-		v.formatNote(note)
-	}
-}

@@ -46,11 +46,3 @@ func (v *oneOrMore) SetExpression(expression ExpressionLike) {
 	}
 	v.expression = expression
 }
-
-// This private method appends a formatted one or more group to the result.
-func (v *formatter) formatOneOrMore(group OneOrMoreLike) {
-	var expression = group.GetExpression()
-	v.appendString("<")
-	v.formatExpression(expression)
-	v.appendString(">")
-}

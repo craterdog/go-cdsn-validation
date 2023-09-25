@@ -70,21 +70,3 @@ func (v *expression) SetAlternatives(alternatives col.Sequential[AlternativeLike
 	}
 	v.alternatives = alternatives
 }
-
-// This private method appends a formatted expression to the result.
-func (v *formatter) formatExpression(expression ExpressionLike) {
-	var alternatives = expression.GetAlternatives()
-	var iterator = col.Iterator(alternatives)
-	var alternative = iterator.GetNext()
-	v.formatAlternative(alternative)
-	for iterator.HasNext() {
-		alternative = iterator.GetNext()
-		if expression.IsMultilined() {
-			v.appendNewline()
-		} else {
-			v.appendString(" ")
-		}
-		v.appendString("| ")
-		v.formatAlternative(alternative)
-	}
-}

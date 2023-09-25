@@ -19,11 +19,6 @@ type Symbol string
 const TokenSymbol TokenType = "Symbol"
 const symbol = `\$(` + name + `)`
 
-// This private method appends a formatted symbol to the result.
-func (v *formatter) formatSymbol(symbol Symbol) {
-	v.appendString(string(symbol))
-}
-
 // This method adds a symbol token with the current scanner information to
 // the token channel. It returns true if a symbol token was found.
 func (v *scanner) foundSymbol() bool {

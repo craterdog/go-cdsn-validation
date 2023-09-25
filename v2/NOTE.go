@@ -19,11 +19,6 @@ type Note string
 const TokenNote TokenType = "Note"
 const note = `! [^` + eol + `]*`
 
-// This private method appends a formatted note to the result.
-func (v *formatter) formatNote(note Note) {
-	v.appendString(string(note))
-}
-
 // This method adds a note token with the current scanner information to the
 // token channel. It returns true if a note token was found.
 func (v *scanner) foundNote() bool {
