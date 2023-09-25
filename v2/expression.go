@@ -71,42 +71,6 @@ func (v *expression) SetAlternatives(alternatives col.Sequential[AlternativeLike
 	v.alternatives = alternatives
 }
 
-// This method attempts to parse an expression. It returns the expression and
-// whether or not the expression was successfully parsed.
-func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var alternative AlternativeLike
-	var alternatives = col.List[AlternativeLike]()
-	var expression ExpressionLike
-	alternative, token, ok = v.parseAlternative()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("alternative",
-			"$expression",
-			"$alternative")
-		panic(message)
-	}
-	for {
-		alternatives.AddValue(alternative)
-		_, _, ok = v.parseLiteral("|")
-		if !ok {
-			// No more alternatives.
-			break
-		}
-		alternative, token, ok = v.parseAlternative()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("alternative",
-				"$expression",
-				"$alternative")
-			panic(message)
-		}
-	}
-	expression = Expression(alternatives)
-	return expression, token, true
-}
-
 // This private method appends a formatted expression to the result.
 func (v *formatter) formatExpression(expression ExpressionLike) {
 	var alternatives = expression.GetAlternatives()

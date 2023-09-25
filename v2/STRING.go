@@ -37,19 +37,6 @@ func (v *scanner) foundString() bool {
 	return false
 }
 
-// This method attempts to parse a string. It returns the string and whether
-// or not the string was successfully parsed.
-func (v *parser) parseString() (String, *Token, bool) {
-	var string_ String
-	var token = v.nextToken()
-	if token.Type != TokenString {
-		v.backupOne()
-		return string_, token, false
-	}
-	string_ = String(token.Value)
-	return string_, token, true
-}
-
 // This scanner is used for matching string tokens.
 var stringScanner = reg.MustCompile(`^(?:` + string_ + `)`)
 

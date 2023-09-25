@@ -50,42 +50,6 @@ func (v *grammar) SetStatements(statements col.Sequential[StatementLike]) {
 	v.statements = statements
 }
 
-// This method attempts to parse a grammar. It returns the grammar and whether
-// or not the grammar was successfully parsed.
-func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var statement StatementLike
-	var statements = col.List[StatementLike]()
-	var grammar GrammarLike
-	statement, token, ok = v.parseStatement()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("statement",
-			"$grammar",
-			"$statement")
-		panic(message)
-	}
-	for {
-		statements.AddValue(statement)
-		statement, _, ok = v.parseStatement()
-		if !ok {
-			// No more statements.
-			break
-		}
-	}
-	_, token, ok = v.parseEOF()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("EOF",
-			"$grammar",
-			"$statement")
-		panic(message)
-	}
-	grammar = Grammar(statements)
-	return grammar, token, true
-}
-
 // This private method appends a formatted grammar to the result.
 func (v *formatter) formatGrammar(grammar GrammarLike) {
 	var statements = grammar.GetStatements()

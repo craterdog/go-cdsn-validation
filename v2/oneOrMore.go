@@ -47,39 +47,6 @@ func (v *oneOrMore) SetExpression(expression ExpressionLike) {
 	v.expression = expression
 }
 
-// This method attempts to parse an one or more grouping. It returns the one or
-// more grouping and whether or not the one or more grouping was successfully parsed.
-func (v *parser) parseOneOrMore() (OneOrMoreLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var expression ExpressionLike
-	var oneOrMore OneOrMoreLike
-	_, token, ok = v.parseLiteral("<")
-	if !ok {
-		// This is not an one or more grouping.
-		return oneOrMore, token, false
-	}
-	expression, token, ok = v.parseExpression()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("expression",
-			"$factor",
-			"$expression")
-		panic(message)
-	}
-	expression.SetMultilined(false)
-	_, token, ok = v.parseLiteral(">")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar(">",
-			"$factor",
-			"$expression")
-		panic(message)
-	}
-	oneOrMore = OneOrMore(expression)
-	return oneOrMore, token, true
-}
-
 // This private method appends a formatted one or more group to the result.
 func (v *formatter) formatOneOrMore(group OneOrMoreLike) {
 	var expression = group.GetExpression()

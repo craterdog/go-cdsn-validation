@@ -61,40 +61,6 @@ func (v *exactlyN) SetN(n Number) {
 	v.n = n
 }
 
-// This method attempts to parse an exactly N grouping. It returns the exactly
-// N grouping and whether or not the exactly N grouping was successfully parsed.
-func (v *parser) parseExactlyN() (ExactlyNLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var expression ExpressionLike
-	var exactlyN ExactlyNLike
-	_, token, ok = v.parseLiteral("(")
-	if !ok {
-		// This is not an exactly N grouping.
-		return exactlyN, token, false
-	}
-	expression, token, ok = v.parseExpression()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("expression",
-			"$factor",
-			"$expression")
-		panic(message)
-	}
-	expression.SetMultilined(false)
-	_, token, ok = v.parseLiteral(")")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar(")",
-			"$factor",
-			"$expression")
-		panic(message)
-	}
-	var n, _, _ = v.parseNumber() // The number is optional.
-	exactlyN = ExactlyN(expression, n)
-	return exactlyN, token, true
-}
-
 // This private method appends a formatted exactly N group to the result.
 func (v *formatter) formatExactlyN(group ExactlyNLike) {
 	var expression = group.GetExpression()

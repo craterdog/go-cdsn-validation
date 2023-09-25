@@ -11,22 +11,3 @@
 package cdsn
 
 type Grouping any
-
-// This method attempts to parse a grouping. It returns the grouping and whether
-// or not the grouping was successfully parsed.
-func (v *parser) parseGrouping() (Factor, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor Factor
-	factor, token, ok = v.parseExactlyN()
-	if !ok {
-		factor, token, ok = v.parseZeroOrOne()
-	}
-	if !ok {
-		factor, token, ok = v.parseZeroOrMore()
-	}
-	if !ok {
-		factor, token, ok = v.parseOneOrMore()
-	}
-	return factor, token, ok
-}

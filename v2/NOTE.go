@@ -37,19 +37,6 @@ func (v *scanner) foundNote() bool {
 	return false
 }
 
-// This method attempts to parse a note. It returns the note and whether or not
-// the note was successfully parsed.
-func (v *parser) parseNote() (Note, *Token, bool) {
-	var note Note
-	var token = v.nextToken()
-	if token.Type != TokenNote {
-		v.backupOne()
-		return note, token, false
-	}
-	note = Note(token.Value)
-	return note, token, true
-}
-
 // This scanner is used for matching note tokens.
 var noteScanner = reg.MustCompile(`^(?:` + note + `)`)
 

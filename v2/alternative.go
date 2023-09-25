@@ -64,33 +64,6 @@ func (v *alternative) SetNote(note Note) {
 	v.note = note
 }
 
-// This method attempts to parse an alternative. It returns the alternative and
-// whether or not the alternative was successfully parsed.
-func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor Factor
-	var factors = col.List[Factor]()
-	var note Note
-	var alternative AlternativeLike
-	factor, token, ok = v.parseFactor()
-	if !ok {
-		// An alternative must have at least one factor.
-		return alternative, token, false
-	}
-	for {
-		factors.AddValue(factor)
-		factor, token, ok = v.parseFactor()
-		if !ok {
-			// No more factors.
-			break
-		}
-	}
-	note, _, _ = v.parseNote() // The note is optional.
-	alternative = Alternative(factors, note)
-	return alternative, token, true
-}
-
 // This private method appends a formatted alternative to the result.
 func (v *formatter) formatAlternative(alternative AlternativeLike) {
 	var factor Factor

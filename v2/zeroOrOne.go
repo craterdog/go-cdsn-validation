@@ -47,39 +47,6 @@ func (v *zeroOrOne) SetExpression(expression ExpressionLike) {
 	v.expression = expression
 }
 
-// This method attempts to parse an zero or more grouping. It returns the zero or
-// more grouping and whether or not the zero or more grouping was successfully parsed.
-func (v *parser) parseZeroOrOne() (ZeroOrOneLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var expression ExpressionLike
-	var zeroOrOne ZeroOrOneLike
-	_, token, ok = v.parseLiteral("[")
-	if !ok {
-		// This is not an zero or more grouping.
-		return zeroOrOne, token, false
-	}
-	expression, token, ok = v.parseExpression()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("expression",
-			"$factor",
-			"$expression")
-		panic(message)
-	}
-	expression.SetMultilined(false)
-	_, token, ok = v.parseLiteral("]")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("]",
-			"$factor",
-			"$expression")
-		panic(message)
-	}
-	zeroOrOne = ZeroOrOne(expression)
-	return zeroOrOne, token, true
-}
-
 // This private method appends a formatted zero or one group to the result.
 func (v *formatter) formatZeroOrOne(group ZeroOrOneLike) {
 	var expression = group.GetExpression()

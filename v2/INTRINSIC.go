@@ -37,19 +37,6 @@ func (v *scanner) foundIntrinsic() bool {
 	return false
 }
 
-// This method attempts to parse an intrinsic. It returns the intrinsic and
-// whether or not the intrinsic was successfully parsed.
-func (v *parser) parseIntrinsic() (Intrinsic, *Token, bool) {
-	var intrinsic Intrinsic
-	var token = v.nextToken()
-	if token.Type != TokenIntrinsic {
-		v.backupOne()
-		return intrinsic, token, false
-	}
-	intrinsic = Intrinsic(token.Value)
-	return intrinsic, token, true
-}
-
 // This scanner is used for matching intrinsic tokens.
 var intrinsicScanner = reg.MustCompile(`^(?:` + intrinsic + `)`)
 

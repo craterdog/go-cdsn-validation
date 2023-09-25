@@ -37,19 +37,6 @@ func (v *scanner) foundSymbol() bool {
 	return false
 }
 
-// This method attempts to parse a symbol. It returns the symbol and
-// whether or not the symbol was successfully parsed.
-func (v *parser) parseSymbol() (Symbol, *Token, bool) {
-	var symbol Symbol
-	var token = v.nextToken()
-	if token.Type != TokenSymbol {
-		v.backupOne()
-		return symbol, token, false
-	}
-	symbol = Symbol(token.Value)
-	return symbol, token, true
-}
-
 // This scanner is used for matching symbol tokens.
 var symbolScanner = reg.MustCompile(`^(?:` + symbol + `)`)
 

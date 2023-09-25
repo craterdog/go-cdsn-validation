@@ -37,19 +37,6 @@ func (v *scanner) foundCharacter() bool {
 	return false
 }
 
-// This method attempts to parse a character. It returns the character and
-// whether or not a character was successfully parsed.
-func (v *parser) parseCharacter() (Character, *Token, bool) {
-	var character Character
-	var token = v.nextToken()
-	if token.Type != TokenCharacter {
-		v.backupOne()
-		return character, token, false
-	}
-	character = Character(token.Value)
-	return character, token, true
-}
-
 // This scanner is used for matching character tokens.
 var characterScanner = reg.MustCompile(`^(?:` + character + `)`)
 

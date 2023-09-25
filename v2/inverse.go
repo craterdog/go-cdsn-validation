@@ -46,30 +46,6 @@ func (v *inverse) SetFactor(factor Factor) {
 	v.factor = factor
 }
 
-// This method attempts to parse an inverse. It returns the inverse and
-// whether or not the inverse was successfully parsed.
-func (v *parser) parseInverse() (InverseLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor Factor
-	var inverse InverseLike
-	_, token, ok = v.parseLiteral("~")
-	if !ok {
-		// This is not an inverse.
-		return inverse, token, false
-	}
-	factor, token, ok = v.parseFactor()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("factor",
-			"$inverse",
-			"$factor")
-		panic(message)
-	}
-	inverse = Inverse(factor)
-	return inverse, token, true
-}
-
 // This private method appends a formatted inverse to the result.
 func (v *formatter) formatInverse(inverse InverseLike) {
 	v.appendString("~")

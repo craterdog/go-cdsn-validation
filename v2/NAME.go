@@ -11,9 +11,7 @@
 package cdsn
 
 import (
-	fmt "fmt"
 	reg "regexp"
-	uni "unicode"
 )
 
 type Name string
@@ -37,25 +35,6 @@ func (v *scanner) foundName() bool {
 		return true
 	}
 	return false
-}
-
-// This method attempts to parse a name token. It returns the token and
-// whether or not a name token was found.
-func (v *parser) parseName() (Name, *Token, bool) {
-	var name Name
-	var token = v.nextToken()
-	if token.Type != TokenName {
-		v.backupOne()
-		return name, token, false
-	}
-	if v.isToken && uni.IsLower(rune(token.Value[0])) {
-		panic(fmt.Sprintf("A token definition contains a rulename: %v\n", token.Value))
-	}
-	name = Name(token.Value)
-	var symbol = Symbol("$" + token.Value)
-	var definition = v.symbols.GetValue(symbol)
-	v.symbols.SetValue(symbol, definition)
-	return name, token, true
 }
 
 // This scanner is used for matching name tokens.

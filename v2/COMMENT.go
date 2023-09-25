@@ -38,19 +38,6 @@ func (v *scanner) foundComment() bool {
 	return false
 }
 
-// This method attempts to parse a comment. It returns the comment and whether
-// or not a comment was successfully parsed.
-func (v *parser) parseComment() (Comment, *Token, bool) {
-	var comment Comment
-	var token = v.nextToken()
-	if token.Type != TokenComment {
-		v.backupOne()
-		return comment, token, false
-	}
-	comment = Comment(token.Value)
-	return comment, token, true
-}
-
 // This function returns for the specified string an array of the matching
 // subgroups for a commment token. The first string in the array is the entire
 // matched string. Since a comment can be recursive a regular expression is not

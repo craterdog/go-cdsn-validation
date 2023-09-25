@@ -37,19 +37,6 @@ func (v *scanner) foundNumber() bool {
 	return false
 }
 
-// This method attempts to parse a number. It returns the number and
-// whether or not a number was successfully parsed.
-func (v *parser) parseNumber() (Number, *Token, bool) {
-	var number Number
-	var token = v.nextToken()
-	if token.Type != TokenNumber {
-		v.backupOne()
-		return number, token, false
-	}
-	number = Number(token.Value)
-	return number, token, true
-}
-
 // This scanner is used for matching number tokens.
 var numberScanner = reg.MustCompile(`^(?:` + number + `)`)
 
