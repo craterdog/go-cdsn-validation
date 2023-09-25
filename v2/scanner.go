@@ -118,6 +118,33 @@ func (v *scanner) emitToken(tType TokenType) {
 	v.position += sts.Count(tValue, "") - 1 // Add the number of runes in the token.
 }
 
+// This method adds a character token with the current scanner information
+// to the token channel. It returns true if a character token was found.
+func (v *scanner) foundCharacter() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanCharacter(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenCharacter)
+		return true
+	}
+	return false
+}
+
+// This method adds a comment token with the current scanner information
+// to the token channel. It returns true if a comment token was found.
+func (v *scanner) foundComment() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanComment(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.line += sts.Count(matches[0], EOL)
+		v.emitToken(TokenComment)
+		return true
+	}
+	return false
+}
+
 // This method adds an error token with the current scanner information to the
 // token channel.
 func (v *scanner) foundError() {
@@ -140,6 +167,19 @@ func (v *scanner) foundEOF() bool {
 	return false
 }
 
+// This method adds an intrinsic token with the current scanner information
+// to the token channel. It returns true if an intrinsic token was found.
+func (v *scanner) foundIntrinsic() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanIntrinsic(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenIntrinsic)
+		return true
+	}
+	return false
+}
+
 // This method adds a literal token with the current scanner information to
 // the token channel. It returns true if a literal token was found.
 func (v *scanner) foundLiteral() bool {
@@ -148,6 +188,71 @@ func (v *scanner) foundLiteral() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenLiteral)
+		return true
+	}
+	return false
+}
+
+// This method adds a name token with the current scanner information
+// to the token channel. It returns true if a name token was found.
+func (v *scanner) foundName() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanName(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenName)
+		return true
+	}
+	return false
+}
+
+// This method adds a note token with the current scanner information to the
+// token channel. It returns true if a note token was found.
+func (v *scanner) foundNote() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanNote(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenNote)
+		return true
+	}
+	return false
+}
+
+// This method adds a number token with the current scanner information to the
+// token channel. It returns true if a number token was found.
+func (v *scanner) foundNumber() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanNumber(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenNumber)
+		return true
+	}
+	return false
+}
+
+// This method adds a string token with the current scanner information to the
+// token channel. It returns true if a string token was found.
+func (v *scanner) foundString() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanString(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenString)
+		return true
+	}
+	return false
+}
+
+// This method adds a symbol token with the current scanner information to
+// the token channel. It returns true if a symbol token was found.
+func (v *scanner) foundSymbol() bool {
+	var s = v.source[v.nextByte:]
+	var matches = scanSymbol(s)
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenSymbol)
 		return true
 	}
 	return false

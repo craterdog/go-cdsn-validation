@@ -19,19 +19,6 @@ type String string
 const TokenString TokenType = "String"
 const string_ = `["](?:` + escape + `|[^"` + eol + `])+["]`
 
-// This method adds a string token with the current scanner information to the
-// token channel. It returns true if a string token was found.
-func (v *scanner) foundString() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanString(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenString)
-		return true
-	}
-	return false
-}
-
 // This scanner is used for matching string tokens.
 var stringScanner = reg.MustCompile(`^(?:` + string_ + `)`)
 

@@ -19,19 +19,6 @@ type Symbol string
 const TokenSymbol TokenType = "Symbol"
 const symbol = `\$(` + name + `)`
 
-// This method adds a symbol token with the current scanner information to
-// the token channel. It returns true if a symbol token was found.
-func (v *scanner) foundSymbol() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanSymbol(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenSymbol)
-		return true
-	}
-	return false
-}
-
 // This scanner is used for matching symbol tokens.
 var symbolScanner = reg.MustCompile(`^(?:` + symbol + `)`)
 

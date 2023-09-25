@@ -19,19 +19,6 @@ type Name string
 const TokenName TokenType = "Name"
 const name = `(?:` + lowercase + `|` + uppercase + `)(?:(?:` + separator + `)?(?:` + lowercase + `|` + uppercase + `|` + digit + `))*`
 
-// This method adds a name token with the current scanner information
-// to the token channel. It returns true if a name token was found.
-func (v *scanner) foundName() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanName(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenName)
-		return true
-	}
-	return false
-}
-
 // This scanner is used for matching name tokens.
 var nameScanner = reg.MustCompile(`^(?:` + name + `)`)
 

@@ -19,19 +19,6 @@ type Number string
 const TokenNumber TokenType = "Number"
 const number = digit + `+`
 
-// This method adds a number token with the current scanner information to the
-// token channel. It returns true if a number token was found.
-func (v *scanner) foundNumber() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanNumber(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenNumber)
-		return true
-	}
-	return false
-}
-
 // This scanner is used for matching number tokens.
 var numberScanner = reg.MustCompile(`^(?:` + number + `)`)
 

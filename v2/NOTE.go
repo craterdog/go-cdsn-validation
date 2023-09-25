@@ -19,19 +19,6 @@ type Note string
 const TokenNote TokenType = "Note"
 const note = `! [^` + eol + `]*`
 
-// This method adds a note token with the current scanner information to the
-// token channel. It returns true if a note token was found.
-func (v *scanner) foundNote() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanNote(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenNote)
-		return true
-	}
-	return false
-}
-
 // This scanner is used for matching note tokens.
 var noteScanner = reg.MustCompile(`^(?:` + note + `)`)
 

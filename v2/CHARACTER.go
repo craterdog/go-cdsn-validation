@@ -19,19 +19,6 @@ const character = `['][^'][']`
 
 type Character string
 
-// This method adds a character token with the current scanner information
-// to the token channel. It returns true if a character token was found.
-func (v *scanner) foundCharacter() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanCharacter(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenCharacter)
-		return true
-	}
-	return false
-}
-
 // This scanner is used for matching character tokens.
 var characterScanner = reg.MustCompile(`^(?:` + character + `)`)
 

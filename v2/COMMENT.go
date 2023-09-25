@@ -12,26 +12,11 @@ package cdsn
 
 import (
 	byt "bytes"
-	sts "strings"
 )
 
 type Comment string
 
 const TokenComment TokenType = "Comment"
-
-// This method adds a comment token with the current scanner information
-// to the token channel. It returns true if a comment token was found.
-func (v *scanner) foundComment() bool {
-	var s = v.source[v.nextByte:]
-	var matches = scanComment(s)
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.line += sts.Count(matches[0], EOL)
-		v.emitToken(TokenComment)
-		return true
-	}
-	return false
-}
 
 // This function returns for the specified string an array of the matching
 // subgroups for a commment token. The first string in the array is the entire
