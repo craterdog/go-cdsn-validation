@@ -15,7 +15,7 @@ import (
 )
 
 const TokenCharacter TokenType = "Character"
-const character = `['][^'][']`
+const character = `['][^'` + eol + `][']`
 
 type Character string
 
