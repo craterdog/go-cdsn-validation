@@ -253,7 +253,7 @@ func (v *parser) parseExactlyN() (ExactlyNLike, *Token, bool) {
 			"$expression")
 		panic(message)
 	}
-	expression.SetAnnotated(false)
+	expression.SetMultilined(false)
 	_, token, ok = v.parseLiteral(")")
 	if !ok {
 		var message = v.formatError(token)
@@ -503,7 +503,7 @@ func (v *parser) parseOneOrMore() (OneOrMoreLike, *Token, bool) {
 			"$expression")
 		panic(message)
 	}
-	expression.SetAnnotated(false)
+	expression.SetMultilined(false)
 	_, token, ok = v.parseLiteral(">")
 	if !ok {
 		var message = v.formatError(token)
@@ -610,7 +610,7 @@ func (v *parser) parseZeroOrMore() (ZeroOrMoreLike, *Token, bool) {
 			"$expression")
 		panic(message)
 	}
-	expression.SetAnnotated(false)
+	expression.SetMultilined(false)
 	_, token, ok = v.parseLiteral("}")
 	if !ok {
 		var message = v.formatError(token)
@@ -643,7 +643,7 @@ func (v *parser) parseZeroOrOne() (ZeroOrOneLike, *Token, bool) {
 			"$expression")
 		panic(message)
 	}
-	expression.SetAnnotated(false)
+	expression.SetMultilined(false)
 	_, token, ok = v.parseLiteral("]")
 	if !ok {
 		var message = v.formatError(token)

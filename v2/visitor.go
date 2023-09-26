@@ -28,8 +28,8 @@ type AgentLike interface {
 	AtNumber(number Number, depth int)
 	AtString(string_ String, depth int)
 	AtSymbol(symbol Symbol, isMultiline bool, depth int)
-	BeforeAlternative(alternative AlternativeLike, slot int, size int, isAnnotated bool, depth int)
-	AfterAlternative(alternative AlternativeLike, slot int, size int, isAnnotated bool, depth int)
+	BeforeAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool, depth int)
+	AfterAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool, depth int)
 	BeforeDefinition(definition DefinitionLike, depth int)
 	AfterDefinition(definition DefinitionLike, depth int)
 	BeforeElement(element Element, depth int)
@@ -100,7 +100,7 @@ func (v *visitor) visitAlternative(alternative AlternativeLike) {
 func (v *visitor) visitDefinition(definition DefinitionLike) {
 	var symbol = definition.GetSymbol()
 	var expression = definition.GetExpression()
-	v.agent.AtSymbol(symbol, expression.IsAnnotated(), v.depth)
+	v.agent.AtSymbol(symbol, expression.IsMultilined(), v.depth)
 	v.agent.BeforeExpression(expression, v.depth)
 	v.visitExpression(expression)
 	v.agent.AfterExpression(expression, v.depth)
@@ -132,7 +132,7 @@ func (v *visitor) visitExactlyN(group ExactlyNLike) {
 
 // This private method visits the specified expression.
 func (v *visitor) visitExpression(expression ExpressionLike) {
-	var isAnnotated = expression.IsAnnotated()
+	var isMultilined = expression.IsMultilined()
 	var alternatives = expression.GetAlternatives()
 	var size = alternatives.GetSize()
 	var iterator = col.Iterator(alternatives)
@@ -140,10 +140,10 @@ func (v *visitor) visitExpression(expression ExpressionLike) {
 	for iterator.HasNext() {
 		var slot = iterator.GetSlot()
 		var alternative = iterator.GetNext()
-		v.agent.BeforeAlternative(alternative, slot, size, isAnnotated, v.depth)
+		v.agent.BeforeAlternative(alternative, slot, size, isMultilined, v.depth)
 		v.visitAlternative(alternative)
 		slot++
-		v.agent.AfterAlternative(alternative, slot, size, isAnnotated, v.depth)
+		v.agent.AfterAlternative(alternative, slot, size, isMultilined, v.depth)
 	}
 	v.depth--
 }

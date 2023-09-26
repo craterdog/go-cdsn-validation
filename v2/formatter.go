@@ -38,11 +38,6 @@ func (v *formatter) AtCharacter(character Character, depth int) {
 	v.appendString(string(character))
 }
 
-// This public method is called between the two two characters in a range.
-func (v *formatter) BetweenCharacters(first Character, last Character, depth int) {
-	v.appendString("..")
-}
-
 // This public method is called for each comment token.
 func (v *formatter) AtComment(comment Comment, depth int) {
 	v.appendNewline(depth)
@@ -76,18 +71,18 @@ func (v *formatter) AtString(string_ String, depth int) {
 }
 
 // This public method is called for each symbol token.
-func (v *formatter) AtSymbol(symbol Symbol, isMultiline bool, depth int) {
+func (v *formatter) AtSymbol(symbol Symbol, isMultilined bool, depth int) {
 	v.appendString(string(symbol))
 	v.appendString(":")
-	if !isMultiline {
+	if !isMultilined {
 		v.appendString(" ")
 	}
 }
 
 // This public method is called before each alternative in an expression.
 func (v *formatter) BeforeAlternative(alternative AlternativeLike, slot int,
-	size int, isAnnotated bool, depth int) {
-	if isAnnotated {
+	size int, isMultilined bool, depth int) {
+	if isMultilined {
 		v.appendNewline(depth)
 		if slot == 0 {
 			v.appendString("  ")
@@ -100,8 +95,8 @@ func (v *formatter) BeforeAlternative(alternative AlternativeLike, slot int,
 
 // This public method is called after each alternative in an expression.
 func (v *formatter) AfterAlternative(alternative AlternativeLike, slot int,
-	size int, isAnnotated bool, depth int) {
-	if !isAnnotated && slot < size {
+	size int, isMultilined bool, depth int) {
+	if !isMultilined && slot < size {
 		v.appendString(" ")
 	}
 }
@@ -135,41 +130,47 @@ func (v *formatter) AfterExactlyN(exactlyN ExactlyNLike, n Number, depth int) {
 	}
 }
 
+// This public method is called before each expression.
 func (v *formatter) BeforeExpression(expression ExpressionLike, depth int) {
 }
 
+// This public method is called after each expression.
 func (v *formatter) AfterExpression(expression ExpressionLike, depth int) {
 }
 
-func (v *formatter) BeforeFactor(
-	factor Factor, slot int,
-	size int, depth int) {
+// This public method is called before each factor in an alternative.
+func (v *formatter) BeforeFactor(factor Factor, slot int, size int, depth int) {
 	if slot > 0 {
 		v.appendString(" ")
 	}
 }
 
-func (v *formatter) AfterFactor(
-	factor Factor, slot int,
-	size int, depth int) {
+// This public method is called after each factor in an alternative.
+func (v *formatter) AfterFactor(factor Factor, slot int, size int, depth int) {
 }
 
+// This public method is called before the grammar.
 func (v *formatter) BeforeGrammar(grammar GrammarLike, depth int) {
 }
 
+// This public method is called after the grammar.
 func (v *formatter) AfterGrammar(grammar GrammarLike, depth int) {
 }
 
+// This public method is called before each grouping.
 func (v *formatter) BeforeGrouping(grouping Grouping, depth int) {
 }
 
+// This public method is called after each grouping.
 func (v *formatter) AfterGrouping(grouping Grouping, depth int) {
 }
 
+// This public method is called before each inverse factor.
 func (v *formatter) BeforeInverse(inverse InverseLike, depth int) {
 	v.appendString("~")
 }
 
+// This public method is called after each inverse factor.
 func (v *formatter) AfterInverse(inverse InverseLike, depth int) {
 }
 
@@ -183,20 +184,25 @@ func (v *formatter) AfterOneOrMore(oneOrMore OneOrMoreLike, depth int) {
 	v.appendString(">")
 }
 
+// This public method is called before each character range.
 func (v *formatter) BeforeRange(range_ RangeLike, depth int) {
 }
 
+// This public method is called between the two two characters in a range.
+func (v *formatter) BetweenCharacters(first Character, last Character, depth int) {
+	v.appendString("..")
+}
+
+// This public method is called after each character range.
 func (v *formatter) AfterRange(range_ RangeLike, depth int) {
 }
 
-func (v *formatter) BeforeStatement(
-	statement StatementLike, slot int,
-	size int, depth int) {
+// This public method is called before each statement in a grammar.
+func (v *formatter) BeforeStatement(statement StatementLike, slot int, size int, depth int) {
 }
 
-func (v *formatter) AfterStatement(
-	statement StatementLike, slot int,
-	size int, depth int) {
+// This public method is called after each statement in a grammar.
+func (v *formatter) AfterStatement(statement StatementLike, slot int, size int, depth int) {
 	v.appendNewline(depth)
 	v.appendNewline(depth)
 }

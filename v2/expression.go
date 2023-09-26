@@ -19,8 +19,8 @@ import (
 // This interface defines the methods supported by all expression-like
 // components.
 type ExpressionLike interface {
-	IsAnnotated() bool
-	SetAnnotated(isAnnotated bool)
+	IsMultilined() bool
+	SetMultilined(isMultilined bool)
 	GetAlternatives() col.Sequential[AlternativeLike]
 	SetAlternatives(alternatives col.Sequential[AlternativeLike])
 }
@@ -36,18 +36,18 @@ func Expression(alternatives col.Sequential[AlternativeLike]) ExpressionLike {
 
 // This type defines the structure and methods associated with an expression.
 type expression struct {
-	isAnnotated  bool
+	isMultilined bool
 	alternatives col.Sequential[AlternativeLike]
 }
 
 // This method determines whether or not this expression is multlined.
-func (v *expression) IsAnnotated() bool {
-	return v.isAnnotated
+func (v *expression) IsMultilined() bool {
+	return v.isMultilined
 }
 
 // This method sets whether or not this expression is multlined.
-func (v *expression) SetAnnotated(isAnnotated bool) {
-	v.isAnnotated = isAnnotated
+func (v *expression) SetMultilined(isMultilined bool) {
+	v.isMultilined = isMultilined
 }
 
 // This method returns the alternatives for this expression.
@@ -64,7 +64,7 @@ func (v *expression) SetAlternatives(alternatives col.Sequential[AlternativeLike
 	for iterator.HasNext() {
 		var alternative = iterator.GetNext()
 		if alternatives.GetSize() > 1 && (alternative.GetFactors().GetSize() > 2 || len(alternative.GetNote()) > 0) {
-			v.isAnnotated = true
+			v.isMultilined = true
 			break
 		}
 	}
