@@ -249,16 +249,16 @@ func (v *parser) parseExactlyN() (ExactlyNLike, *Token, bool) {
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("expression",
-			"$factor",
+			"$exactlyN",
 			"$expression")
 		panic(message)
 	}
-	expression.SetMultilined(false)
+	expression.SetAnnotated(false)
 	_, token, ok = v.parseLiteral(")")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(")",
-			"$factor",
+			"$exactlyN",
 			"$expression")
 		panic(message)
 	}
@@ -499,16 +499,16 @@ func (v *parser) parseOneOrMore() (OneOrMoreLike, *Token, bool) {
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("expression",
-			"$factor",
+			"$oneOrMore",
 			"$expression")
 		panic(message)
 	}
-	expression.SetMultilined(false)
+	expression.SetAnnotated(false)
 	_, token, ok = v.parseLiteral(">")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(">",
-			"$factor",
+			"$oneOrMore",
 			"$expression")
 		panic(message)
 	}
@@ -606,16 +606,16 @@ func (v *parser) parseZeroOrMore() (ZeroOrMoreLike, *Token, bool) {
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("expression",
-			"$factor",
+			"$zeroOrMore",
 			"$expression")
 		panic(message)
 	}
-	expression.SetMultilined(false)
+	expression.SetAnnotated(false)
 	_, token, ok = v.parseLiteral("}")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("}",
-			"$factor",
+			"$zeroOrMore",
 			"$expression")
 		panic(message)
 	}
@@ -639,16 +639,16 @@ func (v *parser) parseZeroOrOne() (ZeroOrOneLike, *Token, bool) {
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("expression",
-			"$factor",
+			"$zeroOrOne",
 			"$expression")
 		panic(message)
 	}
-	expression.SetMultilined(false)
+	expression.SetAnnotated(false)
 	_, token, ok = v.parseLiteral("]")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("]",
-			"$factor",
+			"$zeroOrOne",
 			"$expression")
 		panic(message)
 	}
@@ -667,57 +667,15 @@ var grammar_ = map[string]string{
 	"$symbol":      `RULESYMBOL | TOKENSYMBOL`,
 	"$expression":  `alternative {"|" alternative}`,
 	"$alternative": `<factor> [NOTE]`,
-	"$factor": `
-      inverse
-    | exactlyN
-    | zeroOrOne
-    | zeroOrMore
-    | oneOrMore
-    | range  ! Ranges must be parsed before RUNEs.
-   	| token`,
-	"$token":      `INTRINSIC | RUNE | STRING | NUMBER | NAME`,
-	"$inverse":    `"~" factor`,
-	"$exactlyN":   `"(" expression ")" [NUMBER]  ! The default is exactly one.`,
-	"$zeroOrOne":  `"[" expression "]"`,
-	"$zeroOrMore": `"{" expression "}"`,
-	"$oneOrMore":  `"<" expression ">"`,
-	"$range":      `RUNE ".." RUNE  ! A range includes the first and last RUNEs listed.`,
-}
-
-const header = `!>
-    A formal expression of Crater Dog Syntax Notation™ (CDSN) using Crater Dog
-    Syntax Notation™ itself.  This language grammar consists of rule expressions
-    and token expressions.
-
-    Each rule name begins with a lowercase letter.  The rules are applied in the
-    order listed. So—for example—within a factor, a range of RUNEs takes
-    precedence over an individual RUNE.
-
-    Each token name begins with an uppercase letter.  The INTRINSIC tokens are
-    environment and language specific, and are therefore left undefined. The
-    tokens are also scanned in the order listed.  So an INTRINSIC token takes
-    precedence over an IDENTIFIER token.
-<!
-`
-
-func FormatGrammar() string {
-	var builder sts.Builder
-	builder.WriteString(header)
-	var unsorted = make([]string, len(grammar_))
-	var index = 0
-	for key := range grammar_ {
-		unsorted[index] = key
-		index++
-	}
-	var keys = col.ListFromArray(unsorted)
-	keys.SortValues()
-	var iterator = col.Iterator[string](keys)
-	for iterator.HasNext() {
-		var key = iterator.GetNext()
-		var value = grammar_[key]
-		builder.WriteString(fmt.Sprintf("%s: %s\n\n", key, value))
-	}
-	return builder.String()
+	"$factor":      `element | range | inverse | grouping`,
+	"$element":     `INTRINSIC | STRING | NUMBER | NAME`,
+	"$range":       `CHARACTER ".." CHARACTER  ! A range of CHARACTERs is inclusive.`,
+	"$inverse":     `"~" factor`,
+	"$grouping":    `exactlyN | zeroOrOne | zeroOrMore | oneOrMore`,
+	"$exactlyN":    `"(" expression ")" [NUMBER]  ! The default is exactly one.`,
+	"$zeroOrOne":   `"[" expression "]"`,
+	"$zeroOrMore":  `"{" expression "}"`,
+	"$oneOrMore":   `"<" expression ">"`,
 }
 
 // PRIVATE FUNCTIONS
