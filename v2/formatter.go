@@ -91,12 +91,11 @@ func (v *formatter) AtSymbol(symbol Symbol, isMultilined bool) {
 }
 
 // This public method is called before each alternative in an expression.
-func (v *formatter) BeforeAlternative(alternative AlternativeLike, slot int,
-	size int, isMultilined bool) {
+func (v *formatter) BeforeAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
 	if isMultilined {
 		v.appendNewline()
 		if slot == 0 {
-			v.appendString("  ")
+			v.appendString("  ") // Indent additional two spaces to align with subsequent alternatives.
 		}
 	}
 	if slot > 0 {
@@ -105,8 +104,7 @@ func (v *formatter) BeforeAlternative(alternative AlternativeLike, slot int,
 }
 
 // This public method is called after each alternative in an expression.
-func (v *formatter) AfterAlternative(alternative AlternativeLike, slot int,
-	size int, isMultilined bool) {
+func (v *formatter) AfterAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
 	if !isMultilined && slot < size {
 		v.appendString(" ")
 	}
