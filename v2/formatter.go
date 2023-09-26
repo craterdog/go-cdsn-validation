@@ -28,50 +28,61 @@ func FormatGrammar(grammar GrammarLike) []byte {
 
 // This type defines the structure and methods for a canonical formatter agent.
 type formatter struct {
+	depth  int
 	result sts.Builder
 }
 
 // PRIVATE METHODS
 
+// This public method increments the depth of the traversal by one.
+func (v *formatter) IncrementDepth() {
+	v.depth++
+}
+
+// This public method decrements the depth of the traversal by one.
+func (v *formatter) DecrementDepth() {
+	v.depth--
+}
+
 // This public method is called for each character token.
-func (v *formatter) AtCharacter(character Character, depth int) {
+func (v *formatter) AtCharacter(character Character) {
 	v.appendString(string(character))
 }
 
 // This public method is called for each comment token.
-func (v *formatter) AtComment(comment Comment, depth int) {
-	v.appendNewline(depth)
+func (v *formatter) AtComment(comment Comment) {
+	v.appendNewline()
 	v.appendString(string(comment))
 }
 
 // This public method is called for each intrinsic token.
-func (v *formatter) AtIntrinsic(intrinsic Intrinsic, depth int) {
+func (v *formatter) AtIntrinsic(intrinsic Intrinsic) {
 	v.appendString(string(intrinsic))
 }
 
 // This public method is called for each name token.
-func (v *formatter) AtName(name Name, depth int) {
+func (v *formatter) AtName(name Name) {
 	v.appendString(string(name))
 }
 
 // This public method is called for each note token.
-func (v *formatter) AtNote(note Note, depth int) {
+func (v *formatter) AtNote(note Note) {
 	v.appendString("  ")
 	v.appendString(string(note))
 }
 
 // This public method is called for each number token.
-func (v *formatter) AtNumber(number Number, depth int) {
+func (v *formatter) AtNumber(number Number) {
 	v.appendString(string(number))
 }
 
 // This public method is called for each string token.
-func (v *formatter) AtString(string_ String, depth int) {
+func (v *formatter) AtString(string_ String) {
 	v.appendString(string(string_))
 }
 
 // This public method is called for each symbol token.
-func (v *formatter) AtSymbol(symbol Symbol, isMultilined bool, depth int) {
+func (v *formatter) AtSymbol(symbol Symbol, isMultilined bool) {
 	v.appendString(string(symbol))
 	v.appendString(":")
 	if !isMultilined {
@@ -81,9 +92,9 @@ func (v *formatter) AtSymbol(symbol Symbol, isMultilined bool, depth int) {
 
 // This public method is called before each alternative in an expression.
 func (v *formatter) BeforeAlternative(alternative AlternativeLike, slot int,
-	size int, isMultilined bool, depth int) {
+	size int, isMultilined bool) {
 	if isMultilined {
-		v.appendNewline(depth)
+		v.appendNewline()
 		if slot == 0 {
 			v.appendString("  ")
 		}
@@ -95,144 +106,144 @@ func (v *formatter) BeforeAlternative(alternative AlternativeLike, slot int,
 
 // This public method is called after each alternative in an expression.
 func (v *formatter) AfterAlternative(alternative AlternativeLike, slot int,
-	size int, isMultilined bool, depth int) {
+	size int, isMultilined bool) {
 	if !isMultilined && slot < size {
 		v.appendString(" ")
 	}
 }
 
 // This public method is called before each definition.
-func (v *formatter) BeforeDefinition(definition DefinitionLike, depth int) {
+func (v *formatter) BeforeDefinition(definition DefinitionLike) {
 }
 
 // This public method is called after each definition.
-func (v *formatter) AfterDefinition(definition DefinitionLike, depth int) {
+func (v *formatter) AfterDefinition(definition DefinitionLike) {
 }
 
 // This public method is called before each element.
-func (v *formatter) BeforeElement(element Element, depth int) {
+func (v *formatter) BeforeElement(element Element) {
 }
 
 // This public method is called after each element.
-func (v *formatter) AfterElement(element Element, depth int) {
+func (v *formatter) AfterElement(element Element) {
 }
 
 // This public method is called before each exactly N grouping.
-func (v *formatter) BeforeExactlyN(exactlyN ExactlyNLike, n Number, depth int) {
+func (v *formatter) BeforeExactlyN(exactlyN ExactlyNLike, n Number) {
 	v.appendString("(")
 }
 
 // This public method is called after each exactly N grouping.
-func (v *formatter) AfterExactlyN(exactlyN ExactlyNLike, n Number, depth int) {
+func (v *formatter) AfterExactlyN(exactlyN ExactlyNLike, n Number) {
 	v.appendString(")")
 	if len(n) > 0 {
-		v.AtNumber(n, depth)
+		v.AtNumber(n)
 	}
 }
 
 // This public method is called before each expression.
-func (v *formatter) BeforeExpression(expression ExpressionLike, depth int) {
+func (v *formatter) BeforeExpression(expression ExpressionLike) {
 }
 
 // This public method is called after each expression.
-func (v *formatter) AfterExpression(expression ExpressionLike, depth int) {
+func (v *formatter) AfterExpression(expression ExpressionLike) {
 }
 
 // This public method is called before each factor in an alternative.
-func (v *formatter) BeforeFactor(factor Factor, slot int, size int, depth int) {
+func (v *formatter) BeforeFactor(factor Factor, slot int, size int) {
 	if slot > 0 {
 		v.appendString(" ")
 	}
 }
 
 // This public method is called after each factor in an alternative.
-func (v *formatter) AfterFactor(factor Factor, slot int, size int, depth int) {
+func (v *formatter) AfterFactor(factor Factor, slot int, size int) {
 }
 
 // This public method is called before the grammar.
-func (v *formatter) BeforeGrammar(grammar GrammarLike, depth int) {
+func (v *formatter) BeforeGrammar(grammar GrammarLike) {
 }
 
 // This public method is called after the grammar.
-func (v *formatter) AfterGrammar(grammar GrammarLike, depth int) {
+func (v *formatter) AfterGrammar(grammar GrammarLike) {
 }
 
 // This public method is called before each grouping.
-func (v *formatter) BeforeGrouping(grouping Grouping, depth int) {
+func (v *formatter) BeforeGrouping(grouping Grouping) {
 }
 
 // This public method is called after each grouping.
-func (v *formatter) AfterGrouping(grouping Grouping, depth int) {
+func (v *formatter) AfterGrouping(grouping Grouping) {
 }
 
 // This public method is called before each inverse factor.
-func (v *formatter) BeforeInverse(inverse InverseLike, depth int) {
+func (v *formatter) BeforeInverse(inverse InverseLike) {
 	v.appendString("~")
 }
 
 // This public method is called after each inverse factor.
-func (v *formatter) AfterInverse(inverse InverseLike, depth int) {
+func (v *formatter) AfterInverse(inverse InverseLike) {
 }
 
 // This public method is called before each one or more grouping.
-func (v *formatter) BeforeOneOrMore(oneOrMore OneOrMoreLike, depth int) {
+func (v *formatter) BeforeOneOrMore(oneOrMore OneOrMoreLike) {
 	v.appendString("<")
 }
 
 // This public method is called after each one or more grouping.
-func (v *formatter) AfterOneOrMore(oneOrMore OneOrMoreLike, depth int) {
+func (v *formatter) AfterOneOrMore(oneOrMore OneOrMoreLike) {
 	v.appendString(">")
 }
 
 // This public method is called before each character range.
-func (v *formatter) BeforeRange(range_ RangeLike, depth int) {
+func (v *formatter) BeforeRange(range_ RangeLike) {
 }
 
 // This public method is called between the two two characters in a range.
-func (v *formatter) BetweenCharacters(first Character, last Character, depth int) {
+func (v *formatter) BetweenCharacters(first Character, last Character) {
 	v.appendString("..")
 }
 
 // This public method is called after each character range.
-func (v *formatter) AfterRange(range_ RangeLike, depth int) {
+func (v *formatter) AfterRange(range_ RangeLike) {
 }
 
 // This public method is called before each statement in a grammar.
-func (v *formatter) BeforeStatement(statement StatementLike, slot int, size int, depth int) {
+func (v *formatter) BeforeStatement(statement StatementLike, slot int, size int) {
 }
 
 // This public method is called after each statement in a grammar.
-func (v *formatter) AfterStatement(statement StatementLike, slot int, size int, depth int) {
-	v.appendNewline(depth)
-	v.appendNewline(depth)
+func (v *formatter) AfterStatement(statement StatementLike, slot int, size int) {
+	v.appendNewline()
+	v.appendNewline()
 }
 
 // This public method is called before each zero or more grouping.
-func (v *formatter) BeforeZeroOrMore(zeroOrMore ZeroOrMoreLike, depth int) {
+func (v *formatter) BeforeZeroOrMore(zeroOrMore ZeroOrMoreLike) {
 	v.appendString("{")
 }
 
 // This public method is called after each zero or more grouping.
-func (v *formatter) AfterZeroOrMore(zeroOrMore ZeroOrMoreLike, depth int) {
+func (v *formatter) AfterZeroOrMore(zeroOrMore ZeroOrMoreLike) {
 	v.appendString("}")
 }
 
 // This public method is called before each zero or one grouping.
-func (v *formatter) BeforeZeroOrOne(zeroOrOne ZeroOrOneLike, depth int) {
+func (v *formatter) BeforeZeroOrOne(zeroOrOne ZeroOrOneLike) {
 	v.appendString("[")
 }
 
 // This public method is called after each zero or one grouping.
-func (v *formatter) AfterZeroOrOne(zeroOrOne ZeroOrOneLike, depth int) {
+func (v *formatter) AfterZeroOrOne(zeroOrOne ZeroOrOneLike) {
 	v.appendString("]")
 }
 
 // PRIVATE METHODS
 
 // This private method appends a properly indented newline to the result.
-func (v *formatter) appendNewline(depth int) {
+func (v *formatter) appendNewline() {
 	var separator = "\n"
-	for level := 0; level < depth; level++ {
+	for level := 0; level < v.depth; level++ {
 		separator += "    "
 	}
 	v.result.WriteString(separator)
