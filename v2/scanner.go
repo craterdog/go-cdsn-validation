@@ -138,8 +138,8 @@ func (v *scanner) foundComment() bool {
 	var matches = scanComment(s)
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.line += sts.Count(matches[0], EOL)
 		v.emitToken(TokenComment)
+		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -266,8 +266,15 @@ func (v *scanner) foundWhitespace() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.firstByte = v.nextByte
-		v.line += sts.Count(matches[0], EOL)
-		v.position += len(matches[0]) - sts.LastIndex(matches[0], EOL) - 1
+		var length = len(matches[0])
+		var eolCount = sts.Count(matches[0], EOL)
+		if eolCount > 0 {
+			v.line += eolCount
+			var index = sts.LastIndex(matches[0], EOL)
+			v.position = length - index
+		} else {
+			v.position += length
+		}
 		return true
 	}
 	return false
