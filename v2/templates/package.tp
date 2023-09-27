@@ -8,18 +8,43 @@
  * Initiative. (See http://opensource.org/licenses/MIT)                        *
  *******************************************************************************/
 
+/*
+This package defines a parser and formatter for documents written using Crater
+Dog Syntax Notation™ (CDSN).  The parser performs validation on the resulting
+parse tree.  The formatter takes a validated parse tree and generates the
+corresponding CDSN document using the canonical format.
+*/
 package #package#
 
-// The following configuration constants are used by regular expressions when
-// scanning for intrinsic tokens.
-const {
-	lowercase   = `\p{Ll}`   // All unicode lowercase letters.
-	uppercase   = `\p{Lu}`   // All unicode uppercase letters.
-	digit       = `\p{Nd}`   // All unicode digits.
-	separator   = `_`        // Allowed separators between letters.
-	eol         = `\n`       // Contains the actual characters `\` and `n`, not EOL.
-	whitespace  = ` |` + eol // These characters are ignored by the parser.
-	base16      = `[0-9a-f]` // Base 16 digits.
-	unicode     = `u` + base16 + `{4}|U` + base16 + `{8}`
-	escape      = `\\(?:(?:` + unicode + `)|[abfnrtv'"\\])`
-}
+// CONFIGURATION PARAMETERS
+
+// This is any unicode character.
+const any_ = `.|` + eol
+
+// These characters include all lowercase unicode letters.
+const lowercase = `\p{Ll}`
+
+// These characters include all uppercase unicode letters.
+const uppercase = `\p{Lu}`
+
+// These characters include all unicode digits.
+const digit = `\p{Nd}`
+
+// These characters can be used to separate words in names.
+const separator = `_`
+
+// This string contains the actual characters `\` and `n`, not EOL.
+const eol = `\n`
+
+// These characters are interpreted as escape characters by the scanner.
+const (
+	escape  = `\\(?:(?:` + unicode + `)|[abfnrtv'"\\])`
+	unicode = `u` + base16 + `{4}|U` + base16 + `{8}`
+	base16  = `[0-9a-f]`
+)
+
+// These characters are treated as whitespace by the scanner and ignored.
+const (
+	whitespace = `(?:` + space + `|` + eol + `)+`
+	space      = ` `
+)

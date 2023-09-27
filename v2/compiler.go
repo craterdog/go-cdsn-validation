@@ -10,15 +10,29 @@
 
 package cdsn
 
+import (
+	byt "bytes"
+	osx "os"
+)
+
 // COMPILER INTERFACE
 
 // This function compiles the specified grammar into its corresponding parser.
-func CompileGrammar(packageName string, grammar GrammarLike) {
-	var agent = &compiler{packageName, 0}
+func CompileGrammar(directory, packageName string, grammar GrammarLike) {
+	var agent = Compiler(directory, packageName)
 	VisitGrammar(agent, grammar)
 	// add #package#.go file if one does not yet exist
 	// generate scanner.go file
 	// generate parser.go file
+}
+
+type CompilerLike interface {
+	Specialized
+}
+
+func Compiler(directory, packageName string) CompilerLike {
+	configureCompiler(directory, packageName)
+	return &compiler{packageName, 0}
 }
 
 // COMPILER IMPLEMENTATION
@@ -187,4 +201,26 @@ func (v *compiler) BeforeZeroOrOne(zeroOrOne ZeroOrOneLike) {
 
 // This public method is called after each zero or one grouping.
 func (v *compiler) AfterZeroOrOne(zeroOrOne ZeroOrOneLike) {
+}
+
+// PRIVATE FUNCTIONS
+
+// This private function creates a new configuration (package.go) file if one
+// does not already exist.
+func configureCompiler(directory string, packageName string) {
+	var err error
+	var template []byte
+	var configuration = directory + "/package.go"
+	_, err = osx.Open(configuration)
+	if err != nil {
+		template, err = osx.ReadFile("./templates/package.tp")
+		if err != nil {
+			panic(err)
+		}
+		template = byt.ReplaceAll(template, []byte("#package#"), []byte(packageName))
+		err = osx.WriteFile(configuration, template, 0666)
+		if err != nil {
+			panic(err)
+		}
+	}
 }

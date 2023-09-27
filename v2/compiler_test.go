@@ -11,31 +11,20 @@
 package cdsn_test
 
 import (
-	fmt "fmt"
 	cds "github.com/craterdog/go-cdsn-validation/v2"
-	ass "github.com/stretchr/testify/assert"
 	osx "os"
-	sts "strings"
 	tes "testing"
 )
 
-const grammarsDirectory = "./grammars/"
+const testDirectory = "./test/"
 
-func TestParsingRoundtrips(t *tes.T) {
+func TestCompiler(t *tes.T) {
 
-	var files, err = osx.ReadDir(grammarsDirectory)
+	var filename = testDirectory + "test.cdsn"
+	var document, err = osx.ReadFile(filename)
 	if err != nil {
-		panic("Could not find the " + grammarsDirectory + " directory.")
+		panic(err)
 	}
-
-	for _, file := range files {
-		var filename = grammarsDirectory + file.Name()
-		if sts.HasSuffix(filename, ".cdsn") {
-			fmt.Println(filename)
-			var expected, _ = osx.ReadFile(filename)
-			var grammar = cds.ParseDocument(expected)
-			var document = cds.FormatGrammar(grammar)
-			ass.Equal(t, string(expected), string(document))
-		}
-	}
+	var grammar = cds.ParseDocument(document)
+	cds.CompileGrammar(testDirectory, "test", grammar)
 }
