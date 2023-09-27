@@ -29,7 +29,7 @@ type compiler struct {
 	depth       int
 }
 
-// PRIVATE METHODS
+// PUBLIC METHODS
 
 // This public method increments the depth of the traversal by one.
 func (v *compiler) IncrementDepth() {

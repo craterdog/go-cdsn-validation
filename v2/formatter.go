@@ -32,7 +32,7 @@ type formatter struct {
 	result sts.Builder
 }
 
-// PRIVATE METHODS
+// PUBLIC METHODS
 
 // This public method increments the depth of the traversal by one.
 func (v *formatter) IncrementDepth() {

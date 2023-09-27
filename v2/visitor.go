@@ -16,9 +16,19 @@ import (
 	ref "reflect"
 )
 
-// AGENT INTERFACE
+// VISITOR INTERFACE
 
-type AgentLike interface {
+// This function applies the specified agent to each node in the specified
+// grammar.
+func VisitGrammar(agent Specialized, grammar GrammarLike) {
+	var v = &visitor{agent, 0}
+	v.agent.BeforeGrammar(grammar)
+	v.visitGrammar(grammar)
+	v.agent.AfterGrammar(grammar)
+}
+
+// This interface defines the methods that are supported by specialized agents.
+type Specialized interface {
 	IncrementDepth()
 	DecrementDepth()
 	AtCharacter(character Character)
@@ -60,22 +70,11 @@ type AgentLike interface {
 	AfterZeroOrOne(zeroOrOne ZeroOrOneLike)
 }
 
-// VISITOR INTERFACE
-
-// This function applies the specified agent to each node in the specified
-// grammar.
-func VisitGrammar(agent AgentLike, grammar GrammarLike) {
-	var v = &visitor{agent, 0}
-	v.agent.BeforeGrammar(grammar)
-	v.visitGrammar(grammar)
-	v.agent.AfterGrammar(grammar)
-}
-
 // VISITOR IMPLEMENTATION
 
 // This type defines the structure and methods for a visitor.
 type visitor struct {
-	agent AgentLike
+	agent Specialized
 	depth int
 }
 
