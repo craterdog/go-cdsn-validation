@@ -17,7 +17,7 @@ import (
 type Comment string
 
 const TokenComment TokenType = "Comment"
-const comment = `!>(.|` + eol + `)*?<!`
+const comment = `!>(?:` + any_ + `)*?<!`
 
 // This scanner is used for matching comment tokens.
 var commentScanner = reg.MustCompile(`^(?:` + comment + `)`)

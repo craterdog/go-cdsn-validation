@@ -18,6 +18,9 @@ package cdsn
 
 // CONFIGURATION PARAMETERS
 
+// This is any unicode character.
+const any_ = `.|` + eol
+
 // These characters include all lowercase unicode letters.
 const lowercase = `\p{Ll}`
 
