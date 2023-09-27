@@ -21,10 +21,3 @@ const symbol = `\$(` + name + `)`
 
 // This scanner is used for matching symbol tokens.
 var symbolScanner = reg.MustCompile(`^(?:` + symbol + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for a symbol token. The first string in the array is the
-// entire matched string.
-func scanSymbol(v []byte) []string {
-	return bytesToStrings(symbolScanner.FindSubmatch(v))
-}

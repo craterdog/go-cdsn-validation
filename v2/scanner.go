@@ -321,6 +321,8 @@ var whitespaceScanner = reg.MustCompile(`^(?:` + whitespace + `)`)
 
 // PRIVATE FUNCTIONS
 
+// This private function converts an array of byte arrays into an array of
+// strings.
 func bytesToStrings(bytes [][]byte) []string {
 	var strings = make([]string, len(bytes))
 	for index, array := range bytes {
@@ -329,16 +331,72 @@ func bytesToStrings(bytes [][]byte) []string {
 	return strings
 }
 
-// This function returns for the specified string an array of the matching
-// subgroups for a literal. The first string in the array is the entire
-// matched string.
+// This private function returns for the specified string an array of the
+// matching subgroups for a character token. The first string in the array
+// is the entire matched string.
+func scanCharacter(v []byte) []string {
+	return bytesToStrings(characterScanner.FindSubmatch(v))
+}
+
+// This private function returns for the specified string an array of the
+// matching subgroups for a commment token. The first string in the array
+// is the entire matched string.
+func scanComment(v []byte) []string {
+	return bytesToStrings(commentScanner.FindSubmatch(v))
+}
+
+// This private function returns for the specified string an array of the
+// matching subgroups for an intrinsic token. The first string in the array
+// is the entire matched string.
+func scanIntrinsic(v []byte) []string {
+	return bytesToStrings(intrinsicScanner.FindSubmatch(v))
+}
+
+// This private function returns for the specified string an array of the
+// matching subgroups for a literal token. The first string in the array
+// is the entire matched string.
 func scanLiteral(v []byte) []string {
 	return bytesToStrings(literalScanner.FindSubmatch(v))
 }
 
-// This function returns for the specified string an array of the matching
-// subgroups for any whitespace. The first string in the array is the
-// entire matched string.
+// This private function returns for the specified string an array of the
+// matching subgroups for a name token. The first string in the array
+// is the entire matched string.
+func scanName(v []byte) []string {
+	return bytesToStrings(nameScanner.FindSubmatch(v))
+}
+
+// This private function returns for the specified string an array of the
+// matching subgroups for a note token. The first string in the array
+// is the entire matched string.
+func scanNote(v []byte) []string {
+	return bytesToStrings(noteScanner.FindSubmatch(v))
+}
+
+// This private function returns for the specified string an array of the
+// matching subgroups for a number token. The first string in the array
+// is the entire matched string.
+func scanNumber(v []byte) []string {
+	return bytesToStrings(numberScanner.FindSubmatch(v))
+}
+
+// This private function returns for the specified string an array of the
+// matching subgroups for a string token. The first string in the array
+// is the entire matched string.
+func scanString(v []byte) []string {
+	return bytesToStrings(stringScanner.FindSubmatch(v))
+}
+
+// This private function returns for the specified string an array of the
+// matching subgroups for a symbol token. The first string in the array
+// is the entire matched string.
+func scanSymbol(v []byte) []string {
+	return bytesToStrings(symbolScanner.FindSubmatch(v))
+}
+
+// This private function returns for the specified string an array of the
+// matching subgroups for any whitespace. The first string in the array
+// is the entire matched string.
 func scanWhitespace(v []byte) []string {
 	return bytesToStrings(whitespaceScanner.FindSubmatch(v))
 }

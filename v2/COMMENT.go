@@ -11,56 +11,13 @@
 package cdsn
 
 import (
-	byt "bytes"
+	reg "regexp"
 )
 
 type Comment string
 
 const TokenComment TokenType = "Comment"
+const comment = `!>(.|` + eol + `)*?<!`
 
-// This function returns for the specified string an array of the matching
-// subgroups for a commment token. The first string in the array is the entire
-// matched string. Since a comment can be recursive a regular expression is not
-// used in this implementation.
-func scanComment(v []byte) []string {
-	var result []string
-	var space = []byte(" ")
-	var eol = []byte(EOL)
-	var bangAngle = []byte("!>" + EOL)
-	var angleBang = []byte("<!")
-	if !byt.HasPrefix(v, bangAngle) {
-		return result
-	}
-	var angleBangAllowed = false
-	var current = 3 // Skip the leading '!>\n' characters.
-	var last = 0
-	var level = 1
-	for level > 0 {
-		var s = v[current:]
-		switch {
-		case len(s) == 0:
-			return result
-		case byt.HasPrefix(s, eol):
-			angleBangAllowed = true
-			last = current
-			current++
-		case byt.HasPrefix(s, bangAngle):
-			current += 3 // Skip the '!>\n' characters.
-			level++      // Start a nested narrative.
-		case byt.HasPrefix(s, angleBang):
-			if !angleBangAllowed {
-				return result
-			}
-			current += 2 // Skip the '<!' characters.
-			level--      // Terminate the current narrative.
-		default:
-			if angleBangAllowed && !byt.HasPrefix(s, space) {
-				angleBangAllowed = false
-			}
-			current++ // Accept the next character.
-		}
-	}
-	result = append(result, string(v[:current])) // Includes bang literals.
-	result = append(result, string(v[3:last]))   // Excludes bang literals.
-	return result
-}
+// This scanner is used for matching comment tokens.
+var commentScanner = reg.MustCompile(`^(?:` + comment + `)`)

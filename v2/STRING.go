@@ -21,10 +21,3 @@ const string_ = `["](?:` + escape + `|[^"` + eol + `])+["]`
 
 // This scanner is used for matching string tokens.
 var stringScanner = reg.MustCompile(`^(?:` + string_ + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for a string token. The first string in the array is the
-// entire matched string.
-func scanString(v []byte) []string {
-	return bytesToStrings(stringScanner.FindSubmatch(v))
-}

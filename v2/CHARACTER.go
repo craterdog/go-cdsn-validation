@@ -15,16 +15,9 @@ import (
 )
 
 const TokenCharacter TokenType = "Character"
-const character = `['][^'` + eol + `][']`
+const character = `['][^` + eol + `][']`
 
 type Character string
 
 // This scanner is used for matching character tokens.
 var characterScanner = reg.MustCompile(`^(?:` + character + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for a character token. The first string in the array is the
-// entire matched string.
-func scanCharacter(v []byte) []string {
-	return bytesToStrings(characterScanner.FindSubmatch(v))
-}

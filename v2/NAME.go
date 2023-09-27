@@ -21,10 +21,3 @@ const name = `(?:` + lowercase + `|` + uppercase + `)(?:(?:` + separator + `)?(?
 
 // This scanner is used for matching name tokens.
 var nameScanner = reg.MustCompile(`^(?:` + name + `)`)
-
-// This function returns for the specified string an array of the matching
-// subgroups for a name token. The first string in the array is the
-// entire matched string.
-func scanName(v []byte) []string {
-	return bytesToStrings(nameScanner.FindSubmatch(v))
-}
