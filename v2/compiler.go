@@ -10,17 +10,12 @@
 
 package cdsn
 
-import (
-	fmt "fmt"
-	col "github.com/craterdog/go-collection-framework/v2"
-)
-
 // COMPILER INTERFACE
 
 // This function compiles the specified grammar into its corresponding parser.
-func CompileGrammar(grammar GrammarLike) {
-	var v = &compiler{}
-	v.compileGrammar(grammar)
+func CompileGrammar(packageName string, grammar GrammarLike) {
+	var agent = &compiler{packageName, 0}
+	VisitGrammar(agent, grammar)
 	// add #package#.go file if one does not yet exist
 	// generate scanner.go file
 	// generate parser.go file
@@ -31,139 +26,165 @@ func CompileGrammar(grammar GrammarLike) {
 // This type defines the structure and methods for a compiler agent.
 type compiler struct {
 	packageName string
+	depth       int
 }
 
-// This private method compiles an alternative.
-func (v *compiler) compileAlternative(alternative AlternativeLike) {
-	var factor Factor
-	var factors = alternative.GetFactors()
-	var iterator = col.Iterator(factors)
-	for iterator.HasNext() {
-		factor = iterator.GetNext()
-		v.compileFactor(factor)
-	}
+// PRIVATE METHODS
+
+// This public method increments the depth of the traversal by one.
+func (v *compiler) IncrementDepth() {
+	v.depth++
 }
 
-// This private method compiles a definition.
-func (v *compiler) compileDefinition(definition DefinitionLike) {
-	var symbol = definition.GetSymbol()
-	v.compileSymbol(symbol)
-	var expression = definition.GetExpression()
-	v.compileExpression(expression)
+// This public method decrements the depth of the traversal by one.
+func (v *compiler) DecrementDepth() {
+	v.depth--
 }
 
-// This private method compiles an element.
-func (v *compiler) compileElement(element Element) {
-	switch e := element.(type) {
-	case Intrinsic:
-		v.compileIntrinsic(e)
-	case String:
-		v.compileString(e)
-	case Number:
-		v.compileNumber(e)
-	case Name:
-		v.compileName(e)
-	default:
-		panic(fmt.Sprintf("Attempted to compile:\n    element: %v\n    type: %t\n", e, element))
-	}
+// This public method is called for each character token.
+func (v *compiler) AtCharacter(character Character) {
 }
 
-// This private method compiles an expression.
-func (v *compiler) compileExpression(expression ExpressionLike) {
-	var alternatives = expression.GetAlternatives()
-	var iterator = col.Iterator(alternatives)
-	for iterator.HasNext() {
-		var alternative = iterator.GetNext()
-		v.compileAlternative(alternative)
-	}
+// This public method is called for each comment token.
+func (v *compiler) AtComment(comment Comment) {
 }
 
-// This private method compiles an exactly N expression.
-func (v *compiler) compileExactlyN(exactlyN ExactlyNLike) {
+// This public method is called for each intrinsic token.
+func (v *compiler) AtIntrinsic(intrinsic Intrinsic) {
 }
 
-// This private method compiles a factor.
-func (v *compiler) compileFactor(factor Factor) {
-	switch f := factor.(type) {
-	case *range_:
-		v.compileRange(f)
-	case *inverse:
-		v.compileInverse(f)
-	case *exactlyN:
-		v.compileExactlyN(f)
-	case *zeroOrOne:
-		v.compileZeroOrOne(f)
-	case *zeroOrMore:
-		v.compileZeroOrMore(f)
-	case *oneOrMore:
-		v.compileOneOrMore(f)
-	default:
-		v.compileElement(f)
-	}
+// This public method is called for each name token.
+func (v *compiler) AtName(name Name) {
 }
 
-// This private method compiles a grammar.
-func (v *compiler) compileGrammar(grammar GrammarLike) {
-	var statements = grammar.GetStatements()
-	var iterator = col.Iterator(statements)
-	for iterator.HasNext() {
-		var statement = iterator.GetNext()
-		v.compileStatement(statement)
-	}
+// This public method is called for each note token.
+func (v *compiler) AtNote(note Note) {
 }
 
-// This private method compiles an intrinsic.
-func (v *compiler) compileIntrinsic(intrinsic Intrinsic) {
+// This public method is called for each number token.
+func (v *compiler) AtNumber(number Number) {
 }
 
-// This private method compiles an inverse.
-func (v *compiler) compileInverse(inverse InverseLike) {
-	var factor = inverse.GetFactor()
-	v.compileFactor(factor)
+// This public method is called for each string token.
+func (v *compiler) AtString(string_ String) {
 }
 
-// This private method compiles a name.
-func (v *compiler) compileName(name Name) {
+// This public method is called for each symbol token.
+func (v *compiler) AtSymbol(symbol Symbol, isMultilined bool) {
 }
 
-// This private method compiles a number.
-func (v *compiler) compileNumber(number Number) {
+// This public method is called before each alternative in an expression.
+func (v *compiler) BeforeAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
 }
 
-// This private method compiles a one or more expression.
-func (v *compiler) compileOneOrMore(oneOrMore OneOrMoreLike) {
+// This public method is called after each alternative in an expression.
+func (v *compiler) AfterAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
 }
 
-// This private method compiles a range.
-func (v *compiler) compileRange(range_ RangeLike) {
-	//var first = range_.GetFirstCharacter()
-	//var last = range_.GetLastCharacter()
+// This public method is called before each definition.
+func (v *compiler) BeforeDefinition(definition DefinitionLike) {
 }
 
-// This private method compiles a statement.
-func (v *compiler) compileStatement(statement StatementLike) {
-	var definition = statement.GetDefinition()
-	if definition != nil {
-		v.compileDefinition(definition)
-	}
+// This public method is called after each definition.
+func (v *compiler) AfterDefinition(definition DefinitionLike) {
 }
 
-// This private method compiles a string.
-func (v *compiler) compileString(string_ String) {
+// This public method is called before each element.
+func (v *compiler) BeforeElement(element Element) {
 }
 
-// This private method compiles a symbol.
-func (v *compiler) compileSymbol(symbol Symbol) {
-	if len(v.packageName) < 1 {
-		// The symbol for the first definition defines the package name.
-		v.packageName = string(symbol)[1:]
-	}
+// This public method is called after each element.
+func (v *compiler) AfterElement(element Element) {
 }
 
-// This private method compiles a zero or more expression.
-func (v *compiler) compileZeroOrMore(zeroOrMore ZeroOrMoreLike) {
+// This public method is called before each exactly N grouping.
+func (v *compiler) BeforeExactlyN(exactlyN ExactlyNLike, n Number) {
 }
 
-// This private method compiles a zero or one expression.
-func (v *compiler) compileZeroOrOne(zeroOrOne ZeroOrOneLike) {
+// This public method is called after each exactly N grouping.
+func (v *compiler) AfterExactlyN(exactlyN ExactlyNLike, n Number) {
+}
+
+// This public method is called before each expression.
+func (v *compiler) BeforeExpression(expression ExpressionLike) {
+}
+
+// This public method is called after each expression.
+func (v *compiler) AfterExpression(expression ExpressionLike) {
+}
+
+// This public method is called before each factor in an alternative.
+func (v *compiler) BeforeFactor(factor Factor, slot int, size int) {
+}
+
+// This public method is called after each factor in an alternative.
+func (v *compiler) AfterFactor(factor Factor, slot int, size int) {
+}
+
+// This public method is called before the grammar.
+func (v *compiler) BeforeGrammar(grammar GrammarLike) {
+}
+
+// This public method is called after the grammar.
+func (v *compiler) AfterGrammar(grammar GrammarLike) {
+}
+
+// This public method is called before each grouping.
+func (v *compiler) BeforeGrouping(grouping Grouping) {
+}
+
+// This public method is called after each grouping.
+func (v *compiler) AfterGrouping(grouping Grouping) {
+}
+
+// This public method is called before each inverse factor.
+func (v *compiler) BeforeInverse(inverse InverseLike) {
+}
+
+// This public method is called after each inverse factor.
+func (v *compiler) AfterInverse(inverse InverseLike) {
+}
+
+// This public method is called before each one or more grouping.
+func (v *compiler) BeforeOneOrMore(oneOrMore OneOrMoreLike) {
+}
+
+// This public method is called after each one or more grouping.
+func (v *compiler) AfterOneOrMore(oneOrMore OneOrMoreLike) {
+}
+
+// This public method is called before each character range.
+func (v *compiler) BeforeRange(range_ RangeLike) {
+}
+
+// This public method is called between the two two characters in a range.
+func (v *compiler) BetweenCharacters(first Character, last Character) {
+}
+
+// This public method is called after each character range.
+func (v *compiler) AfterRange(range_ RangeLike) {
+}
+
+// This public method is called before each statement in a grammar.
+func (v *compiler) BeforeStatement(statement StatementLike, slot int, size int) {
+}
+
+// This public method is called after each statement in a grammar.
+func (v *compiler) AfterStatement(statement StatementLike, slot int, size int) {
+}
+
+// This public method is called before each zero or more grouping.
+func (v *compiler) BeforeZeroOrMore(zeroOrMore ZeroOrMoreLike) {
+}
+
+// This public method is called after each zero or more grouping.
+func (v *compiler) AfterZeroOrMore(zeroOrMore ZeroOrMoreLike) {
+}
+
+// This public method is called before each zero or one grouping.
+func (v *compiler) BeforeZeroOrOne(zeroOrOne ZeroOrOneLike) {
+}
+
+// This public method is called after each zero or one grouping.
+func (v *compiler) AfterZeroOrOne(zeroOrOne ZeroOrOneLike) {
 }
