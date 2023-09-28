@@ -29,10 +29,6 @@ type CompilerLike interface {
 
 func Compiler(directory, packageName string) CompilerLike {
 	var v = &compiler{directory: directory, packageName: packageName}
-	v.initializeConfiguration()
-	v.initializeScanner()
-	v.initializeParser()
-	v.initializeVisitor()
 	return v
 }
 
@@ -142,10 +138,17 @@ func (v *compiler) AfterFactor(factor Factor, slot int, size int) {
 
 // This public method is called before the grammar.
 func (v *compiler) BeforeGrammar(grammar GrammarLike) {
+	v.initializeConfiguration()
+	v.initializeScanner()
+	v.initializeParser()
+	v.initializeVisitor()
 }
 
 // This public method is called after the grammar.
 func (v *compiler) AfterGrammar(grammar GrammarLike) {
+	v.finalizeScanner()
+	v.finalizeParser()
+	v.finalizeVisitor()
 }
 
 // This public method is called before each grouping.
@@ -258,4 +261,34 @@ func (v *compiler) initializeVisitor() {
 	}
 	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
 	v.visitorBuffer.Write(template)
+}
+
+// This private method writes the byte buffer for the generated scanner code into
+// a file.
+func (v *compiler) finalizeScanner() {
+	var filename = v.directory + "scanner.go"
+	var err = osx.WriteFile(filename, v.scannerBuffer.Bytes(), 0666)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// This private method writes the byte buffer for the generated parser code into
+// a file.
+func (v *compiler) finalizeParser() {
+	var filename = v.directory + "parser.go"
+	var err = osx.WriteFile(filename, v.parserBuffer.Bytes(), 0666)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// This private method writes the byte buffer for the generated visitor code into
+// a file.
+func (v *compiler) finalizeVisitor() {
+	var filename = v.directory + "visitor.go"
+	var err = osx.WriteFile(filename, v.visitorBuffer.Bytes(), 0666)
+	if err != nil {
+		panic(err)
+	}
 }
