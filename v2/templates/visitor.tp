@@ -1,0 +1,42 @@
+/*******************************************************************************
+ *   Copyright (c) 2009-2022 Crater Dog Technologies™.  All Rights Reserved.   *
+ *******************************************************************************
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.               *
+ *                                                                             *
+ * This code is free software; you can redistribute it and/or modify it under  *
+ * the terms of The MIT License (MIT), as published by the Open Source         *
+ * Initiative. (See http://opensource.org/licenses/MIT)                        *
+ *******************************************************************************/
+
+package #package#
+
+import (
+	fmt "fmt"
+	col "github.com/craterdog/go-collection-framework/v2"
+	ref "reflect"
+)
+
+// VISITOR INTERFACE
+
+// This function applies the specified agent to each node in the specified
+// #definition#.
+func Visit#Definition#(agent Specialized, #definition# #Definition#Like) {
+	var v = &visitor{agent, 0}
+	v.agent.Before#Definition#(#definition#)
+	v.visit#Definition#(#definition#)
+	v.agent.After#Definition#(#definition#)
+}
+
+// This interface defines the methods that are supported by specialized agents.
+type Specialized interface {
+#specializedMethods#
+}
+
+// VISITOR IMPLEMENTATION
+
+// This type defines the structure and methods for a visitor.
+type visitor struct {
+	agent Specialized
+	depth int
+}
+

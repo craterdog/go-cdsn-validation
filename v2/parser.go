@@ -57,6 +57,33 @@ func ParseDocument(source []byte) GrammarLike {
 
 // PARSER IMPLEMENTATION
 
+// This map captures the syntax expressions for Crater Dog Syntax Notation.
+// It is useful when creating scanner and parser error messages.
+var grammar_ = map[string]string{
+	"$grammar":     `<statement> EOF  ! Terminated with an end-of-file marker.`,
+	"$statement":   `COMMENT | definition`,
+	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
+	"$expression":  `alternative {"|" alternative}`,
+	"$alternative": `<factor> [NOTE]`,
+	"$factor":      `element | range | inverse | grouping`,
+	"$element":     `INTRINSIC | STRING | NUMBER | NAME`,
+	"$range":       `CHARACTER [".." CHARACTER]  ! A range of CHARACTERs is inclusive.`,
+	"$inverse":     `"~" factor`,
+	"$grouping":    `exactlyN | zeroOrOne | zeroOrMore | oneOrMore`,
+	"$exactlyN":    `"(" expression ")" [NUMBER]  ! The default is exactly one.`,
+	"$zeroOrOne":   `"[" expression "]"`,
+	"$zeroOrMore":  `"{" expression "}"`,
+	"$oneOrMore":   `"<" expression ">"`,
+}
+
+func generateGrammar(expected string, symbols ...string) string {
+	var message = "Was expecting '" + expected + "' from:\n"
+	for _, symbol := range symbols {
+		message += fmt.Sprintf("  \033[32m%v: \033[33m%v\033[0m\n\n", symbol, grammar_[symbol])
+	}
+	return message
+}
+
 // This type defines the structure and methods for the parser agent.
 type parser struct {
 	symbols        col.CatalogLike[Symbol, DefinitionLike]
@@ -654,36 +681,4 @@ func (v *parser) parseZeroOrOne() (ZeroOrOneLike, *Token, bool) {
 	}
 	zeroOrOne = ZeroOrOne(expression)
 	return zeroOrOne, token, true
-}
-
-// GRAMMAR UTILITIES
-
-// This map captures the syntax expressions for Crater Dog Syntax Notation.
-// It is useful when creating scanner and parser error messages.
-var grammar_ = map[string]string{
-	"$grammar":     `<statement> EOF  ! Terminated with an end-of-file marker.`,
-	"$statement":   `COMMENT | definition`,
-	"$definition":  `symbol ":" expression  ! This works for both tokens and rules.`,
-	"$symbol":      `RULESYMBOL | TOKENSYMBOL`,
-	"$expression":  `alternative {"|" alternative}`,
-	"$alternative": `<factor> [NOTE]`,
-	"$factor":      `element | range | inverse | grouping`,
-	"$element":     `INTRINSIC | STRING | NUMBER | NAME`,
-	"$range":       `CHARACTER ".." CHARACTER  ! A range of CHARACTERs is inclusive.`,
-	"$inverse":     `"~" factor`,
-	"$grouping":    `exactlyN | zeroOrOne | zeroOrMore | oneOrMore`,
-	"$exactlyN":    `"(" expression ")" [NUMBER]  ! The default is exactly one.`,
-	"$zeroOrOne":   `"[" expression "]"`,
-	"$zeroOrMore":  `"{" expression "}"`,
-	"$oneOrMore":   `"<" expression ">"`,
-}
-
-// PRIVATE FUNCTIONS
-
-func generateGrammar(expected string, symbols ...string) string {
-	var message = "Was expecting '" + expected + "' from:\n"
-	for _, symbol := range symbols {
-		message += fmt.Sprintf("  \033[32m%v: \033[33m%v\033[0m\n\n", symbol, grammar_[symbol])
-	}
-	return message
 }

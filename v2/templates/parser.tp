@@ -14,6 +14,7 @@ import (
 	fmt "fmt"
 	col "github.com/craterdog/go-collection-framework/v2"
 	sts "strings"
+	uni "unicode"
 )
 
 // PARSER INTERFACE
@@ -21,25 +22,76 @@ import (
 // This function parses the specified document source retrieved from a POSIX
 // compliant file and returns the corresponding CDSN grammar that was used
 // to generate the document using the CDSN formatting capabilities.
+// A POSIX compliant file must end with an EOF marker.
 func ParseDocument(source []byte) GrammarLike {
+	var ok bool
+	var token *Token
+	var grammar GrammarLike
 	var tokens = make(chan Token, 256)
-	Scanner(source, tokens) // Starts scanning in a separate go routine.
+	ScanTokens(source, tokens) // Starts scanning in a separate go routine.
 	var p = &parser{
-		source: source,
-		next:   col.StackWithCapacity[*Token](4),
-		tokens: tokens,
+		symbols: col.Catalog[Symbol, DefinitionLike](),
+		source:  source,
+		next:    col.StackWithCapacity[*Token](4),
+		tokens:  tokens,
 	}
-	return p.parseGrammar()
+	grammar, token, ok = p.parseGrammar()
+	if !ok {
+		var message = p.formatError(token)
+		message += generateGrammar("statement",
+			"$grammar",
+			"$statement")
+		panic(message)
+	}
+	var iterator = col.Iterator[col.Binding[Symbol, DefinitionLike]](p.symbols)
+	for iterator.HasNext() {
+		var association = iterator.GetNext()
+		var symbol = association.GetKey()
+		var definition = association.GetValue()
+		if definition == nil {
+			panic(fmt.Sprintf("Missing a definition for symbol: %v\n", symbol))
+		}
+	}
+	return grammar
 }
 
 // PARSER IMPLEMENTATION
 
+// This map captures the syntax expressions for Crater Dog Syntax Notation.
+// It is useful when creating scanner and parser error messages.
+var grammar_ = map[string]string{
+	"$grammar":     `<statement> EOF  ! Terminated with an end-of-file marker.`,
+	"$statement":   `COMMENT | definition`,
+	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
+	"$expression":  `alternative {"|" alternative}`,
+	"$alternative": `<factor> [NOTE]`,
+	"$factor":      `element | range | inverse | grouping`,
+	"$element":     `INTRINSIC | STRING | NUMBER | NAME`,
+	"$range":       `CHARACTER [".." CHARACTER]  ! A range of CHARACTERs is inclusive.`,
+	"$inverse":     `"~" factor`,
+	"$grouping":    `exactlyN | zeroOrOne | zeroOrMore | oneOrMore`,
+	"$exactlyN":    `"(" expression ")" [NUMBER]  ! The default is exactly one.`,
+	"$zeroOrOne":   `"[" expression "]"`,
+	"$zeroOrMore":  `"{" expression "}"`,
+	"$oneOrMore":   `"<" expression ">"`,
+}
+
+func generateGrammar(expected string, symbols ...string) string {
+	var message = "Was expecting '" + expected + "' from:\n"
+	for _, symbol := range symbols {
+		message += fmt.Sprintf("  \033[32m%v: \033[33m%v\033[0m\n\n", symbol, grammar_[symbol])
+	}
+	return message
+}
+
 // This type defines the structure and methods for the parser agent.
 type parser struct {
+	symbols        col.CatalogLike[Symbol, DefinitionLike]
 	source         []byte
 	next           col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
 	tokens         chan Token            // The queue of unread tokens coming from the scanner.
 	p1, p2, p3, p4 *Token                // The previous four tokens that have been retrieved.
+	isToken        bool                  // Whether or not the current definition is a token definition.
 }
 
 // This method puts back the current token onto the token stream so that it can
@@ -99,32 +151,6 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
-// This method attempts to parse a grammar. It returns the grammar and whether
-// or not the grammar was successfully parsed.
-func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var grammar GrammarLike
-	#root#, token, ok = v.parse#Root#()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("#root#",
-			"$grammar",
-			"$#root#")
-		panic(message)
-	}
-	_, token, ok = v.parseEOF()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("EOF",
-			"$grammar",
-			"$#root#")
-		panic(message)
-	}
-	grammar = Grammar(#root#)
-	return grammar, token, true
-}
-
 // This method attempts to parse the end-of-file (EOF) marker. It returns
 // the token and whether or not an EOF marker was found. Note that the POSIX
 // standard requires that the last byte in a file be an end-of-line (EOL)
@@ -138,26 +164,14 @@ func (v *parser) parseEOF() (*Token, *Token, bool) {
 	return token, token, true
 }
 
-// This method attempts to parse the end-of-line (EOL) token. It returns
-// the token and whether or not an EOF token was found.
-func (v *parser) parseEOL() (*Token, *Token, bool) {
+// This method attempts to parse the specified literal. It returns
+// the token and whether or not the literal was found.
+func (v *parser) parseLiteral(literal string) (string, *Token, bool) {
 	var token = v.nextToken()
-	if token.Type != TokenEOL {
+	if token.Type == TokenEOF || token.Value != literal {
 		v.backupOne()
-		return token, token, false
+		return literal, token, false
 	}
-	return token, token, true
+	return literal, token, true
 }
 
-// This method attempts to parse a intrinsic. It returns the intrinsic and
-// whether or not the intrinsic was successfully parsed.
-func (v *parser) parseIntrinsic() (Intrinsic, *Token, bool) {
-	var intrinsic Intrinsic
-	var token = v.nextToken()
-	if token.Type != TokenIntrinsic {
-		v.backupOne()
-		return intrinsic, token, false
-	}
-	intrinsic = Intrinsic(token.Value)
-	return intrinsic, token, true
-}

@@ -21,9 +21,6 @@ import (
 func CompileGrammar(directory, packageName string, grammar GrammarLike) {
 	var agent = Compiler(directory, packageName)
 	VisitGrammar(agent, grammar)
-	// add #package#.go file if one does not yet exist
-	// generate scanner.go file
-	// generate parser.go file
 }
 
 type CompilerLike interface {
@@ -31,16 +28,24 @@ type CompilerLike interface {
 }
 
 func Compiler(directory, packageName string) CompilerLike {
-	configureCompiler(directory, packageName)
-	return &compiler{packageName, 0}
+	var v = &compiler{directory: directory, packageName: packageName}
+	v.initializeConfiguration()
+	v.initializeScanner()
+	v.initializeParser()
+	v.initializeVisitor()
+	return v
 }
 
 // COMPILER IMPLEMENTATION
 
 // This type defines the structure and methods for a compiler agent.
 type compiler struct {
-	packageName string
-	depth       int
+	directory     string
+	packageName   string
+	scannerBuffer byt.Buffer
+	parserBuffer  byt.Buffer
+	visitorBuffer byt.Buffer
+	depth         int
 }
 
 // PUBLIC METHODS
@@ -203,24 +208,54 @@ func (v *compiler) BeforeZeroOrOne(zeroOrOne ZeroOrOneLike) {
 func (v *compiler) AfterZeroOrOne(zeroOrOne ZeroOrOneLike) {
 }
 
-// PRIVATE FUNCTIONS
+// PRIVATE METHODS
 
-// This private function creates a new configuration (package.go) file if one
+// This private method creates a new configuration (package.go) file if one
 // does not already exist.
-func configureCompiler(directory string, packageName string) {
+func (v *compiler) initializeConfiguration() {
 	var err error
 	var template []byte
-	var configuration = directory + "/package.go"
+	var configuration = v.directory + "/package.go"
 	_, err = osx.Open(configuration)
 	if err != nil {
 		template, err = osx.ReadFile("./templates/package.tp")
 		if err != nil {
 			panic(err)
 		}
-		template = byt.ReplaceAll(template, []byte("#package#"), []byte(packageName))
+		template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
 		err = osx.WriteFile(configuration, template, 0666)
 		if err != nil {
 			panic(err)
 		}
 	}
+}
+
+// This private method creates the byte buffer for the generated scanner code.
+func (v *compiler) initializeScanner() {
+	var template, err = osx.ReadFile("./templates/scanner.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	v.scannerBuffer.Write(template)
+}
+
+// This private method creates the byte buffer for the generated parser code.
+func (v *compiler) initializeParser() {
+	var template, err = osx.ReadFile("./templates/parser.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	v.parserBuffer.Write(template)
+}
+
+// This private method creates the byte buffer for the generated visitor code.
+func (v *compiler) initializeVisitor() {
+	var template, err = osx.ReadFile("./templates/visitor.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	v.visitorBuffer.Write(template)
 }
