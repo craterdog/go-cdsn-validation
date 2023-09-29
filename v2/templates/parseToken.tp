@@ -1,22 +1,13 @@
-/*******************************************************************************
- *   Copyright (c) 2009-2023 Crater Dog Technologies™.  All Rights Reserved.   *
- *******************************************************************************
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.               *
- *                                                                             *
- * This code is free software; you can redistribute it and/or modify it under  *
- * the terms of The MIT License (MIT), as published by the Open Source         *
- * Initiative. (See http://opensource.org/licenses/MIT)                        *
- *******************************************************************************/
 
-package #package#
-
-// This method attempts to parse a #definition#. It returns the #definition#
-// and whether or not the #definition# was successfully parsed.
-func parse#Definition#(v *parser) (#Definition#Like, *Token, bool) {
-	var ok bool
-	var token *Token
-	var #definition# #Definition#Like
-	// body goes here...
-	#definition# = #Definition#()
-	return #definition#, token, true
+// This method attempts to parse a #token# token. It returns the #token#
+// and whether or not the #token# was successfully parsed.
+func parse#Token#(v *parser) (#Token#Like, *Token, bool) {
+	var #token#_ #Token#
+	var token = v.nextToken()
+	if token.Type != Token#Token# {
+		v.backupOne()
+		return #token#_, token, false
+	}
+	#token#_ = #Token#(token.Value)
+	return #token#_, token, true
 }

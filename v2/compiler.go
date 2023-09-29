@@ -12,8 +12,8 @@ package cdsn
 
 import (
 	byt "bytes"
-	col "github.com/craterdog/go-collection-framework/v2"
 	osx "os"
+	sts "strings"
 	uni "unicode"
 )
 
@@ -30,9 +30,7 @@ type CompilerLike interface {
 }
 
 func Compiler(directory, packageName string) CompilerLike {
-	var tokens = col.Set[Name]()
-	var rules = col.Set[Name]()
-	var v = &compiler{directory: directory, packageName: packageName, tokens: tokens, rules: rules}
+	var v = &compiler{directory: directory, packageName: packageName}
 	return v
 }
 
@@ -42,12 +40,36 @@ func Compiler(directory, packageName string) CompilerLike {
 type compiler struct {
 	directory     string
 	packageName   string
-	tokens        col.SetLike[Name]
-	rules         col.SetLike[Name]
 	scannerBuffer byt.Buffer
 	parserBuffer  byt.Buffer
 	visitorBuffer byt.Buffer
 	depth         int
+}
+
+// PRIVATE FUNCTIONS
+
+// This private function determines whether or not the specified name is a token
+// name.
+func isTokenName(name Name) bool {
+	return uni.IsUpper(rune(name[1]))
+}
+
+func replaceName(template []byte, target string, name string) []byte {
+	var nameLower, nameUpper string
+	var nameRunes = []rune(name)
+	var targetRunes = []rune(target)
+	var targetLower = "#" + target + "#"
+	var targetUpper = "#" + string(uni.ToUpper(targetRunes[0])) + string(targetRunes[1:]) + "#"
+	if isTokenName(Name(name)) {
+		nameLower = sts.ToLower(name)
+		nameUpper = name
+	} else {
+		nameLower = name
+		nameUpper = string(uni.ToUpper(nameRunes[0])) + string(nameRunes[1:])
+	}
+	template = byt.ReplaceAll(template, []byte(targetLower), []byte(nameLower))
+	template = byt.ReplaceAll(template, []byte(targetUpper), []byte(nameUpper))
+	return template
 }
 
 // PUBLIC METHODS
@@ -76,21 +98,6 @@ func (v *compiler) AtIntrinsic(intrinsic Intrinsic) {
 
 // This public method is called for each name token.
 func (v *compiler) AtName(name Name) {
-	if uni.IsUpper(rune(name[1])) {
-		if !v.tokens.ContainsValue(name) {
-			v.tokens.AddValue(name)
-			v.appendScanToken(name)
-			v.appendParseToken(name)
-			v.appendVisitToken(name)
-		}
-	} else {
-		if !v.rules.ContainsValue(name) {
-			v.rules.AddValue(name)
-			v.appendScanRule(name)
-			v.appendParseRule(name)
-			v.appendVisitRule(name)
-		}
-	}
 }
 
 // This public method is called for each note token.
@@ -107,6 +114,14 @@ func (v *compiler) AtString(string_ String) {
 
 // This public method is called for each symbol token.
 func (v *compiler) AtSymbol(symbol Symbol, isMultilined bool) {
+	var name = symbol.GetName()
+	if isTokenName(name) {
+		v.appendScanToken(name)
+		v.appendParseToken(name)
+	} else {
+		v.appendParseRuleStart(name)
+		v.appendVisitRuleStart(name)
+	}
 }
 
 // This public method is called before each alternative in an expression.
@@ -123,6 +138,12 @@ func (v *compiler) BeforeDefinition(definition DefinitionLike) {
 
 // This public method is called after each definition.
 func (v *compiler) AfterDefinition(definition DefinitionLike) {
+	var symbol = definition.GetSymbol()
+	var name = symbol.GetName()
+	if !isTokenName(name) {
+		v.appendParseRuleEnd(name)
+		v.appendVisitRuleEnd(name)
+	}
 }
 
 // This public method is called before each element.
@@ -281,62 +302,62 @@ func (v *compiler) appendScanToken(name Name) {
 	if err != nil {
 		panic(err)
 	}
-	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	template = replaceName(template, "token", string(name))
 	v.scannerBuffer.Write(template)
 }
 
-// This private method appends the parse token template for the specified name to
-// the parser byte buffer.
+// This private method appends the parse token template for the specified name
+// to the parser byte buffer.
 func (v *compiler) appendParseToken(name Name) {
 	var template, err = osx.ReadFile("./templates/parseToken.tp")
 	if err != nil {
 		panic(err)
 	}
-	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	template = replaceName(template, "token", string(name))
 	v.parserBuffer.Write(template)
 }
 
-// This private method appends the visit token template for the specified name to
-// the visitor byte buffer.
-func (v *compiler) appendVisitToken(name Name) {
-	var template, err = osx.ReadFile("./templates/visitToken.tp")
+// This private method appends the parse rule start template for the specified
+// name to the parser byte buffer.
+func (v *compiler) appendParseRuleStart(name Name) {
+	var template, err = osx.ReadFile("./templates/parseRuleStart.tp")
 	if err != nil {
 		panic(err)
 	}
-	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	template = replaceName(template, "rule", string(name))
+	v.parserBuffer.Write(template)
+}
+
+// This private method appends the parse rule end template for the specified
+// name to the parser byte buffer.
+func (v *compiler) appendParseRuleEnd(name Name) {
+	var template, err = osx.ReadFile("./templates/parseRuleEnd.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = replaceName(template, "rule", string(name))
+	v.parserBuffer.Write(template)
+}
+
+// This private method appends the visit rule start template for the specified
+// name to the visitor byte buffer.
+func (v *compiler) appendVisitRuleStart(name Name) {
+	var template, err = osx.ReadFile("./templates/visitRuleStart.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = replaceName(template, "rule", string(name))
 	v.visitorBuffer.Write(template)
 }
 
-// This private method appends the scan rule template for the specified name to
-// the scanner byte buffer.
-func (v *compiler) appendScanRule(name Name) {
-	var template, err = osx.ReadFile("./templates/scanRule.tp")
+// This private method appends the visit rule end template for the specified
+// name to the visitor byte buffer.
+func (v *compiler) appendVisitRuleEnd(name Name) {
+	var template, err = osx.ReadFile("./templates/visitRuleEnd.tp")
 	if err != nil {
 		panic(err)
 	}
-	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
-	v.scannerBuffer.Write(template)
-}
-
-// This private method appends the parse rule template for the specified name to
-// the parser byte buffer.
-func (v *compiler) appendParseRule(name Name) {
-	var template, err = osx.ReadFile("./templates/parseRule.tp")
-	if err != nil {
-		panic(err)
-	}
-	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
-	v.parserBuffer.Write(template)
-}
-
-// This private method appends the visit rule template for the specified name to
-// the visitor byte buffer.
-func (v *compiler) appendVisitRule(name Name) {
-	var template, err = osx.ReadFile("./templates/visitRule.tp")
-	if err != nil {
-		panic(err)
-	}
-	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	template = replaceName(template, "rule", string(name))
 	v.visitorBuffer.Write(template)
 }
 

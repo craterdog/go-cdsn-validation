@@ -16,6 +16,10 @@ import (
 
 type Symbol string
 
+func (v Symbol) GetName() Name {
+	return Name(v[1:])
+}
+
 const TokenSymbol TokenType = "Symbol"
 const symbol = `\$(` + name + `)`
 

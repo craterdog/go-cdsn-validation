@@ -17,7 +17,7 @@ import (
 type Intrinsic string
 
 const TokenIntrinsic TokenType = "Intrinsic"
-const intrinsic = `ANY|LOWERCASE|UPPERCASE|DIGIT|SEPARATOR|ESCAPE|EOL|EOF`
+const intrinsic = `ANY|LOWER_CASE|UPPER_CASE|DIGIT|SEPARATOR|ESCAPE|EOL|EOF`
 
 // This scanner is used for matching intrinsic tokens.
 var intrinsicScanner = reg.MustCompile(`^(?:` + intrinsic + `)`)

@@ -21,11 +21,11 @@ package cdsn
 // This is any unicode character.
 const any_ = `.|` + eol
 
-// These characters include all lowercase unicode letters.
-const lowercase = `\p{Ll}`
+// These characters include all lower case unicode letters.
+const lowerCase = `\p{Ll}`
 
-// These characters include all uppercase unicode letters.
-const uppercase = `\p{Lu}`
+// These characters include all upper case unicode letters.
+const upperCase = `\p{Lu}`
 
 // These characters include all unicode digits.
 const digit = `\p{Nd}`
