@@ -12,7 +12,9 @@ package cdsn
 
 import (
 	byt "bytes"
+	col "github.com/craterdog/go-collection-framework/v2"
 	osx "os"
+	uni "unicode"
 )
 
 // COMPILER INTERFACE
@@ -28,7 +30,9 @@ type CompilerLike interface {
 }
 
 func Compiler(directory, packageName string) CompilerLike {
-	var v = &compiler{directory: directory, packageName: packageName}
+	var tokens = col.Set[Name]()
+	var rules = col.Set[Name]()
+	var v = &compiler{directory: directory, packageName: packageName, tokens: tokens, rules: rules}
 	return v
 }
 
@@ -38,6 +42,8 @@ func Compiler(directory, packageName string) CompilerLike {
 type compiler struct {
 	directory     string
 	packageName   string
+	tokens        col.SetLike[Name]
+	rules         col.SetLike[Name]
 	scannerBuffer byt.Buffer
 	parserBuffer  byt.Buffer
 	visitorBuffer byt.Buffer
@@ -70,6 +76,21 @@ func (v *compiler) AtIntrinsic(intrinsic Intrinsic) {
 
 // This public method is called for each name token.
 func (v *compiler) AtName(name Name) {
+	if uni.IsUpper(rune(name[1])) {
+		if !v.tokens.ContainsValue(name) {
+			v.tokens.AddValue(name)
+			v.appendScanToken(name)
+			v.appendParseToken(name)
+			v.appendVisitToken(name)
+		}
+	} else {
+		if !v.rules.ContainsValue(name) {
+			v.rules.AddValue(name)
+			v.appendScanRule(name)
+			v.appendParseRule(name)
+			v.appendVisitRule(name)
+		}
+	}
 }
 
 // This public method is called for each note token.
@@ -251,6 +272,72 @@ func (v *compiler) initializeParser() {
 	}
 	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
 	v.parserBuffer.Write(template)
+}
+
+// This private method appends the scan token template for the specified name to
+// the scanner byte buffer.
+func (v *compiler) appendScanToken(name Name) {
+	var template, err = osx.ReadFile("./templates/scanToken.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	v.scannerBuffer.Write(template)
+}
+
+// This private method appends the parse token template for the specified name to
+// the parser byte buffer.
+func (v *compiler) appendParseToken(name Name) {
+	var template, err = osx.ReadFile("./templates/parseToken.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	v.parserBuffer.Write(template)
+}
+
+// This private method appends the visit token template for the specified name to
+// the visitor byte buffer.
+func (v *compiler) appendVisitToken(name Name) {
+	var template, err = osx.ReadFile("./templates/visitToken.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	v.visitorBuffer.Write(template)
+}
+
+// This private method appends the scan rule template for the specified name to
+// the scanner byte buffer.
+func (v *compiler) appendScanRule(name Name) {
+	var template, err = osx.ReadFile("./templates/scanRule.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	v.scannerBuffer.Write(template)
+}
+
+// This private method appends the parse rule template for the specified name to
+// the parser byte buffer.
+func (v *compiler) appendParseRule(name Name) {
+	var template, err = osx.ReadFile("./templates/parseRule.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	v.parserBuffer.Write(template)
+}
+
+// This private method appends the visit rule template for the specified name to
+// the visitor byte buffer.
+func (v *compiler) appendVisitRule(name Name) {
+	var template, err = osx.ReadFile("./templates/visitRule.tp")
+	if err != nil {
+		panic(err)
+	}
+	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
+	v.visitorBuffer.Write(template)
 }
 
 // This private method creates the byte buffer for the generated visitor code.
