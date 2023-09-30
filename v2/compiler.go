@@ -50,17 +50,17 @@ type compiler struct {
 
 // This private function determines whether or not the specified name is a token
 // name.
-func isTokenNAME(name NAME) bool {
+func isTokenName(name NAME) bool {
 	return uni.IsUpper(rune(name[1]))
 }
 
-func replaceNAME(template []byte, target string, name string) []byte {
+func replaceName(template []byte, target string, name string) []byte {
 	var nameLower, nameUpper string
 	var nameRunes = []rune(name)
 	var targetRunes = []rune(target)
 	var targetLower = "#" + target + "#"
 	var targetUpper = "#" + string(uni.ToUpper(targetRunes[0])) + string(targetRunes[1:]) + "#"
-	if isTokenNAME(NAME(name)) {
+	if isTokenName(NAME(name)) {
 		nameLower = sts.ToLower(name)
 		nameUpper = name
 	} else {
@@ -115,7 +115,7 @@ func (v *compiler) AtSTRING(string_ STRING) {
 // This public method is called for each symbol token.
 func (v *compiler) AtSYMBOL(symbol SYMBOL, isMultilined bool) {
 	var name = symbol.GetNAME()
-	if isTokenNAME(name) {
+	if isTokenName(name) {
 		v.appendScanToken(name)
 		v.appendParseToken(name)
 	} else {
@@ -140,7 +140,7 @@ func (v *compiler) BeforeDefinition(definition DefinitionLike) {
 func (v *compiler) AfterDefinition(definition DefinitionLike) {
 	var symbol = definition.GetSYMBOL()
 	var name = symbol.GetNAME()
-	if !isTokenNAME(name) {
+	if !isTokenName(name) {
 		v.appendParseRuleEnd(name)
 		v.appendVisitRuleEnd(name)
 	}
@@ -302,7 +302,7 @@ func (v *compiler) appendScanToken(name NAME) {
 	if err != nil {
 		panic(err)
 	}
-	template = replaceNAME(template, "token", string(name))
+	template = replaceName(template, "token", string(name))
 	v.scannerBuffer.Write(template)
 }
 
@@ -313,7 +313,7 @@ func (v *compiler) appendParseToken(name NAME) {
 	if err != nil {
 		panic(err)
 	}
-	template = replaceNAME(template, "token", string(name))
+	template = replaceName(template, "token", string(name))
 	v.parserBuffer.Write(template)
 }
 
@@ -324,7 +324,7 @@ func (v *compiler) appendParseRuleStart(name NAME) {
 	if err != nil {
 		panic(err)
 	}
-	template = replaceNAME(template, "rule", string(name))
+	template = replaceName(template, "rule", string(name))
 	v.parserBuffer.Write(template)
 }
 
@@ -335,7 +335,7 @@ func (v *compiler) appendParseRuleEnd(name NAME) {
 	if err != nil {
 		panic(err)
 	}
-	template = replaceNAME(template, "rule", string(name))
+	template = replaceName(template, "rule", string(name))
 	v.parserBuffer.Write(template)
 }
 
@@ -346,7 +346,7 @@ func (v *compiler) appendVisitRuleStart(name NAME) {
 	if err != nil {
 		panic(err)
 	}
-	template = replaceNAME(template, "rule", string(name))
+	template = replaceName(template, "rule", string(name))
 	v.visitorBuffer.Write(template)
 }
 
@@ -357,7 +357,7 @@ func (v *compiler) appendVisitRuleEnd(name NAME) {
 	if err != nil {
 		panic(err)
 	}
-	template = replaceNAME(template, "rule", string(name))
+	template = replaceName(template, "rule", string(name))
 	v.visitorBuffer.Write(template)
 }
 
