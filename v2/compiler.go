@@ -19,10 +19,10 @@ import (
 
 // COMPILER INTERFACE
 
-// This function compiles the specified grammar into its corresponding parser.
-func CompileGrammar(directory, packageName string, grammar GrammarLike) {
+// This function compiles the specified document into its corresponding parser.
+func CompileDocument(directory, packageName string, document DocumentLike) {
 	var agent = Compiler(directory, packageName)
-	VisitGrammar(agent, grammar)
+	VisitDocument(agent, document)
 }
 
 type CompilerLike interface {
@@ -115,6 +115,10 @@ func (v *compiler) AtSTRING(string_ STRING) {
 // This public method is called for each symbol token.
 func (v *compiler) AtSYMBOL(symbol SYMBOL, isMultilined bool) {
 	var name = symbol.GetNAME()
+	if string(name) == "INTRINSIC" {
+		// Intrinsics are already part of every parser.
+		return
+	}
 	if isTokenName(name) {
 		v.appendScanToken(name)
 		v.appendParseToken(name)
@@ -178,16 +182,16 @@ func (v *compiler) BeforeFactor(factor Factor, slot int, size int) {
 func (v *compiler) AfterFactor(factor Factor, slot int, size int) {
 }
 
-// This public method is called before the grammar.
-func (v *compiler) BeforeGrammar(grammar GrammarLike) {
+// This public method is called before the document.
+func (v *compiler) BeforeDocument(document DocumentLike) {
 	v.initializeConfiguration()
 	v.initializeScanner()
 	v.initializeParser()
 	v.initializeVisitor()
 }
 
-// This public method is called after the grammar.
-func (v *compiler) AfterGrammar(grammar GrammarLike) {
+// This public method is called after the document.
+func (v *compiler) AfterDocument(document DocumentLike) {
 	v.finalizeScanner()
 	v.finalizeParser()
 	v.finalizeVisitor()
@@ -229,11 +233,11 @@ func (v *compiler) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
 func (v *compiler) AfterRange(range_ RangeLike) {
 }
 
-// This public method is called before each statement in a grammar.
+// This public method is called before each statement in a document.
 func (v *compiler) BeforeStatement(statement StatementLike, slot int, size int) {
 }
 
-// This public method is called after each statement in a grammar.
+// This public method is called after each statement in a document.
 func (v *compiler) AfterStatement(statement StatementLike, slot int, size int) {
 }
 

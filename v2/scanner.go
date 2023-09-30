@@ -103,7 +103,7 @@ type scanner struct {
 func (v *scanner) emitToken(tType TokenType) {
 	var tValue = string(v.source[v.firstByte:v.nextByte])
 	if tType == TokenEOF {
-		tValue = "<EOF>"
+		tValue = "<EOFL>"
 	}
 	if tType == TokenERROR {
 		switch tValue {
@@ -112,11 +112,13 @@ func (v *scanner) emitToken(tType TokenType) {
 		case "\b":
 			tValue = "<BKSP>"
 		case "\t":
-			tValue = "<TAB>"
+			tValue = "<HTAB>"
 		case "\f":
-			tValue = "<FF>"
+			tValue = "<FMFD>"
+		case "\n":
+			tValue = "<EOLN>"
 		case "\r":
-			tValue = "<CR>"
+			tValue = "<CRTN>"
 		case "\v":
 			tValue = "<VTAB>"
 		}
@@ -152,6 +154,9 @@ func (v *scanner) generateTokens() {
 // this method returns false.
 func (v *scanner) processToken() bool {
 	switch {
+	case v.atEOF():
+		// We are at the end of the source bytes.
+		return false
 	case v.scanWHITESPACE():
 	case v.scanINTRINSIC():
 	case v.scanNOTE():
@@ -162,15 +167,26 @@ func (v *scanner) processToken() bool {
 	case v.scanNAME():
 	case v.scanSYMBOL():
 	case v.scanLITERAL():
-	case v.scanEOF():
-		// We are at the end of the source bytes.
-		return false
 	default:
 		// No valid token was found.
 		v.foundError()
 		return false
 	}
 	return true
+}
+
+// This method determines whether or not the scanner is at the end of the source
+// bytes and adds an EOF token with the current scanner information to the token
+// channel if it is at the end.
+func (v *scanner) atEOF() bool {
+	if v.nextByte == len(v.source) {
+		// The last byte in a POSIX standard file must be an EOL character.
+		if byt.HasPrefix(v.source[v.nextByte-1:], []byte(EOL)) {
+			v.emitToken(TokenEOF)
+			return true
+		}
+	}
+	return false
 }
 
 // This scanner is used for matching whitespace.
@@ -194,19 +210,6 @@ func (v *scanner) scanWHITESPACE() bool {
 			v.position += length
 		}
 		return true
-	}
-	return false
-}
-
-// This method adds an EOF token with the current scanner information to the
-// token channel. It returns true if an EOF token was found.
-func (v *scanner) scanEOF() bool {
-	if v.nextByte == len(v.source) {
-		// The last byte in a POSIX standard file must be an EOL character.
-		if byt.HasPrefix(v.source[v.nextByte-1:], []byte(EOL)) {
-			v.emitToken(TokenEOF)
-			return true
-		}
 	}
 	return false
 }

@@ -23,27 +23,27 @@ import (
 // compliant file and returns the corresponding CDSN grammar that was used
 // to generate the document using the CDSN formatting capabilities.
 // A POSIX compliant file must end with an EOF marker.
-func ParseDocument(source []byte) GrammarLike {
+func ParseDocument(source []byte) DocumentLike {
 	var ok bool
 	var token *Token
-	var grammar GrammarLike
+	var document DocumentLike
 	var tokens = make(chan Token, 256)
 	ScanTokens(source, tokens) // Starts scanning in a separate go routine.
 	var p = &parser{
-		symbols: col.Catalog[Symbol, DefinitionLike](),
+		symbols: col.Catalog[SYMBOL, DefinitionLike](),
 		source:  source,
 		next:    col.StackWithCapacity[*Token](4),
 		tokens:  tokens,
 	}
-	grammar, token, ok = p.parseGrammar()
+	document, token, ok = p.parseDocument()
 	if !ok {
 		var message = p.formatError(token)
 		message += generateGrammar("statement",
-			"$grammar",
+			"$document",
 			"$statement")
 		panic(message)
 	}
-	var iterator = col.Iterator[col.Binding[Symbol, DefinitionLike]](p.symbols)
+	var iterator = col.Iterator[col.Binding[SYMBOL, DefinitionLike]](p.symbols)
 	for iterator.HasNext() {
 		var association = iterator.GetNext()
 		var symbol = association.GetKey()
@@ -52,7 +52,7 @@ func ParseDocument(source []byte) GrammarLike {
 			panic(fmt.Sprintf("Missing a definition for symbol: %v\n", symbol))
 		}
 	}
-	return grammar
+	return document
 }
 
 // PARSER IMPLEMENTATION
@@ -60,13 +60,13 @@ func ParseDocument(source []byte) GrammarLike {
 // This map captures the syntax expressions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar_ = map[string]string{
-	"$grammar":     `<statement> EOF  ! Terminated with an end-of-file marker.`,
+	"$document":    `<statement> EOF  ! Terminated with an end-of-file marker.`,
 	"$statement":   `COMMENT | definition`,
 	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
 	"$expression":  `alternative {"|" alternative}`,
 	"$alternative": `<factor> [NOTE]`,
 	"$factor":      `element | range | inverse | grouping`,
-	"$element":     `INTRINSIC | STRING | NUMBER | NAME`,
+	"$element":     `INTRINSIC | NAME | STRING | NUMBER`,
 	"$range":       `CHARACTER [".." CHARACTER]  ! A range of CHARACTERs is inclusive.`,
 	"$inverse":     `"~" factor`,
 	"$grouping":    `exactlyN | zeroOrOne | zeroOrMore | oneOrMore`,
@@ -86,7 +86,7 @@ func generateGrammar(expected string, symbols ...string) string {
 
 // This type defines the structure and methods for the parser agent.
 type parser struct {
-	symbols        col.CatalogLike[Symbol, DefinitionLike]
+	symbols        col.CatalogLike[SYMBOL, DefinitionLike]
 	source         []byte
 	next           col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
 	tokens         chan Token            // The queue of unread tokens coming from the scanner.
@@ -140,7 +140,7 @@ func (v *parser) nextToken() *Token {
 			panic("The token channel terminated without an EOF or error token.")
 		}
 		next = &token
-		if next.Type == TokenError {
+		if next.Type == TokenERROR {
 			var message = v.formatError(next)
 			panic(message)
 		}
@@ -151,10 +151,19 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
-// This method attempts to parse the end-of-file (EOF) marker. It returns
-// the token and whether or not an EOF marker was found. Note that the POSIX
-// standard requires that the last byte in a file be an end-of-line (EOL)
-// character.
+// This method attempts to parse the specified literal token. It returns the token
+// and whether or not the specified literal token was successfully parsed.
+func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
+	var token = v.nextToken()
+	if token.Type == TokenEOF || token.Value != literal {
+		v.backupOne()
+		return literal, token, false
+	}
+	return literal, token, true
+}
+
+// This method attempts to parse the end-of-file token. It returns the token
+// and whether or not the end-of-file token was successfully parsed.
 func (v *parser) parseEOF() (*Token, *Token, bool) {
 	var token = v.nextToken()
 	if token.Type != TokenEOF {
@@ -164,14 +173,15 @@ func (v *parser) parseEOF() (*Token, *Token, bool) {
 	return token, token, true
 }
 
-// This method attempts to parse the specified literal. It returns
-// the token and whether or not the literal was found.
-func (v *parser) parseLiteral(literal string) (string, *Token, bool) {
+// This method attempts to parse the intrinsic token. It returns the token
+// and whether or not the intrinsic token was successfully parsed.
+func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
+	var intrinsic INTRINSIC
 	var token = v.nextToken()
-	if token.Type == TokenEOF || token.Value != literal {
+	if token.Type != TokenINTRINSIC {
 		v.backupOne()
-		return literal, token, false
+		return intrinsic, token, false
 	}
-	return literal, token, true
+	intrinsic = INTRINSIC(token.Value)
+	return intrinsic, token, true
 }
-

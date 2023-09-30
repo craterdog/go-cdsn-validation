@@ -1,6 +1,6 @@
 
-// This method attempts to parse a #rule# rule. It returns the #rule#
-// and whether or not the #rule# was successfully parsed.
+// This method attempts to parse the #rule# rule. It returns the rule
+// and whether or not the #rule# rule was successfully parsed.
 func parse#Rule#(v *parser) (#Rule#Like, *Token, bool) {
 	var ok bool
 	var token *Token

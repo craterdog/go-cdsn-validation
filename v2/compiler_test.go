@@ -23,10 +23,10 @@ func TestCompiler(t *tes.T) {
 
 	var filename = testDirectory + "test.cdsn"
 	fmt.Println(filename)
-	var document, err = osx.ReadFile(filename)
+	var source, err = osx.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
-	var grammar = cds.ParseDocument(document)
-	cds.CompileGrammar(testDirectory, "test", grammar)
+	var document = cds.ParseDocument(source)
+	cds.CompileDocument(testDirectory, "test", document)
 }

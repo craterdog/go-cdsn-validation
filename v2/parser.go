@@ -23,10 +23,10 @@ import (
 // compliant file and returns the corresponding CDSN grammar that was used
 // to generate the document using the CDSN formatting capabilities.
 // A POSIX compliant file must end with an EOF marker.
-func ParseDocument(source []byte) GrammarLike {
+func ParseDocument(source []byte) DocumentLike {
 	var ok bool
 	var token *Token
-	var grammar GrammarLike
+	var document DocumentLike
 	var tokens = make(chan Token, 256)
 	ScanTokens(source, tokens) // Starts scanning in a separate go routine.
 	var p = &parser{
@@ -35,11 +35,11 @@ func ParseDocument(source []byte) GrammarLike {
 		next:    col.StackWithCapacity[*Token](4),
 		tokens:  tokens,
 	}
-	grammar, token, ok = p.parseGrammar()
+	document, token, ok = p.parseDocument()
 	if !ok {
 		var message = p.formatError(token)
 		message += generateGrammar("statement",
-			"$grammar",
+			"$document",
 			"$statement")
 		panic(message)
 	}
@@ -52,7 +52,7 @@ func ParseDocument(source []byte) GrammarLike {
 			panic(fmt.Sprintf("Missing a definition for symbol: %v\n", symbol))
 		}
 	}
-	return grammar
+	return document
 }
 
 // PARSER IMPLEMENTATION
@@ -60,13 +60,13 @@ func ParseDocument(source []byte) GrammarLike {
 // This map captures the syntax expressions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar_ = map[string]string{
-	"$grammar":     `<statement> EOF  ! Terminated with an end-of-file marker.`,
+	"$document":    `<statement> EOF  ! Terminated with an end-of-file marker.`,
 	"$statement":   `COMMENT | definition`,
 	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
 	"$expression":  `alternative {"|" alternative}`,
 	"$alternative": `<factor> [NOTE]`,
 	"$factor":      `element | range | inverse | grouping`,
-	"$element":     `INTRINSIC | STRING | NUMBER | NAME`,
+	"$element":     `INTRINSIC | NAME | STRING | NUMBER`,
 	"$range":       `CHARACTER [".." CHARACTER]  ! A range of CHARACTERs is inclusive.`,
 	"$inverse":     `"~" factor`,
 	"$grouping":    `exactlyN | zeroOrOne | zeroOrMore | oneOrMore`,
@@ -151,6 +151,138 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
+// This method attempts to parse the specified literal token. It returns the token
+// and whether or not the specified literal token was successfully parsed.
+func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
+	var token = v.nextToken()
+	if token.Type == TokenEOF || token.Value != literal {
+		v.backupOne()
+		return literal, token, false
+	}
+	return literal, token, true
+}
+
+// This method attempts to parse the end-of-file token. It returns the token
+// and whether or not the end-of-file token was successfully parsed.
+func (v *parser) parseEOF() (*Token, *Token, bool) {
+	var token = v.nextToken()
+	if token.Type != TokenEOF {
+		v.backupOne()
+		return token, token, false
+	}
+	return token, token, true
+}
+
+// This method attempts to parse the intrinsic token. It returns the token
+// and whether or not the intrinsic token was successfully parsed.
+func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
+	var intrinsic INTRINSIC
+	var token = v.nextToken()
+	if token.Type != TokenINTRINSIC {
+		v.backupOne()
+		return intrinsic, token, false
+	}
+	intrinsic = INTRINSIC(token.Value)
+	return intrinsic, token, true
+}
+
+// This method attempts to parse the note token. It returns the token
+// and whether or not the note token was successfully parsed.
+func (v *parser) parseNOTE() (NOTE, *Token, bool) {
+	var note NOTE
+	var token = v.nextToken()
+	if token.Type != TokenNOTE {
+		v.backupOne()
+		return note, token, false
+	}
+	note = NOTE(token.Value)
+	return note, token, true
+}
+
+// This method attempts to parse the comment token. It returns the token
+// and whether or not the comment token was successfully parsed.
+func (v *parser) parseCOMMENT() (COMMENT, *Token, bool) {
+	var comment COMMENT
+	var token = v.nextToken()
+	if token.Type != TokenCOMMENT {
+		v.backupOne()
+		return comment, token, false
+	}
+	comment = COMMENT(token.Value)
+	return comment, token, true
+}
+
+// This method attempts to parse the character token. It returns the token
+// and whether or not the character token was successfully parsed.
+func (v *parser) parseCHARACTER() (CHARACTER, *Token, bool) {
+	var character CHARACTER
+	var token = v.nextToken()
+	if token.Type != TokenCHARACTER {
+		v.backupOne()
+		return character, token, false
+	}
+	character = CHARACTER(token.Value)
+	return character, token, true
+}
+
+// This method attempts to parse the string token. It returns the token
+// and whether or not the string token was successfully parsed.
+func (v *parser) parseSTRING() (STRING, *Token, bool) {
+	var string_ STRING
+	var token = v.nextToken()
+	if token.Type != TokenSTRING {
+		v.backupOne()
+		return string_, token, false
+	}
+	string_ = STRING(token.Value)
+	return string_, token, true
+}
+
+// This method attempts to parse the number token. It returns the token
+// and whether or not the number token was successfully parsed.
+func (v *parser) parseNUMBER() (NUMBER, *Token, bool) {
+	var number NUMBER
+	var token = v.nextToken()
+	if token.Type != TokenNUMBER {
+		v.backupOne()
+		return number, token, false
+	}
+	number = NUMBER(token.Value)
+	return number, token, true
+}
+
+// This method attempts to parse the name token. It returns the token
+// and whether or not the name token was successfully parsed.
+func (v *parser) parseNAME() (NAME, *Token, bool) {
+	var name NAME
+	var token = v.nextToken()
+	if token.Type != TokenNAME {
+		v.backupOne()
+		return name, token, false
+	}
+	if v.isToken && uni.IsLower(rune(token.Value[0])) {
+		panic(fmt.Sprintf("A token definition contains a rulename: %v\n", token.Value))
+	}
+	name = NAME(token.Value)
+	var symbol = SYMBOL("$" + token.Value)
+	var definition = v.symbols.GetValue(symbol)
+	v.symbols.SetValue(symbol, definition)
+	return name, token, true
+}
+
+// This method attempts to parse the symbol token. It returns the token
+// and whether or not the symbol token was successfully parsed.
+func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
+	var symbol SYMBOL
+	var token = v.nextToken()
+	if token.Type != TokenSYMBOL {
+		v.backupOne()
+		return symbol, token, false
+	}
+	symbol = SYMBOL(token.Value)
+	return symbol, token, true
+}
+
 // This method attempts to parse an alternative. It returns the alternative and
 // whether or not the alternative was successfully parsed.
 func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
@@ -176,32 +308,6 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	note, _, _ = v.parseNOTE() // The note is optional.
 	alternative = Alternative(factors, note)
 	return alternative, token, true
-}
-
-// This method attempts to parse a character. It returns the character and
-// whether or not a character was successfully parsed.
-func (v *parser) parseCHARACTER() (CHARACTER, *Token, bool) {
-	var character CHARACTER
-	var token = v.nextToken()
-	if token.Type != TokenCHARACTER {
-		v.backupOne()
-		return character, token, false
-	}
-	character = CHARACTER(token.Value)
-	return character, token, true
-}
-
-// This method attempts to parse a comment. It returns the comment and whether
-// or not a comment was successfully parsed.
-func (v *parser) parseCOMMENT() (COMMENT, *Token, bool) {
-	var comment COMMENT
-	var token = v.nextToken()
-	if token.Type != TokenCOMMENT {
-		v.backupOne()
-		return comment, token, false
-	}
-	comment = COMMENT(token.Value)
-	return comment, token, true
 }
 
 // This method attempts to parse a definition. It returns the definition and
@@ -249,13 +355,13 @@ func (v *parser) parseElement() (Factor, *Token, bool) {
 	var factor Factor
 	factor, token, ok = v.parseINTRINSIC()
 	if !ok {
+		factor, token, ok = v.parseNAME()
+	}
+	if !ok {
 		factor, token, ok = v.parseSTRING()
 	}
 	if !ok {
 		factor, token, ok = v.parseNUMBER()
-	}
-	if !ok {
-		factor, token, ok = v.parseNAME()
 	}
 	return factor, token, ok
 }
@@ -330,19 +436,6 @@ func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 	return expression, token, true
 }
 
-// This method attempts to parse the end-of-file (EOF) marker. It returns
-// the token and whether or not an EOF marker was found. Note that the POSIX
-// standard requires that the last byte in a file be an end-of-line (EOL)
-// character.
-func (v *parser) parseEOF() (*Token, *Token, bool) {
-	var token = v.nextToken()
-	if token.Type != TokenEOF {
-		v.backupOne()
-		return token, token, false
-	}
-	return token, token, true
-}
-
 // This method attempts to parse a factor. It returns the factor and whether or
 // not the factor was successfully parsed.
 func (v *parser) parseFactor() (Factor, *Token, bool) {
@@ -362,19 +455,19 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	return factor, token, ok
 }
 
-// This method attempts to parse a grammar. It returns the grammar and whether
-// or not the grammar was successfully parsed.
-func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
+// This method attempts to parse a document. It returns the document and whether
+// or not the document was successfully parsed.
+func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var statement StatementLike
 	var statements = col.List[StatementLike]()
-	var grammar GrammarLike
+	var document DocumentLike
 	statement, token, ok = v.parseStatement()
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("statement",
-			"$grammar",
+			"$document",
 			"$statement")
 		panic(message)
 	}
@@ -390,12 +483,12 @@ func (v *parser) parseGrammar() (GrammarLike, *Token, bool) {
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("EOF",
-			"$grammar",
+			"$document",
 			"$statement")
 		panic(message)
 	}
-	grammar = Grammar(statements)
-	return grammar, token, true
+	document = Document(statements)
+	return document, token, true
 }
 
 // This method attempts to parse a grouping. It returns the grouping and whether
@@ -415,19 +508,6 @@ func (v *parser) parseGrouping() (Factor, *Token, bool) {
 		factor, token, ok = v.parseOneOrMore()
 	}
 	return factor, token, ok
-}
-
-// This method attempts to parse an intrinsic. It returns the intrinsic and
-// whether or not the intrinsic was successfully parsed.
-func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
-	var intrinsic INTRINSIC
-	var token = v.nextToken()
-	if token.Type != TokenINTRINSIC {
-		v.backupOne()
-		return intrinsic, token, false
-	}
-	intrinsic = INTRINSIC(token.Value)
-	return intrinsic, token, true
 }
 
 // This method attempts to parse an inverse. It returns the inverse and
@@ -452,62 +532,6 @@ func (v *parser) parseInverse() (InverseLike, *Token, bool) {
 	}
 	inverse = Inverse(factor)
 	return inverse, token, true
-}
-
-// This method attempts to parse the specified literal. It returns
-// the token and whether or not the literal was found.
-func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
-	var token = v.nextToken()
-	if token.Type == TokenEOF || token.Value != literal {
-		v.backupOne()
-		return literal, token, false
-	}
-	return literal, token, true
-}
-
-// This method attempts to parse a name token. It returns the token and
-// whether or not a name token was found.
-func (v *parser) parseNAME() (NAME, *Token, bool) {
-	var name NAME
-	var token = v.nextToken()
-	if token.Type != TokenNAME {
-		v.backupOne()
-		return name, token, false
-	}
-	if v.isToken && uni.IsLower(rune(token.Value[0])) {
-		panic(fmt.Sprintf("A token definition contains a rulename: %v\n", token.Value))
-	}
-	name = NAME(token.Value)
-	var symbol = SYMBOL("$" + token.Value)
-	var definition = v.symbols.GetValue(symbol)
-	v.symbols.SetValue(symbol, definition)
-	return name, token, true
-}
-
-// This method attempts to parse a note. It returns the note and whether or not
-// the note was successfully parsed.
-func (v *parser) parseNOTE() (NOTE, *Token, bool) {
-	var note NOTE
-	var token = v.nextToken()
-	if token.Type != TokenNOTE {
-		v.backupOne()
-		return note, token, false
-	}
-	note = NOTE(token.Value)
-	return note, token, true
-}
-
-// This method attempts to parse a number. It returns the number and
-// whether or not a number was successfully parsed.
-func (v *parser) parseNUMBER() (NUMBER, *Token, bool) {
-	var number NUMBER
-	var token = v.nextToken()
-	if token.Type != TokenNUMBER {
-		v.backupOne()
-		return number, token, false
-	}
-	number = NUMBER(token.Value)
-	return number, token, true
 }
 
 // This method attempts to parse an one or more grouping. It returns the one or
@@ -589,32 +613,6 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	}
 	statement = Statement(comment, definition)
 	return statement, token, true
-}
-
-// This method attempts to parse a string. It returns the string and whether
-// or not the string was successfully parsed.
-func (v *parser) parseSTRING() (STRING, *Token, bool) {
-	var string_ STRING
-	var token = v.nextToken()
-	if token.Type != TokenSTRING {
-		v.backupOne()
-		return string_, token, false
-	}
-	string_ = STRING(token.Value)
-	return string_, token, true
-}
-
-// This method attempts to parse a symbol. It returns the symbol and
-// whether or not the symbol was successfully parsed.
-func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
-	var symbol SYMBOL
-	var token = v.nextToken()
-	if token.Type != TokenSYMBOL {
-		v.backupOne()
-		return symbol, token, false
-	}
-	symbol = SYMBOL(token.Value)
-	return symbol, token, true
 }
 
 // This method attempts to parse an zero or more grouping. It returns the zero or

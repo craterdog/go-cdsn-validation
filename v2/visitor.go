@@ -19,12 +19,12 @@ import (
 // VISITOR INTERFACE
 
 // This function applies the specified agent to each node in the specified
-// grammar.
-func VisitGrammar(agent Specialized, grammar GrammarLike) {
+// document.
+func VisitDocument(agent Specialized, document DocumentLike) {
 	var v = &visitor{agent, 0}
-	v.agent.BeforeGrammar(grammar)
-	v.visitGrammar(grammar)
-	v.agent.AfterGrammar(grammar)
+	v.agent.BeforeDocument(document)
+	v.visitDocument(document)
+	v.agent.AfterDocument(document)
 }
 
 // This interface defines the methods that are supported by specialized agents.
@@ -52,8 +52,8 @@ type Specialized interface {
 	AfterExpression(expression ExpressionLike)
 	BeforeFactor(factor Factor, slot int, size int)
 	AfterFactor(factor Factor, slot int, size int)
-	BeforeGrammar(grammar GrammarLike)
-	AfterGrammar(grammar GrammarLike)
+	BeforeDocument(document DocumentLike)
+	AfterDocument(document DocumentLike)
 	BeforeGrouping(grouping Grouping)
 	AfterGrouping(grouping Grouping)
 	BeforeInverse(inverse InverseLike)
@@ -173,9 +173,9 @@ func (v *visitor) visitFactor(factor Factor) {
 	}
 }
 
-// This private method visits the specified grammar.
-func (v *visitor) visitGrammar(grammar GrammarLike) {
-	var statements = grammar.GetStatements()
+// This private method visits the specified document.
+func (v *visitor) visitDocument(document DocumentLike) {
+	var statements = document.GetStatements()
 	var size = statements.GetSize()
 	var iterator = col.Iterator(statements)
 	for iterator.HasNext() {

@@ -14,10 +14,10 @@ import (
 	reg "regexp"
 )
 
+type CHARACTER string
+
 const TokenCHARACTER TokenType = "CHARACTER"
 const character = `['][^` + eol + `][']`
-
-type CHARACTER string
 
 // This scanner is used for matching character tokens.
 var characterScanner = reg.MustCompile(`^(?:` + character + `)`)

@@ -17,10 +17,10 @@ import (
 // FORMATTER INTERFACE
 
 // This function returns the bytes containing the canonical format for the
-// specified grammar including the POSIX standard EOF marker.
-func FormatGrammar(grammar GrammarLike) []byte {
+// specified document including the POSIX standard EOF marker.
+func FormatDocument(document DocumentLike) []byte {
 	var agent = &formatter{}
-	VisitGrammar(agent, grammar)
+	VisitDocument(agent, document)
 	return []byte(agent.getResult())
 }
 
@@ -158,12 +158,12 @@ func (v *formatter) BeforeFactor(factor Factor, slot int, size int) {
 func (v *formatter) AfterFactor(factor Factor, slot int, size int) {
 }
 
-// This public method is called before the grammar.
-func (v *formatter) BeforeGrammar(grammar GrammarLike) {
+// This public method is called before the document.
+func (v *formatter) BeforeDocument(document DocumentLike) {
 }
 
-// This public method is called after the grammar.
-func (v *formatter) AfterGrammar(grammar GrammarLike) {
+// This public method is called after the document.
+func (v *formatter) AfterDocument(document DocumentLike) {
 }
 
 // This public method is called before each grouping.
@@ -206,11 +206,11 @@ func (v *formatter) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
 func (v *formatter) AfterRange(range_ RangeLike) {
 }
 
-// This public method is called before each statement in a grammar.
+// This public method is called before each statement in a document.
 func (v *formatter) BeforeStatement(statement StatementLike, slot int, size int) {
 }
 
-// This public method is called after each statement in a grammar.
+// This public method is called after each statement in a document.
 func (v *formatter) AfterStatement(statement StatementLike, slot int, size int) {
 	v.appendNewline()
 	v.appendNewline()
