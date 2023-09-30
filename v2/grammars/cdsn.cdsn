@@ -52,7 +52,7 @@ $oneOrMore: "<" expression ">"
     rule definitions, a token definition cannot specify the name of a rule but can specify the
     name of another token.  Token definitions cannot be recursive and the scanning of tokens is
     not greedy.  Whitespace within a token definition is not ignored.  The following intrinsic
-    token types are environment/language specific, and are not defined in this specification:
+    token types are environment/language specific:
      * ANY - any allowed character
      * LOWER_CASE - any allowed lower case character
      * UPPER_CASE - any allowed upper case character
