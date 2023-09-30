@@ -23,10 +23,17 @@ $list: "[" {component} "]"
     are processed by the parser.  Each token name begins with an upper case letter.  Unlike with
     rule definitions, a token definition cannot specify the name of a rule but can specify the
     name of another token.  Token definitions cannot be recursive and the scanning of tokens is
-    not greedy.  Whitespace within a token definition is not ignored.  INTRINSIC tokens are
-    environment/language specific, and are not defined in this specification.  INTRINSICs are
-    scanned for before any other token type to avoid name conflicts.  The token types are scanned
-    for in the order listed in the specification.
+    not greedy.  Whitespace within a token definition is not ignored.  The following intrinsic
+    token types are environment/language specific, and are not defined in this specification:
+     * ANY - any allowed character
+     * LOWER_CASE - any allowed lower case character
+     * UPPER_CASE - any allowed upper case character
+     * DIGIT - any allowed digit
+     * SEPARATOR - any allowed character separator
+     * ESCAPE - any allowed escape sequence
+     * EOL - the environment specific end-of-line sequence
+     * EOF - the environment specific end-of-file marker
+    The token types are scanned for in the order listed in the specification.
 <!
 
 $TEXT: '"' <ESCAPE | ~('"' | EOL)> '"'
