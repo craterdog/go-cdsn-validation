@@ -15,16 +15,16 @@ package cdsn
 // This interface defines the methods supported by all statement-like
 // components.
 type StatementLike interface {
-	GetComment() Comment
-	SetComment(comment Comment)
+	GetCOMMENT() COMMENT
+	SetCOMMENT(comment COMMENT)
 	GetDefinition() DefinitionLike
 	SetDefinition(definition DefinitionLike)
 }
 
 // This constructor creates a new statement.
-func Statement(comment Comment, definition DefinitionLike) StatementLike {
+func Statement(comment COMMENT, definition DefinitionLike) StatementLike {
 	var v = &statement{}
-	v.SetComment(comment)
+	v.SetCOMMENT(comment)
 	v.SetDefinition(definition)
 	return v
 }
@@ -33,17 +33,17 @@ func Statement(comment Comment, definition DefinitionLike) StatementLike {
 
 // This type defines the structure and methods associated with a statement.
 type statement struct {
-	comment    Comment
+	comment    COMMENT
 	definition DefinitionLike
 }
 
 // This method returns the comment for this statement.
-func (v *statement) GetComment() Comment {
+func (v *statement) GetCOMMENT() COMMENT {
 	return v.comment
 }
 
 // This method sets the comment for this statement.
-func (v *statement) SetComment(comment Comment) {
+func (v *statement) SetCOMMENT(comment COMMENT) {
 	v.comment = comment
 }
 

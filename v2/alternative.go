@@ -21,15 +21,15 @@ import (
 type AlternativeLike interface {
 	GetFactors() col.Sequential[Factor]
 	SetFactors(factors col.Sequential[Factor])
-	GetNote() Note
-	SetNote(note Note)
+	GetNOTE() NOTE
+	SetNOTE(note NOTE)
 }
 
 // This constructor creates a new alternative.
-func Alternative(factors col.Sequential[Factor], note Note) AlternativeLike {
+func Alternative(factors col.Sequential[Factor], note NOTE) AlternativeLike {
 	var v = &alternative{}
 	v.SetFactors(factors)
-	v.SetNote(note)
+	v.SetNOTE(note)
 	return v
 }
 
@@ -38,7 +38,7 @@ func Alternative(factors col.Sequential[Factor], note Note) AlternativeLike {
 // This type defines the structure and methods associated with an alternative.
 type alternative struct {
 	factors col.Sequential[Factor]
-	note    Note
+	note    NOTE
 }
 
 // This method returns the factors for this alternative.
@@ -55,11 +55,11 @@ func (v *alternative) SetFactors(factors col.Sequential[Factor]) {
 }
 
 // This method returns the note for this alternative.
-func (v *alternative) GetNote() Note {
+func (v *alternative) GetNOTE() NOTE {
 	return v.note
 }
 
 // This method sets the note for this alternative.
-func (v *alternative) SetNote(note Note) {
+func (v *alternative) SetNOTE(note NOTE) {
 	v.note = note
 }

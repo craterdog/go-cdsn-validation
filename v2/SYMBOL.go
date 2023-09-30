@@ -14,13 +14,13 @@ import (
 	reg "regexp"
 )
 
-type Symbol string
+type SYMBOL string
 
-func (v Symbol) GetName() Name {
-	return Name(v[1:])
+func (v SYMBOL) GetNAME() NAME {
+	return NAME(v[1:])
 }
 
-const TokenSymbol TokenType = "Symbol"
+const TokenSYMBOL TokenType = "SYMBOL"
 const symbol = `\$(` + name + `)`
 
 // This scanner is used for matching symbol tokens.

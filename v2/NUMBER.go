@@ -14,9 +14,9 @@ import (
 	reg "regexp"
 )
 
-type Number string
+type NUMBER string
 
-const TokenNumber TokenType = "Number"
+const TokenNUMBER TokenType = "NUMBER"
 const number = digit + `+`
 
 // This scanner is used for matching number tokens.

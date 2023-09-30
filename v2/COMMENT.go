@@ -14,9 +14,9 @@ import (
 	reg "regexp"
 )
 
-type Comment string
+type COMMENT string
 
-const TokenComment TokenType = "Comment"
+const TokenCOMMENT TokenType = "COMMENT"
 const comment = `!>(?:` + any_ + `)*?<!`
 
 // This scanner is used for matching comment tokens.

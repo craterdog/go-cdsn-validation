@@ -14,9 +14,9 @@ import (
 	reg "regexp"
 )
 
-type Note string
+type NOTE string
 
-const TokenNote TokenType = "Note"
+const TokenNOTE TokenType = "NOTE"
 const note = `! [^` + eol + `]*`
 
 // This scanner is used for matching note tokens.

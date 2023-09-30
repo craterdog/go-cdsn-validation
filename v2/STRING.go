@@ -14,9 +14,9 @@ import (
 	reg "regexp"
 )
 
-type String string
+type STRING string
 
-const TokenString TokenType = "String"
+const TokenSTRING TokenType = "STRING"
 const string_ = `["](?:` + escape + `|[^"` + eol + `])+["]`
 
 // This scanner is used for matching string tokens.

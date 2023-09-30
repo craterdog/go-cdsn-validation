@@ -45,44 +45,44 @@ func (v *formatter) DecrementDepth() {
 }
 
 // This public method is called for each character token.
-func (v *formatter) AtCharacter(character Character) {
+func (v *formatter) AtCHARACTER(character CHARACTER) {
 	v.appendString(string(character))
 }
 
 // This public method is called for each comment token.
-func (v *formatter) AtComment(comment Comment) {
+func (v *formatter) AtCOMMENT(comment COMMENT) {
 	v.appendNewline()
 	v.appendString(string(comment))
 }
 
 // This public method is called for each intrinsic token.
-func (v *formatter) AtIntrinsic(intrinsic Intrinsic) {
+func (v *formatter) AtINTRINSIC(intrinsic INTRINSIC) {
 	v.appendString(string(intrinsic))
 }
 
 // This public method is called for each name token.
-func (v *formatter) AtName(name Name) {
+func (v *formatter) AtNAME(name NAME) {
 	v.appendString(string(name))
 }
 
 // This public method is called for each note token.
-func (v *formatter) AtNote(note Note) {
+func (v *formatter) AtNOTE(note NOTE) {
 	v.appendString("  ")
 	v.appendString(string(note))
 }
 
 // This public method is called for each number token.
-func (v *formatter) AtNumber(number Number) {
+func (v *formatter) AtNUMBER(number NUMBER) {
 	v.appendString(string(number))
 }
 
 // This public method is called for each string token.
-func (v *formatter) AtString(string_ String) {
+func (v *formatter) AtSTRING(string_ STRING) {
 	v.appendString(string(string_))
 }
 
 // This public method is called for each symbol token.
-func (v *formatter) AtSymbol(symbol Symbol, isMultilined bool) {
+func (v *formatter) AtSYMBOL(symbol SYMBOL, isMultilined bool) {
 	v.appendString(string(symbol))
 	v.appendString(":")
 	if !isMultilined {
@@ -127,15 +127,15 @@ func (v *formatter) AfterElement(element Element) {
 }
 
 // This public method is called before each exactly N grouping.
-func (v *formatter) BeforeExactlyN(exactlyN ExactlyNLike, n Number) {
+func (v *formatter) BeforeExactlyN(exactlyN ExactlyNLike, n NUMBER) {
 	v.appendString("(")
 }
 
 // This public method is called after each exactly N grouping.
-func (v *formatter) AfterExactlyN(exactlyN ExactlyNLike, n Number) {
+func (v *formatter) AfterExactlyN(exactlyN ExactlyNLike, n NUMBER) {
 	v.appendString(")")
 	if len(n) > 0 {
-		v.AtNumber(n)
+		v.AtNUMBER(n)
 	}
 }
 
@@ -198,7 +198,7 @@ func (v *formatter) BeforeRange(range_ RangeLike) {
 }
 
 // This public method is called between the two two characters in a range.
-func (v *formatter) BetweenCharacters(first Character, last Character) {
+func (v *formatter) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
 	v.appendString("..")
 }
 

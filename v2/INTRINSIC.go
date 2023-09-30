@@ -14,9 +14,9 @@ import (
 	reg "regexp"
 )
 
-type Intrinsic string
+type INTRINSIC string
 
-const TokenIntrinsic TokenType = "Intrinsic"
+const TokenINTRINSIC TokenType = "INTRINSIC"
 const intrinsic = `ANY|LOWER_CASE|UPPER_CASE|DIGIT|SEPARATOR|ESCAPE|EOL|EOF`
 
 // This scanner is used for matching intrinsic tokens.

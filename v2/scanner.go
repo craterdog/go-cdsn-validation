@@ -25,9 +25,9 @@ type TokenType string
 
 // This enumeration defines all possible token types including the error token.
 const (
-	TokenError   TokenType = "Error"
-	TokenLiteral TokenType = "Literal"
 	TokenEOF     TokenType = "EOF"
+	TokenERROR   TokenType = "ERROR"
+	TokenLITERAL TokenType = "LITERAL"
 )
 
 // This type defines the structure and methods for each token returned by the
@@ -105,7 +105,7 @@ func (v *scanner) emitToken(tType TokenType) {
 	if tType == TokenEOF {
 		tValue = "<EOF>"
 	}
-	if tType == TokenError {
+	if tType == TokenERROR {
 		switch tValue {
 		case "\a":
 			tValue = "<BELL>"
@@ -134,7 +134,7 @@ func (v *scanner) foundError() {
 	var bytes = v.source[v.nextByte:]
 	var _, width = utf.DecodeRune(bytes)
 	v.nextByte += width
-	v.emitToken(TokenError)
+	v.emitToken(TokenERROR)
 }
 
 // This method continues scanning tokens from the source bytes until an error
@@ -152,16 +152,16 @@ func (v *scanner) generateTokens() {
 // this method returns false.
 func (v *scanner) processToken() bool {
 	switch {
-	case v.scanWhitespace():
-	case v.scanIntrinsic():
-	case v.scanNote():
-	case v.scanComment():
-	case v.scanCharacter():
-	case v.scanString():
-	case v.scanNumber():
-	case v.scanName():
-	case v.scanSymbol():
-	case v.scanLiteral():
+	case v.scanWHITESPACE():
+	case v.scanINTRINSIC():
+	case v.scanNOTE():
+	case v.scanCOMMENT():
+	case v.scanCHARACTER():
+	case v.scanSTRING():
+	case v.scanNUMBER():
+	case v.scanNAME():
+	case v.scanSYMBOL():
+	case v.scanLITERAL():
 	case v.scanEOF():
 		// We are at the end of the source bytes.
 		return false
@@ -178,7 +178,7 @@ var whitespaceScanner = reg.MustCompile(`^(?:` + whitespace + `)`)
 
 // This method tells the scanner to ignore any whitespace.  It returns true if
 // whitespace was found.
-func (v *scanner) scanWhitespace() bool {
+func (v *scanner) scanWHITESPACE() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(whitespaceScanner.FindSubmatch(s))
 	if len(matches) > 0 {
@@ -213,12 +213,12 @@ func (v *scanner) scanEOF() bool {
 
 // This method adds a character token with the current scanner information
 // to the token channel. It returns true if a character token was found.
-func (v *scanner) scanCharacter() bool {
+func (v *scanner) scanCHARACTER() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(characterScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenCharacter)
+		v.emitToken(TokenCHARACTER)
 		return true
 	}
 	return false
@@ -226,12 +226,12 @@ func (v *scanner) scanCharacter() bool {
 
 // This method adds a comment token with the current scanner information
 // to the token channel. It returns true if a comment token was found.
-func (v *scanner) scanComment() bool {
+func (v *scanner) scanCOMMENT() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(commentScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenComment)
+		v.emitToken(TokenCOMMENT)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -240,12 +240,12 @@ func (v *scanner) scanComment() bool {
 
 // This method adds an intrinsic token with the current scanner information
 // to the token channel. It returns true if an intrinsic token was found.
-func (v *scanner) scanIntrinsic() bool {
+func (v *scanner) scanINTRINSIC() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(intrinsicScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenIntrinsic)
+		v.emitToken(TokenINTRINSIC)
 		return true
 	}
 	return false
@@ -253,12 +253,12 @@ func (v *scanner) scanIntrinsic() bool {
 
 // This method adds a name token with the current scanner information
 // to the token channel. It returns true if a name token was found.
-func (v *scanner) scanName() bool {
+func (v *scanner) scanNAME() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(nameScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenName)
+		v.emitToken(TokenNAME)
 		return true
 	}
 	return false
@@ -266,12 +266,12 @@ func (v *scanner) scanName() bool {
 
 // This method adds a note token with the current scanner information to the
 // token channel. It returns true if a note token was found.
-func (v *scanner) scanNote() bool {
+func (v *scanner) scanNOTE() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(noteScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenNote)
+		v.emitToken(TokenNOTE)
 		return true
 	}
 	return false
@@ -279,12 +279,12 @@ func (v *scanner) scanNote() bool {
 
 // This method adds a number token with the current scanner information to the
 // token channel. It returns true if a number token was found.
-func (v *scanner) scanNumber() bool {
+func (v *scanner) scanNUMBER() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(numberScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenNumber)
+		v.emitToken(TokenNUMBER)
 		return true
 	}
 	return false
@@ -292,12 +292,12 @@ func (v *scanner) scanNumber() bool {
 
 // This method adds a string token with the current scanner information to the
 // token channel. It returns true if a string token was found.
-func (v *scanner) scanString() bool {
+func (v *scanner) scanSTRING() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(stringScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenString)
+		v.emitToken(TokenSTRING)
 		return true
 	}
 	return false
@@ -305,12 +305,12 @@ func (v *scanner) scanString() bool {
 
 // This method adds a symbol token with the current scanner information to
 // the token channel. It returns true if a symbol token was found.
-func (v *scanner) scanSymbol() bool {
+func (v *scanner) scanSYMBOL() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(symbolScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenSymbol)
+		v.emitToken(TokenSYMBOL)
 		return true
 	}
 	return false
@@ -323,12 +323,12 @@ var literalScanner = reg.MustCompile(`^(?:` + literal + `)`)
 
 // This method adds a literal token with the current scanner information to
 // the token channel. It returns true if a literal token was found.
-func (v *scanner) scanLiteral() bool {
+func (v *scanner) scanLITERAL() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(literalScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenLiteral)
+		v.emitToken(TokenLITERAL)
 		return true
 	}
 	return false

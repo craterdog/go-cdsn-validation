@@ -15,16 +15,16 @@ package cdsn
 // This interface defines the methods supported by all definition-like
 // components.
 type DefinitionLike interface {
-	GetSymbol() Symbol
-	SetSymbol(symbol Symbol)
+	GetSYMBOL() SYMBOL
+	SetSYMBOL(symbol SYMBOL)
 	GetExpression() ExpressionLike
 	SetExpression(expression ExpressionLike)
 }
 
 // This constructor creates a new definition.
-func Definition(symbol Symbol, expression ExpressionLike) DefinitionLike {
+func Definition(symbol SYMBOL, expression ExpressionLike) DefinitionLike {
 	var v = &definition{}
-	v.SetSymbol(symbol)
+	v.SetSYMBOL(symbol)
 	v.SetExpression(expression)
 	return v
 }
@@ -33,17 +33,17 @@ func Definition(symbol Symbol, expression ExpressionLike) DefinitionLike {
 
 // This type defines the structure and methods associated with a definition.
 type definition struct {
-	symbol     Symbol
+	symbol     SYMBOL
 	expression ExpressionLike
 }
 
 // This method returns the symbol for this definition.
-func (v *definition) GetSymbol() Symbol {
+func (v *definition) GetSYMBOL() SYMBOL {
 	return v.symbol
 }
 
 // This method sets the symbol for this definition.
-func (v *definition) SetSymbol(symbol Symbol) {
+func (v *definition) SetSYMBOL(symbol SYMBOL) {
 	if len(symbol) == 0 {
 		panic("A definition requires a symbol.")
 	}

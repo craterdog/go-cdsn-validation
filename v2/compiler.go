@@ -50,17 +50,17 @@ type compiler struct {
 
 // This private function determines whether or not the specified name is a token
 // name.
-func isTokenName(name Name) bool {
+func isTokenNAME(name NAME) bool {
 	return uni.IsUpper(rune(name[1]))
 }
 
-func replaceName(template []byte, target string, name string) []byte {
+func replaceNAME(template []byte, target string, name string) []byte {
 	var nameLower, nameUpper string
 	var nameRunes = []rune(name)
 	var targetRunes = []rune(target)
 	var targetLower = "#" + target + "#"
 	var targetUpper = "#" + string(uni.ToUpper(targetRunes[0])) + string(targetRunes[1:]) + "#"
-	if isTokenName(Name(name)) {
+	if isTokenNAME(NAME(name)) {
 		nameLower = sts.ToLower(name)
 		nameUpper = name
 	} else {
@@ -85,37 +85,37 @@ func (v *compiler) DecrementDepth() {
 }
 
 // This public method is called for each character token.
-func (v *compiler) AtCharacter(character Character) {
+func (v *compiler) AtCHARACTER(character CHARACTER) {
 }
 
 // This public method is called for each comment token.
-func (v *compiler) AtComment(comment Comment) {
+func (v *compiler) AtCOMMENT(comment COMMENT) {
 }
 
 // This public method is called for each intrinsic token.
-func (v *compiler) AtIntrinsic(intrinsic Intrinsic) {
+func (v *compiler) AtINTRINSIC(intrinsic INTRINSIC) {
 }
 
 // This public method is called for each name token.
-func (v *compiler) AtName(name Name) {
+func (v *compiler) AtNAME(name NAME) {
 }
 
 // This public method is called for each note token.
-func (v *compiler) AtNote(note Note) {
+func (v *compiler) AtNOTE(note NOTE) {
 }
 
 // This public method is called for each number token.
-func (v *compiler) AtNumber(number Number) {
+func (v *compiler) AtNUMBER(number NUMBER) {
 }
 
 // This public method is called for each string token.
-func (v *compiler) AtString(string_ String) {
+func (v *compiler) AtSTRING(string_ STRING) {
 }
 
 // This public method is called for each symbol token.
-func (v *compiler) AtSymbol(symbol Symbol, isMultilined bool) {
-	var name = symbol.GetName()
-	if isTokenName(name) {
+func (v *compiler) AtSYMBOL(symbol SYMBOL, isMultilined bool) {
+	var name = symbol.GetNAME()
+	if isTokenNAME(name) {
 		v.appendScanToken(name)
 		v.appendParseToken(name)
 	} else {
@@ -138,9 +138,9 @@ func (v *compiler) BeforeDefinition(definition DefinitionLike) {
 
 // This public method is called after each definition.
 func (v *compiler) AfterDefinition(definition DefinitionLike) {
-	var symbol = definition.GetSymbol()
-	var name = symbol.GetName()
-	if !isTokenName(name) {
+	var symbol = definition.GetSYMBOL()
+	var name = symbol.GetNAME()
+	if !isTokenNAME(name) {
 		v.appendParseRuleEnd(name)
 		v.appendVisitRuleEnd(name)
 	}
@@ -155,11 +155,11 @@ func (v *compiler) AfterElement(element Element) {
 }
 
 // This public method is called before each exactly N grouping.
-func (v *compiler) BeforeExactlyN(exactlyN ExactlyNLike, n Number) {
+func (v *compiler) BeforeExactlyN(exactlyN ExactlyNLike, n NUMBER) {
 }
 
 // This public method is called after each exactly N grouping.
-func (v *compiler) AfterExactlyN(exactlyN ExactlyNLike, n Number) {
+func (v *compiler) AfterExactlyN(exactlyN ExactlyNLike, n NUMBER) {
 }
 
 // This public method is called before each expression.
@@ -222,7 +222,7 @@ func (v *compiler) BeforeRange(range_ RangeLike) {
 }
 
 // This public method is called between the two two characters in a range.
-func (v *compiler) BetweenCharacters(first Character, last Character) {
+func (v *compiler) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
 }
 
 // This public method is called after each character range.
@@ -297,67 +297,67 @@ func (v *compiler) initializeParser() {
 
 // This private method appends the scan token template for the specified name to
 // the scanner byte buffer.
-func (v *compiler) appendScanToken(name Name) {
+func (v *compiler) appendScanToken(name NAME) {
 	var template, err = osx.ReadFile("./templates/scanToken.tp")
 	if err != nil {
 		panic(err)
 	}
-	template = replaceName(template, "token", string(name))
+	template = replaceNAME(template, "token", string(name))
 	v.scannerBuffer.Write(template)
 }
 
 // This private method appends the parse token template for the specified name
 // to the parser byte buffer.
-func (v *compiler) appendParseToken(name Name) {
+func (v *compiler) appendParseToken(name NAME) {
 	var template, err = osx.ReadFile("./templates/parseToken.tp")
 	if err != nil {
 		panic(err)
 	}
-	template = replaceName(template, "token", string(name))
+	template = replaceNAME(template, "token", string(name))
 	v.parserBuffer.Write(template)
 }
 
 // This private method appends the parse rule start template for the specified
 // name to the parser byte buffer.
-func (v *compiler) appendParseRuleStart(name Name) {
+func (v *compiler) appendParseRuleStart(name NAME) {
 	var template, err = osx.ReadFile("./templates/parseRuleStart.tp")
 	if err != nil {
 		panic(err)
 	}
-	template = replaceName(template, "rule", string(name))
+	template = replaceNAME(template, "rule", string(name))
 	v.parserBuffer.Write(template)
 }
 
 // This private method appends the parse rule end template for the specified
 // name to the parser byte buffer.
-func (v *compiler) appendParseRuleEnd(name Name) {
+func (v *compiler) appendParseRuleEnd(name NAME) {
 	var template, err = osx.ReadFile("./templates/parseRuleEnd.tp")
 	if err != nil {
 		panic(err)
 	}
-	template = replaceName(template, "rule", string(name))
+	template = replaceNAME(template, "rule", string(name))
 	v.parserBuffer.Write(template)
 }
 
 // This private method appends the visit rule start template for the specified
 // name to the visitor byte buffer.
-func (v *compiler) appendVisitRuleStart(name Name) {
+func (v *compiler) appendVisitRuleStart(name NAME) {
 	var template, err = osx.ReadFile("./templates/visitRuleStart.tp")
 	if err != nil {
 		panic(err)
 	}
-	template = replaceName(template, "rule", string(name))
+	template = replaceNAME(template, "rule", string(name))
 	v.visitorBuffer.Write(template)
 }
 
 // This private method appends the visit rule end template for the specified
 // name to the visitor byte buffer.
-func (v *compiler) appendVisitRuleEnd(name Name) {
+func (v *compiler) appendVisitRuleEnd(name NAME) {
 	var template, err = osx.ReadFile("./templates/visitRuleEnd.tp")
 	if err != nil {
 		panic(err)
 	}
-	template = replaceName(template, "rule", string(name))
+	template = replaceNAME(template, "rule", string(name))
 	v.visitorBuffer.Write(template)
 }
 

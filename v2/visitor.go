@@ -31,23 +31,23 @@ func VisitGrammar(agent Specialized, grammar GrammarLike) {
 type Specialized interface {
 	IncrementDepth()
 	DecrementDepth()
-	AtCharacter(character Character)
-	BetweenCharacters(first Character, last Character)
-	AtComment(comment Comment)
-	AtIntrinsic(intrinsic Intrinsic)
-	AtName(name Name)
-	AtNote(note Note)
-	AtNumber(number Number)
-	AtString(string_ String)
-	AtSymbol(symbol Symbol, isMultiline bool)
+	AtCHARACTER(character CHARACTER)
+	BetweenCHARACTERs(first CHARACTER, last CHARACTER)
+	AtCOMMENT(comment COMMENT)
+	AtINTRINSIC(intrinsic INTRINSIC)
+	AtNAME(name NAME)
+	AtNOTE(note NOTE)
+	AtNUMBER(number NUMBER)
+	AtSTRING(string_ STRING)
+	AtSYMBOL(symbol SYMBOL, isMultiline bool)
 	BeforeAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool)
 	AfterAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool)
 	BeforeDefinition(definition DefinitionLike)
 	AfterDefinition(definition DefinitionLike)
 	BeforeElement(element Element)
 	AfterElement(element Element)
-	BeforeExactlyN(exactlyN ExactlyNLike, n Number)
-	AfterExactlyN(exactlyN ExactlyNLike, n Number)
+	BeforeExactlyN(exactlyN ExactlyNLike, n NUMBER)
+	AfterExactlyN(exactlyN ExactlyNLike, n NUMBER)
 	BeforeExpression(expression ExpressionLike)
 	AfterExpression(expression ExpressionLike)
 	BeforeFactor(factor Factor, slot int, size int)
@@ -91,17 +91,17 @@ func (v *visitor) visitAlternative(alternative AlternativeLike) {
 		slot++
 		v.agent.AfterFactor(factor, slot, size)
 	}
-	var note = alternative.GetNote()
+	var note = alternative.GetNOTE()
 	if len(note) > 0 {
-		v.agent.AtNote(note)
+		v.agent.AtNOTE(note)
 	}
 }
 
 // This private method visits the specified definition.
 func (v *visitor) visitDefinition(definition DefinitionLike) {
-	var symbol = definition.GetSymbol()
+	var symbol = definition.GetSYMBOL()
 	var expression = definition.GetExpression()
-	v.agent.AtSymbol(symbol, expression.IsMultilined())
+	v.agent.AtSYMBOL(symbol, expression.IsMultilined())
 	v.agent.BeforeExpression(expression)
 	v.visitExpression(expression)
 	v.agent.AfterExpression(expression)
@@ -110,14 +110,14 @@ func (v *visitor) visitDefinition(definition DefinitionLike) {
 // This private method visits the specified element.
 func (v *visitor) visitElement(element Element) {
 	switch actual := element.(type) {
-	case Intrinsic:
-		v.agent.AtIntrinsic(actual)
-	case String:
-		v.agent.AtString(actual)
-	case Number:
-		v.agent.AtNumber(actual)
-	case Name:
-		v.agent.AtName(actual)
+	case INTRINSIC:
+		v.agent.AtINTRINSIC(actual)
+	case STRING:
+		v.agent.AtSTRING(actual)
+	case NUMBER:
+		v.agent.AtNUMBER(actual)
+	case NAME:
+		v.agent.AtNAME(actual)
 	default:
 		panic(fmt.Sprintf("Attempted to visit:\n    element: %v\n    type: %t\n", actual, element))
 	}
@@ -231,20 +231,20 @@ func (v *visitor) visitOneOrMore(group OneOrMoreLike) {
 
 // This private method visits the specified range.
 func (v *visitor) visitRange(range_ RangeLike) {
-	var first = range_.GetFirstCharacter()
-	v.agent.AtCharacter(first)
-	var last = range_.GetLastCharacter()
+	var first = range_.GetFirstCHARACTER()
+	v.agent.AtCHARACTER(first)
+	var last = range_.GetLastCHARACTER()
 	if len(last) > 0 {
-		v.agent.BetweenCharacters(first, last)
-		v.agent.AtCharacter(last)
+		v.agent.BetweenCHARACTERs(first, last)
+		v.agent.AtCHARACTER(last)
 	}
 }
 
 // This private method visits the specified statement.
 func (v *visitor) visitStatement(statement StatementLike) {
-	var comment = statement.GetComment()
+	var comment = statement.GetCOMMENT()
 	if len(comment) > 0 {
-		v.agent.AtComment(comment)
+		v.agent.AtCOMMENT(comment)
 	} else {
 		var definition = statement.GetDefinition()
 		v.agent.BeforeDefinition(definition)

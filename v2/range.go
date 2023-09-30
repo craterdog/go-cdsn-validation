@@ -14,17 +14,17 @@ package cdsn
 
 // This interface defines the methods supported by all range-like components.
 type RangeLike interface {
-	GetFirstCharacter() Character
-	SetFirstCharacter(first Character)
-	GetLastCharacter() Character
-	SetLastCharacter(last Character)
+	GetFirstCHARACTER() CHARACTER
+	SetFirstCHARACTER(first CHARACTER)
+	GetLastCHARACTER() CHARACTER
+	SetLastCHARACTER(last CHARACTER)
 }
 
 // This constructor creates a new range.
-func Range(first Character, last Character) RangeLike {
+func Range(first CHARACTER, last CHARACTER) RangeLike {
 	var v = &range_{}
-	v.SetFirstCharacter(first)
-	v.SetLastCharacter(last)
+	v.SetFirstCHARACTER(first)
+	v.SetLastCHARACTER(last)
 	return v
 }
 
@@ -32,17 +32,17 @@ func Range(first Character, last Character) RangeLike {
 
 // This type defines the structure and methods associated with a range.
 type range_ struct {
-	first Character
-	last  Character
+	first CHARACTER
+	last  CHARACTER
 }
 
 // This method returns the first character for this range.
-func (v *range_) GetFirstCharacter() Character {
+func (v *range_) GetFirstCHARACTER() CHARACTER {
 	return v.first
 }
 
 // This method sets the first character for this range.
-func (v *range_) SetFirstCharacter(first Character) {
+func (v *range_) SetFirstCHARACTER(first CHARACTER) {
 	if len(first) == 0 {
 		panic("A range requires at least one character.")
 	}
@@ -50,11 +50,11 @@ func (v *range_) SetFirstCharacter(first Character) {
 }
 
 // This method returns the last character for this range.
-func (v *range_) GetLastCharacter() Character {
+func (v *range_) GetLastCHARACTER() CHARACTER {
 	return v.last
 }
 
 // This method sets the last character for this range.
-func (v *range_) SetLastCharacter(last Character) {
+func (v *range_) SetLastCHARACTER(last CHARACTER) {
 	v.last = last
 }

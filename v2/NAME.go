@@ -14,9 +14,9 @@ import (
 	reg "regexp"
 )
 
-type Name string
+type NAME string
 
-const TokenName TokenType = "Name"
+const TokenNAME TokenType = "NAME"
 const name = `(?:` + lowerCase + `|` + upperCase + `)(?:(?:` + separator + `)?(?:` + lowerCase + `|` + upperCase + `|` + digit + `))*`
 
 // This scanner is used for matching name tokens.

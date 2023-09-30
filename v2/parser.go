@@ -30,7 +30,7 @@ func ParseDocument(source []byte) GrammarLike {
 	var tokens = make(chan Token, 256)
 	ScanTokens(source, tokens) // Starts scanning in a separate go routine.
 	var p = &parser{
-		symbols: col.Catalog[Symbol, DefinitionLike](),
+		symbols: col.Catalog[SYMBOL, DefinitionLike](),
 		source:  source,
 		next:    col.StackWithCapacity[*Token](4),
 		tokens:  tokens,
@@ -43,7 +43,7 @@ func ParseDocument(source []byte) GrammarLike {
 			"$statement")
 		panic(message)
 	}
-	var iterator = col.Iterator[col.Binding[Symbol, DefinitionLike]](p.symbols)
+	var iterator = col.Iterator[col.Binding[SYMBOL, DefinitionLike]](p.symbols)
 	for iterator.HasNext() {
 		var association = iterator.GetNext()
 		var symbol = association.GetKey()
@@ -86,7 +86,7 @@ func generateGrammar(expected string, symbols ...string) string {
 
 // This type defines the structure and methods for the parser agent.
 type parser struct {
-	symbols        col.CatalogLike[Symbol, DefinitionLike]
+	symbols        col.CatalogLike[SYMBOL, DefinitionLike]
 	source         []byte
 	next           col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
 	tokens         chan Token            // The queue of unread tokens coming from the scanner.
@@ -140,7 +140,7 @@ func (v *parser) nextToken() *Token {
 			panic("The token channel terminated without an EOF or error token.")
 		}
 		next = &token
-		if next.Type == TokenError {
+		if next.Type == TokenERROR {
 			var message = v.formatError(next)
 			panic(message)
 		}
@@ -158,7 +158,7 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	var token *Token
 	var factor Factor
 	var factors = col.List[Factor]()
-	var note Note
+	var note NOTE
 	var alternative AlternativeLike
 	factor, token, ok = v.parseFactor()
 	if !ok {
@@ -173,34 +173,34 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 			break
 		}
 	}
-	note, _, _ = v.parseNote() // The note is optional.
+	note, _, _ = v.parseNOTE() // The note is optional.
 	alternative = Alternative(factors, note)
 	return alternative, token, true
 }
 
 // This method attempts to parse a character. It returns the character and
 // whether or not a character was successfully parsed.
-func (v *parser) parseCharacter() (Character, *Token, bool) {
-	var character Character
+func (v *parser) parseCHARACTER() (CHARACTER, *Token, bool) {
+	var character CHARACTER
 	var token = v.nextToken()
-	if token.Type != TokenCharacter {
+	if token.Type != TokenCHARACTER {
 		v.backupOne()
 		return character, token, false
 	}
-	character = Character(token.Value)
+	character = CHARACTER(token.Value)
 	return character, token, true
 }
 
 // This method attempts to parse a comment. It returns the comment and whether
 // or not a comment was successfully parsed.
-func (v *parser) parseComment() (Comment, *Token, bool) {
-	var comment Comment
+func (v *parser) parseCOMMENT() (COMMENT, *Token, bool) {
+	var comment COMMENT
 	var token = v.nextToken()
-	if token.Type != TokenComment {
+	if token.Type != TokenCOMMENT {
 		v.backupOne()
 		return comment, token, false
 	}
-	comment = Comment(token.Value)
+	comment = COMMENT(token.Value)
 	return comment, token, true
 }
 
@@ -209,16 +209,16 @@ func (v *parser) parseComment() (Comment, *Token, bool) {
 func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var symbol Symbol
+	var symbol SYMBOL
 	var expression ExpressionLike
 	var definition DefinitionLike
-	symbol, token, ok = v.parseSymbol()
+	symbol, token, ok = v.parseSYMBOL()
 	if !ok {
 		// This is not a definition.
 		return definition, token, false
 	}
 	v.isToken = uni.IsUpper(rune(symbol[1]))
-	_, token, ok = v.parseLiteral(":")
+	_, token, ok = v.parseLITERAL(":")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(":",
@@ -247,15 +247,15 @@ func (v *parser) parseElement() (Factor, *Token, bool) {
 	var ok bool
 	var token *Token
 	var factor Factor
-	factor, token, ok = v.parseIntrinsic()
+	factor, token, ok = v.parseINTRINSIC()
 	if !ok {
-		factor, token, ok = v.parseString()
+		factor, token, ok = v.parseSTRING()
 	}
 	if !ok {
-		factor, token, ok = v.parseNumber()
+		factor, token, ok = v.parseNUMBER()
 	}
 	if !ok {
-		factor, token, ok = v.parseName()
+		factor, token, ok = v.parseNAME()
 	}
 	return factor, token, ok
 }
@@ -267,7 +267,7 @@ func (v *parser) parseExactlyN() (ExactlyNLike, *Token, bool) {
 	var token *Token
 	var expression ExpressionLike
 	var exactlyN ExactlyNLike
-	_, token, ok = v.parseLiteral("(")
+	_, token, ok = v.parseLITERAL("(")
 	if !ok {
 		// This is not an exactly N grouping.
 		return exactlyN, token, false
@@ -281,7 +281,7 @@ func (v *parser) parseExactlyN() (ExactlyNLike, *Token, bool) {
 		panic(message)
 	}
 	expression.SetMultilined(false)
-	_, token, ok = v.parseLiteral(")")
+	_, token, ok = v.parseLITERAL(")")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(")",
@@ -289,7 +289,7 @@ func (v *parser) parseExactlyN() (ExactlyNLike, *Token, bool) {
 			"$expression")
 		panic(message)
 	}
-	var n, _, _ = v.parseNumber() // The number is optional.
+	var n, _, _ = v.parseNUMBER() // The number is optional.
 	exactlyN = ExactlyN(expression, n)
 	return exactlyN, token, true
 }
@@ -312,7 +312,7 @@ func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 	}
 	for {
 		alternatives.AddValue(alternative)
-		_, _, ok = v.parseLiteral("|")
+		_, _, ok = v.parseLITERAL("|")
 		if !ok {
 			// No more alternatives.
 			break
@@ -419,14 +419,14 @@ func (v *parser) parseGrouping() (Factor, *Token, bool) {
 
 // This method attempts to parse an intrinsic. It returns the intrinsic and
 // whether or not the intrinsic was successfully parsed.
-func (v *parser) parseIntrinsic() (Intrinsic, *Token, bool) {
-	var intrinsic Intrinsic
+func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
+	var intrinsic INTRINSIC
 	var token = v.nextToken()
-	if token.Type != TokenIntrinsic {
+	if token.Type != TokenINTRINSIC {
 		v.backupOne()
 		return intrinsic, token, false
 	}
-	intrinsic = Intrinsic(token.Value)
+	intrinsic = INTRINSIC(token.Value)
 	return intrinsic, token, true
 }
 
@@ -437,7 +437,7 @@ func (v *parser) parseInverse() (InverseLike, *Token, bool) {
 	var token *Token
 	var factor Factor
 	var inverse InverseLike
-	_, token, ok = v.parseLiteral("~")
+	_, token, ok = v.parseLITERAL("~")
 	if !ok {
 		// This is not an inverse.
 		return inverse, token, false
@@ -456,7 +456,7 @@ func (v *parser) parseInverse() (InverseLike, *Token, bool) {
 
 // This method attempts to parse the specified literal. It returns
 // the token and whether or not the literal was found.
-func (v *parser) parseLiteral(literal string) (string, *Token, bool) {
+func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
 	var token = v.nextToken()
 	if token.Type == TokenEOF || token.Value != literal {
 		v.backupOne()
@@ -467,18 +467,18 @@ func (v *parser) parseLiteral(literal string) (string, *Token, bool) {
 
 // This method attempts to parse a name token. It returns the token and
 // whether or not a name token was found.
-func (v *parser) parseName() (Name, *Token, bool) {
-	var name Name
+func (v *parser) parseNAME() (NAME, *Token, bool) {
+	var name NAME
 	var token = v.nextToken()
-	if token.Type != TokenName {
+	if token.Type != TokenNAME {
 		v.backupOne()
 		return name, token, false
 	}
 	if v.isToken && uni.IsLower(rune(token.Value[0])) {
 		panic(fmt.Sprintf("A token definition contains a rulename: %v\n", token.Value))
 	}
-	name = Name(token.Value)
-	var symbol = Symbol("$" + token.Value)
+	name = NAME(token.Value)
+	var symbol = SYMBOL("$" + token.Value)
 	var definition = v.symbols.GetValue(symbol)
 	v.symbols.SetValue(symbol, definition)
 	return name, token, true
@@ -486,27 +486,27 @@ func (v *parser) parseName() (Name, *Token, bool) {
 
 // This method attempts to parse a note. It returns the note and whether or not
 // the note was successfully parsed.
-func (v *parser) parseNote() (Note, *Token, bool) {
-	var note Note
+func (v *parser) parseNOTE() (NOTE, *Token, bool) {
+	var note NOTE
 	var token = v.nextToken()
-	if token.Type != TokenNote {
+	if token.Type != TokenNOTE {
 		v.backupOne()
 		return note, token, false
 	}
-	note = Note(token.Value)
+	note = NOTE(token.Value)
 	return note, token, true
 }
 
 // This method attempts to parse a number. It returns the number and
 // whether or not a number was successfully parsed.
-func (v *parser) parseNumber() (Number, *Token, bool) {
-	var number Number
+func (v *parser) parseNUMBER() (NUMBER, *Token, bool) {
+	var number NUMBER
 	var token = v.nextToken()
-	if token.Type != TokenNumber {
+	if token.Type != TokenNUMBER {
 		v.backupOne()
 		return number, token, false
 	}
-	number = Number(token.Value)
+	number = NUMBER(token.Value)
 	return number, token, true
 }
 
@@ -517,7 +517,7 @@ func (v *parser) parseOneOrMore() (OneOrMoreLike, *Token, bool) {
 	var token *Token
 	var expression ExpressionLike
 	var oneOrMore OneOrMoreLike
-	_, token, ok = v.parseLiteral("<")
+	_, token, ok = v.parseLITERAL("<")
 	if !ok {
 		// This is not an one or more grouping.
 		return oneOrMore, token, false
@@ -531,7 +531,7 @@ func (v *parser) parseOneOrMore() (OneOrMoreLike, *Token, bool) {
 		panic(message)
 	}
 	expression.SetMultilined(false)
-	_, token, ok = v.parseLiteral(">")
+	_, token, ok = v.parseLITERAL(">")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(">",
@@ -548,17 +548,17 @@ func (v *parser) parseOneOrMore() (OneOrMoreLike, *Token, bool) {
 func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var first Character
-	var last Character
+	var first CHARACTER
+	var last CHARACTER
 	var range_ RangeLike
-	first, token, ok = v.parseCharacter()
+	first, token, ok = v.parseCHARACTER()
 	if !ok {
 		// This is not a range.
 		return range_, token, false
 	}
-	_, _, ok = v.parseLiteral("..")
+	_, _, ok = v.parseLITERAL("..")
 	if ok {
-		last, token, ok = v.parseCharacter()
+		last, token, ok = v.parseCHARACTER()
 		if !ok {
 			var message = v.formatError(token)
 			message += generateGrammar("CHARACTER",
@@ -576,10 +576,10 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var comment Comment
+	var comment COMMENT
 	var definition DefinitionLike
 	var statement StatementLike
-	comment, _, ok = v.parseComment()
+	comment, _, ok = v.parseCOMMENT()
 	if !ok {
 		definition, token, ok = v.parseDefinition()
 		if !ok {
@@ -593,27 +593,27 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 
 // This method attempts to parse a string. It returns the string and whether
 // or not the string was successfully parsed.
-func (v *parser) parseString() (String, *Token, bool) {
-	var string_ String
+func (v *parser) parseSTRING() (STRING, *Token, bool) {
+	var string_ STRING
 	var token = v.nextToken()
-	if token.Type != TokenString {
+	if token.Type != TokenSTRING {
 		v.backupOne()
 		return string_, token, false
 	}
-	string_ = String(token.Value)
+	string_ = STRING(token.Value)
 	return string_, token, true
 }
 
 // This method attempts to parse a symbol. It returns the symbol and
 // whether or not the symbol was successfully parsed.
-func (v *parser) parseSymbol() (Symbol, *Token, bool) {
-	var symbol Symbol
+func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
+	var symbol SYMBOL
 	var token = v.nextToken()
-	if token.Type != TokenSymbol {
+	if token.Type != TokenSYMBOL {
 		v.backupOne()
 		return symbol, token, false
 	}
-	symbol = Symbol(token.Value)
+	symbol = SYMBOL(token.Value)
 	return symbol, token, true
 }
 
@@ -624,7 +624,7 @@ func (v *parser) parseZeroOrMore() (ZeroOrMoreLike, *Token, bool) {
 	var token *Token
 	var expression ExpressionLike
 	var zeroOrMore ZeroOrMoreLike
-	_, token, ok = v.parseLiteral("{")
+	_, token, ok = v.parseLITERAL("{")
 	if !ok {
 		// This is not an zero or more grouping.
 		return zeroOrMore, token, false
@@ -638,7 +638,7 @@ func (v *parser) parseZeroOrMore() (ZeroOrMoreLike, *Token, bool) {
 		panic(message)
 	}
 	expression.SetMultilined(false)
-	_, token, ok = v.parseLiteral("}")
+	_, token, ok = v.parseLITERAL("}")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("}",
@@ -657,7 +657,7 @@ func (v *parser) parseZeroOrOne() (ZeroOrOneLike, *Token, bool) {
 	var token *Token
 	var expression ExpressionLike
 	var zeroOrOne ZeroOrOneLike
-	_, token, ok = v.parseLiteral("[")
+	_, token, ok = v.parseLITERAL("[")
 	if !ok {
 		// This is not an zero or more grouping.
 		return zeroOrOne, token, false
@@ -671,7 +671,7 @@ func (v *parser) parseZeroOrOne() (ZeroOrOneLike, *Token, bool) {
 		panic(message)
 	}
 	expression.SetMultilined(false)
-	_, token, ok = v.parseLiteral("]")
+	_, token, ok = v.parseLITERAL("]")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("]",

@@ -25,9 +25,9 @@ type TokenType string
 
 // This enumeration defines all possible token types including the error token.
 const (
-	TokenError   TokenType = "Error"
-	TokenLiteral TokenType = "Literal"
 	TokenEOF     TokenType = "EOF"
+	TokenERROR   TokenType = "ERROR"
+	TokenLITERAL TokenType = "LITERAL"
 )
 
 // This type defines the structure and methods for each token returned by the
@@ -105,7 +105,7 @@ func (v *scanner) emitToken(tType TokenType) {
 	if tType == TokenEOF {
 		tValue = "<EOF>"
 	}
-	if tType == TokenError {
+	if tType == TokenERROR {
 		switch tValue {
 		case "\a":
 			tValue = "<BELL>"
@@ -134,7 +134,7 @@ func (v *scanner) foundError() {
 	var bytes = v.source[v.nextByte:]
 	var _, width = utf.DecodeRune(bytes)
 	v.nextByte += width
-	v.emitToken(TokenError)
+	v.emitToken(TokenERROR)
 }
 
 // This method continues scanning tokens from the source bytes until an error
@@ -152,9 +152,9 @@ func (v *scanner) generateTokens() {
 // this method returns false.
 func (v *scanner) processToken() bool {
 	switch {
-	case v.scanWhitespace():
+	case v.scanWHITESPACE():
 #scanTokens#
-	case v.scanLiteral():
+	case v.scanLITERAL():
 	case v.scanEOF():
 		// We are at the end of the source bytes.
 		return false
@@ -171,7 +171,7 @@ var whitespaceScanner = reg.MustCompile(`^(?:` + whitespace + `)`)
 
 // This method tells the scanner to ignore any whitespace.  It returns true if
 // whitespace was found.
-func (v *scanner) scanWhitespace() bool {
+func (v *scanner) scanWHITESPACE() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(whitespaceScanner.FindSubmatch(s))
 	if len(matches) > 0 {
@@ -204,3 +204,7 @@ func (v *scanner) scanEOF() bool {
 	return false
 }
 
+		return true
+	}
+	return false
+}

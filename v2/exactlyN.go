@@ -17,12 +17,12 @@ package cdsn
 type ExactlyNLike interface {
 	GetExpression() ExpressionLike
 	SetExpression(expression ExpressionLike)
-	GetN() Number
-	SetN(n Number)
+	GetN() NUMBER
+	SetN(n NUMBER)
 }
 
 // This constructor creates a new exactly N grouping.
-func ExactlyN(expression ExpressionLike, n Number) ExactlyNLike {
+func ExactlyN(expression ExpressionLike, n NUMBER) ExactlyNLike {
 	var v = &exactlyN{}
 	v.SetExpression(expression)
 	v.SetN(n)
@@ -35,7 +35,7 @@ func ExactlyN(expression ExpressionLike, n Number) ExactlyNLike {
 // grouping.
 type exactlyN struct {
 	expression ExpressionLike
-	n          Number
+	n          NUMBER
 }
 
 // This method returns the expression for this exactly N grouping.
@@ -52,11 +52,11 @@ func (v *exactlyN) SetExpression(expression ExpressionLike) {
 }
 
 // This method returns the number for this exactly N grouping.
-func (v *exactlyN) GetN() Number {
+func (v *exactlyN) GetN() NUMBER {
 	return v.n
 }
 
 // This method sets the number for this exactly N grouping.
-func (v *exactlyN) SetN(n Number) {
+func (v *exactlyN) SetN(n NUMBER) {
 	v.n = n
 }
