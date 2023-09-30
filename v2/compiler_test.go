@@ -11,6 +11,7 @@
 package cdsn_test
 
 import (
+	fmt "fmt"
 	cds "github.com/craterdog/go-cdsn-validation/v2"
 	osx "os"
 	tes "testing"
@@ -21,6 +22,7 @@ const testDirectory = "./test/"
 func TestCompiler(t *tes.T) {
 
 	var filename = testDirectory + "test.cdsn"
+	fmt.Println(filename)
 	var document, err = osx.ReadFile(filename)
 	if err != nil {
 		panic(err)
