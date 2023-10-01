@@ -49,8 +49,14 @@ $LIMIT: "~" | "?" | "*" | "+" | +DIGIT
     scanner.  Each rule name begins with a lower case letter.  The rule definitions may specify the
     names of tokens or other rules and are matched by the parser in the order listed.  Rule
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
-    separated by whitespace which is ignored by the parser.  The following rules are attempted in
-    the order listed below.
+    separated by whitespace which is ignored by the parser.  The factors within the predicates may
+    be constrained by one of the following limits:
+     * ~factor - Anything except the constrained factor
+     * ?factor - Zero or one instances of the constrained factor
+     * *factor - Zero or more instances of the constrained factor
+     * +factor - One or more instances of the constrained factor
+     * Nfactor - Exactly N instances of the constrained factor
+    The following rules are attempted in the order listed below.
 <!
 
 $document: +statement EOF  ! Terminated with an end-of-file marker.
