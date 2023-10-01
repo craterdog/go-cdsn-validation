@@ -19,16 +19,16 @@ import (
 // This interface defines the methods supported by all alternative-like
 // components.
 type AlternativeLike interface {
-	GetFactors() col.Sequential[Factor]
-	SetFactors(factors col.Sequential[Factor])
+	GetPredicates() col.Sequential[Predicate]
+	SetPredicates(predicates col.Sequential[Predicate])
 	GetNOTE() NOTE
 	SetNOTE(note NOTE)
 }
 
 // This constructor creates a new alternative.
-func Alternative(factors col.Sequential[Factor], note NOTE) AlternativeLike {
+func Alternative(predicates col.Sequential[Predicate], note NOTE) AlternativeLike {
 	var v = &alternative{}
-	v.SetFactors(factors)
+	v.SetPredicates(predicates)
 	v.SetNOTE(note)
 	return v
 }
@@ -37,21 +37,21 @@ func Alternative(factors col.Sequential[Factor], note NOTE) AlternativeLike {
 
 // This type defines the structure and methods associated with an alternative.
 type alternative struct {
-	factors col.Sequential[Factor]
-	note    NOTE
+	predicates col.Sequential[Predicate]
+	note       NOTE
 }
 
-// This method returns the factors for this alternative.
-func (v *alternative) GetFactors() col.Sequential[Factor] {
-	return v.factors
+// This method returns the predicates for this alternative.
+func (v *alternative) GetPredicates() col.Sequential[Predicate] {
+	return v.predicates
 }
 
-// This method sets the factors for this alternative.
-func (v *alternative) SetFactors(factors col.Sequential[Factor]) {
-	if factors == nil || factors.IsEmpty() {
-		panic("An alternative requires at least one factor.")
+// This method sets the predicates for this alternative.
+func (v *alternative) SetPredicates(predicates col.Sequential[Predicate]) {
+	if predicates == nil || predicates.IsEmpty() {
+		panic("An alternative requires at least one predicate.")
 	}
-	v.factors = factors
+	v.predicates = predicates
 }
 
 // This method returns the note for this alternative.

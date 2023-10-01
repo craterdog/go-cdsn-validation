@@ -16,12 +16,12 @@ import (
 
 type SYMBOL string
 
+const TokenSYMBOL TokenType = "SYMBOL"
+const symbol = `\$(` + name + `)`
+
 func (v SYMBOL) GetNAME() NAME {
 	return NAME(v[1:])
 }
-
-const TokenSYMBOL TokenType = "SYMBOL"
-const symbol = `\$(` + name + `)`
 
 // This scanner is used for matching symbol tokens.
 var symbolScanner = reg.MustCompile(`^(?:` + symbol + `)`)

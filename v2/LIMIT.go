@@ -14,10 +14,13 @@ import (
 	reg "regexp"
 )
 
-type NUMBER string
+type LIMIT string
 
-const TokenNUMBER TokenType = "NUMBER"
-const number = digit + `+`
+const TokenLIMIT TokenType = "LIMIT"
+const (
+	number = digit + `+`
+	limit  = `[~?*+]|` + number
+)
 
-// This scanner is used for matching number tokens.
-var numberScanner = reg.MustCompile(`^(?:` + number + `)`)
+// This scanner is used for matching limit tokens.
+var limitScanner = reg.MustCompile(`^(?:` + limit + `)`)

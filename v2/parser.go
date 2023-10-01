@@ -60,20 +60,17 @@ func ParseDocument(source []byte) DocumentLike {
 // This map captures the syntax expressions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar_ = map[string]string{
-	"$document":    `<statement> EOF  ! Terminated with an end-of-file marker.`,
-	"$statement":   `COMMENT | definition`,
+	"$document":    `+statement EOF  ! Terminated with an end-of-file marker.`,
+	"$statement":   `definition | COMMENT`,
 	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
-	"$expression":  `alternative {"|" alternative}`,
-	"$alternative": `<factor> [NOTE]`,
-	"$factor":      `element | range | inverse | grouping`,
-	"$element":     `INTRINSIC | NAME | STRING | NUMBER`,
-	"$range":       `CHARACTER [".." CHARACTER]  ! A range of CHARACTERs is inclusive.`,
-	"$inverse":     `"~" factor`,
-	"$grouping":    `exactlyN | zeroOrOne | zeroOrMore | oneOrMore`,
-	"$exactlyN":    `"(" expression ")" [NUMBER]  ! The default is exactly one.`,
-	"$zeroOrOne":   `"[" expression "]"`,
-	"$zeroOrMore":  `"{" expression "}"`,
-	"$oneOrMore":   `"<" expression ">"`,
+	"$expression":  `alternative *("|" alternative)`,
+	"$alternative": `+predicate ?NOTE`,
+	"$predicate":   `range | constraint | factor`,
+	"$range":       `CHARACTER ?(".." CHARACTER)  ! A range of CHARACTERs is inclusive.`,
+	"$constraint":  `LIMIT factor`,
+	"$factor":      `precedence | element`,
+	"$precedence":  `"(" expression ")"`,
+	"$element":     `INTRINSIC | NAME | STRING`,
 }
 
 func generateGrammar(expected string, symbols ...string) string {
@@ -238,17 +235,17 @@ func (v *parser) parseSTRING() (STRING, *Token, bool) {
 	return string_, token, true
 }
 
-// This method attempts to parse the number token. It returns the token
-// and whether or not the number token was successfully parsed.
-func (v *parser) parseNUMBER() (NUMBER, *Token, bool) {
-	var number NUMBER
+// This method attempts to parse the limit token. It returns the token
+// and whether or not the limit token was successfully parsed.
+func (v *parser) parseLIMIT() (LIMIT, *Token, bool) {
+	var limit LIMIT
 	var token = v.nextToken()
-	if token.Type != TokenNUMBER {
+	if token.Type != TokenLIMIT {
 		v.backupOne()
-		return number, token, false
+		return limit, token, false
 	}
-	number = NUMBER(token.Value)
-	return number, token, true
+	limit = LIMIT(token.Value)
+	return limit, token, true
 }
 
 // This method attempts to parse the name token. It returns the token
@@ -283,31 +280,57 @@ func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
 	return symbol, token, true
 }
 
-// This method attempts to parse an alternative. It returns the alternative and
-// whether or not the alternative was successfully parsed.
-func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
+// This method attempts to parse a document. It returns the document and whether
+// or not the document was successfully parsed.
+func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var factor Factor
-	var factors = col.List[Factor]()
-	var note NOTE
-	var alternative AlternativeLike
-	factor, token, ok = v.parseFactor()
+	var statement Statement
+	var statements = col.List[Statement]()
+	var document DocumentLike
+	statement, token, ok = v.parseStatement()
 	if !ok {
-		// An alternative must have at least one factor.
-		return alternative, token, false
+		var message = v.formatError(token)
+		message += generateGrammar("statement",
+			"$document",
+			"$statement")
+		panic(message)
 	}
 	for {
-		factors.AddValue(factor)
-		factor, token, ok = v.parseFactor()
+		statements.AddValue(statement)
+		statement, _, ok = v.parseStatement()
 		if !ok {
-			// No more factors.
+			// No more statements.
 			break
 		}
 	}
-	note, _, _ = v.parseNOTE() // The note is optional.
-	alternative = Alternative(factors, note)
-	return alternative, token, true
+	_, token, ok = v.parseEOF()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("EOF",
+			"$document",
+			"$statement")
+		panic(message)
+	}
+	document = Document(statements)
+	return document, token, true
+}
+
+// This method attempts to parse a statement. It returns the statement and
+// whether or not the statement was successfully parsed.
+func (v *parser) parseStatement() (Statement, *Token, bool) {
+	var ok bool
+	var token *Token
+	var statement Statement
+	statement, _, ok = v.parseCOMMENT()
+	if !ok {
+		statement, token, ok = v.parseDefinition()
+		if !ok {
+			// This is not a statement.
+			return statement, token, false
+		}
+	}
+	return statement, token, true
 }
 
 // This method attempts to parse a definition. It returns the definition and
@@ -347,59 +370,6 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	return definition, token, true
 }
 
-// This method attempts to parse an element. It returns the element and whether
-// or not the element was successfully parsed.
-func (v *parser) parseElement() (Factor, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor Factor
-	factor, token, ok = v.parseINTRINSIC()
-	if !ok {
-		factor, token, ok = v.parseNAME()
-	}
-	if !ok {
-		factor, token, ok = v.parseSTRING()
-	}
-	if !ok {
-		factor, token, ok = v.parseNUMBER()
-	}
-	return factor, token, ok
-}
-
-// This method attempts to parse an exactly N grouping. It returns the exactly
-// N grouping and whether or not the exactly N grouping was successfully parsed.
-func (v *parser) parseExactlyN() (ExactlyNLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var expression ExpressionLike
-	var exactlyN ExactlyNLike
-	_, token, ok = v.parseLITERAL("(")
-	if !ok {
-		// This is not an exactly N grouping.
-		return exactlyN, token, false
-	}
-	expression, token, ok = v.parseExpression()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("expression",
-			"$exactlyN",
-			"$expression")
-		panic(message)
-	}
-	expression.SetMultilined(false)
-	_, token, ok = v.parseLITERAL(")")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar(")",
-			"$exactlyN",
-			"$expression")
-		panic(message)
-	}
-	var n, _, _ = v.parseNUMBER() // The number is optional.
-	exactlyN = ExactlyN(expression, n)
-	return exactlyN, token, true
-}
-
 // This method attempts to parse an expression. It returns the expression and
 // whether or not the expression was successfully parsed.
 func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
@@ -436,135 +406,47 @@ func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 	return expression, token, true
 }
 
-// This method attempts to parse a factor. It returns the factor and whether or
-// not the factor was successfully parsed.
-func (v *parser) parseFactor() (Factor, *Token, bool) {
+// This method attempts to parse an alternative. It returns the alternative and
+// whether or not the alternative was successfully parsed.
+func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var factor Factor
-	factor, token, ok = v.parseElement()
+	var predicate Predicate
+	var predicates = col.List[Predicate]()
+	var note NOTE
+	var alternative AlternativeLike
+	predicate, token, ok = v.parsePredicate()
 	if !ok {
-		factor, token, ok = v.parseRange()
-	}
-	if !ok {
-		factor, token, ok = v.parseInverse()
-	}
-	if !ok {
-		factor, token, ok = v.parseGrouping()
-	}
-	return factor, token, ok
-}
-
-// This method attempts to parse a document. It returns the document and whether
-// or not the document was successfully parsed.
-func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var statement StatementLike
-	var statements = col.List[StatementLike]()
-	var document DocumentLike
-	statement, token, ok = v.parseStatement()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("statement",
-			"$document",
-			"$statement")
-		panic(message)
+		// An alternative must have at least one predicate.
+		return alternative, token, false
 	}
 	for {
-		statements.AddValue(statement)
-		statement, _, ok = v.parseStatement()
+		predicates.AddValue(predicate)
+		predicate, token, ok = v.parsePredicate()
 		if !ok {
-			// No more statements.
+			// No more predicates.
 			break
 		}
 	}
-	_, token, ok = v.parseEOF()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("EOF",
-			"$document",
-			"$statement")
-		panic(message)
-	}
-	document = Document(statements)
-	return document, token, true
+	note, _, _ = v.parseNOTE() // The note is optional.
+	alternative = Alternative(predicates, note)
+	return alternative, token, true
 }
 
-// This method attempts to parse a grouping. It returns the grouping and whether
-// or not the grouping was successfully parsed.
-func (v *parser) parseGrouping() (Factor, *Token, bool) {
+// This method attempts to parse a predicate. It returns the predicate and whether or
+// not the predicate was successfully parsed.
+func (v *parser) parsePredicate() (Predicate, *Token, bool) {
 	var ok bool
 	var token *Token
-	var factor Factor
-	factor, token, ok = v.parseExactlyN()
+	var predicate Predicate
+	predicate, token, ok = v.parseRange()
 	if !ok {
-		factor, token, ok = v.parseZeroOrOne()
+		predicate, token, ok = v.parseConstraint()
 	}
 	if !ok {
-		factor, token, ok = v.parseZeroOrMore()
+		predicate, token, ok = v.parseFactor()
 	}
-	if !ok {
-		factor, token, ok = v.parseOneOrMore()
-	}
-	return factor, token, ok
-}
-
-// This method attempts to parse an inverse. It returns the inverse and
-// whether or not the inverse was successfully parsed.
-func (v *parser) parseInverse() (InverseLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor Factor
-	var inverse InverseLike
-	_, token, ok = v.parseLITERAL("~")
-	if !ok {
-		// This is not an inverse.
-		return inverse, token, false
-	}
-	factor, token, ok = v.parseFactor()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("factor",
-			"$inverse",
-			"$factor")
-		panic(message)
-	}
-	inverse = Inverse(factor)
-	return inverse, token, true
-}
-
-// This method attempts to parse an one or more grouping. It returns the one or
-// more grouping and whether or not the one or more grouping was successfully parsed.
-func (v *parser) parseOneOrMore() (OneOrMoreLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var expression ExpressionLike
-	var oneOrMore OneOrMoreLike
-	_, token, ok = v.parseLITERAL("<")
-	if !ok {
-		// This is not an one or more grouping.
-		return oneOrMore, token, false
-	}
-	expression, token, ok = v.parseExpression()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("expression",
-			"$oneOrMore",
-			"$expression")
-		panic(message)
-	}
-	expression.SetMultilined(false)
-	_, token, ok = v.parseLITERAL(">")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar(">",
-			"$oneOrMore",
-			"$expression")
-		panic(message)
-	}
-	oneOrMore = OneOrMore(expression)
-	return oneOrMore, token, true
+	return predicate, token, ok
 }
 
 // This method attempts to parse a range. It returns the range and whether or
@@ -595,88 +477,90 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	return range_, token, true
 }
 
-// This method attempts to parse a statement. It returns the statement and
-// whether or not the statement was successfully parsed.
-func (v *parser) parseStatement() (StatementLike, *Token, bool) {
+// This method attempts to parse a constraint. It returns the constraint
+// and whether or not the constraint was successfully parsed.
+func (v *parser) parseConstraint() (ConstraintLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var comment COMMENT
-	var definition DefinitionLike
-	var statement StatementLike
-	comment, _, ok = v.parseCOMMENT()
+	var limit LIMIT
+	var factor Factor
+	var constraint ConstraintLike
+	limit, token, ok = v.parseLIMIT()
 	if !ok {
-		definition, token, ok = v.parseDefinition()
-		if !ok {
-			// This is not a statement.
-			return statement, token, false
-		}
+		// This is not a constraint.
+		return constraint, token, false
 	}
-	statement = Statement(comment, definition)
-	return statement, token, true
+	factor, token, ok = v.parseFactor()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("LIMIT",
+			"$constraint",
+			"$LIMIT",
+			"$factor")
+		panic(message)
+	}
+	constraint = Constraint(limit, factor)
+	return constraint, token, true
 }
 
-// This method attempts to parse an zero or more grouping. It returns the zero or
-// more grouping and whether or not the zero or more grouping was successfully parsed.
-func (v *parser) parseZeroOrMore() (ZeroOrMoreLike, *Token, bool) {
+// This method attempts to parse a factor. It returns the factor and whether or
+// not the factor was successfully parsed.
+func (v *parser) parseFactor() (Factor, *Token, bool) {
+	var ok bool
+	var token *Token
+	var factor Factor
+	factor, token, ok = v.parsePrecedence()
+	if !ok {
+		factor, token, ok = v.parseElement()
+	}
+	return factor, token, ok
+}
+
+// This method attempts to parse a precedence. It returns the precedence
+// and whether or not the precedence was successfully parsed.
+func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var expression ExpressionLike
-	var zeroOrMore ZeroOrMoreLike
-	_, token, ok = v.parseLITERAL("{")
+	var precedence PrecedenceLike
+	_, token, ok = v.parseLITERAL("(")
 	if !ok {
-		// This is not an zero or more grouping.
-		return zeroOrMore, token, false
+		// This is not a precedence.
+		return precedence, token, false
 	}
 	expression, token, ok = v.parseExpression()
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("expression",
-			"$zeroOrMore",
+			"$precedence",
 			"$expression")
 		panic(message)
 	}
 	expression.SetMultilined(false)
-	_, token, ok = v.parseLITERAL("}")
+	_, token, ok = v.parseLITERAL(")")
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("}",
-			"$zeroOrMore",
+		message += generateGrammar(")",
+			"$precedence",
 			"$expression")
 		panic(message)
 	}
-	zeroOrMore = ZeroOrMore(expression)
-	return zeroOrMore, token, true
+	precedence = Precedence(expression)
+	return precedence, token, true
 }
 
-// This method attempts to parse an zero or more grouping. It returns the zero or
-// more grouping and whether or not the zero or more grouping was successfully parsed.
-func (v *parser) parseZeroOrOne() (ZeroOrOneLike, *Token, bool) {
+// This method attempts to parse an element. It returns the element and whether
+// or not the element was successfully parsed.
+func (v *parser) parseElement() (Factor, *Token, bool) {
 	var ok bool
 	var token *Token
-	var expression ExpressionLike
-	var zeroOrOne ZeroOrOneLike
-	_, token, ok = v.parseLITERAL("[")
+	var factor Factor
+	factor, token, ok = v.parseINTRINSIC()
 	if !ok {
-		// This is not an zero or more grouping.
-		return zeroOrOne, token, false
+		factor, token, ok = v.parseNAME()
 	}
-	expression, token, ok = v.parseExpression()
 	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("expression",
-			"$zeroOrOne",
-			"$expression")
-		panic(message)
+		factor, token, ok = v.parseSTRING()
 	}
-	expression.SetMultilined(false)
-	_, token, ok = v.parseLITERAL("]")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("]",
-			"$zeroOrOne",
-			"$expression")
-		panic(message)
-	}
-	zeroOrOne = ZeroOrOne(expression)
-	return zeroOrOne, token, true
+	return factor, token, ok
 }

@@ -39,19 +39,19 @@ $DELIMITER: "]" | "[" | ")" | "(" | ":" | ","
 
 $EXPONENT: ("e" | "E") SIGN ORDINAL
 
-$FLOAT: [SIGN] SCALAR [EXPONENT]
+$FLOAT: ?SIGN SCALAR ?EXPONENT
 
-$FRACTION: "." <BASE10>
+$FRACTION: "." +BASE10
 
 $IGNORED: " "
 
-$INTEGER: ZERO | [SIGN] ORDINAL
+$INTEGER: ZERO | ?SIGN ORDINAL
 
 $LETTER: LOWER_CASE | UPPER_CASE
 
 $NIL: "nil"
 
-$ORDINAL: '1'..'9' {'0'..'9'}
+$ORDINAL: '1'..'9' *('0'..'9')
 
 $RUNE: "'" (ESCAPE | ~("'" | EOL)) "'"
 
@@ -59,11 +59,11 @@ $SCALAR: (ZERO | ORDINAL) FRACTION
 
 $SIGN: "+" | "-"
 
-$STRING: '"' {ESCAPE | ~('"' | EOL)} '"'
+$STRING: '"' *(ESCAPE | ~('"' | EOL)) '"'
 
-$UNICODE: "u" (BASE16)4 | "U" (BASE16)8
+$UNICODE: "u" 4(BASE16) | "U" 8(BASE16)
 
-$UNSIGNED: "0x" <BASE16>
+$UNSIGNED: "0x" +BASE16
 
 $ZERO: "0"
 
@@ -80,8 +80,8 @@ $ZERO: "0"
 $association: key ":" value
 
 $associations:
-      association {"," association}
-    | EOL <association EOL>
+      association *("," association)
+    | EOL +(association EOL)
     | ":"  ! No associations.
 
 $collection: "[" (values | associations) "]" "(" CONTEXT ")"
@@ -95,7 +95,7 @@ $source: collection EOF  ! EOF is the end-of-file marker.
 $value: primitive | collection
 
 $values:
-      value {"," value}
-    | EOL <value EOL>
+      value *("," value)
+    | EOL +(value EOL)
     | " "  ! No values.
 

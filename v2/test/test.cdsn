@@ -18,9 +18,9 @@
     The token types are scanned for in the order listed in the specification.
 <!
 
-$TEXT: '"' <ESCAPE | ~('"' | EOL)> '"'
+$TEXT: '"' +(ESCAPE | ~('"' | EOL)) '"'
 
-$INTEGER: '0' | ['-'] '1'..'9' {DIGIT}
+$INTEGER: "0" | ?"-" '1'..'9' *DIGIT
 
 
 !>
@@ -38,5 +38,5 @@ $component: primitive | list
 
 $primitive: TEXT | INTEGER
 
-$list: "[" {component} "]"
+$list: "[" *component "]"
 

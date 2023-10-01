@@ -19,12 +19,12 @@ import (
 // This interface defines the methods supported by all document-like
 // components.
 type DocumentLike interface {
-	GetStatements() col.Sequential[StatementLike]
-	SetStatements(statements col.Sequential[StatementLike])
+	GetStatements() col.Sequential[Statement]
+	SetStatements(statements col.Sequential[Statement])
 }
 
 // This constructor creates a new document.
-func Document(statements col.Sequential[StatementLike]) DocumentLike {
+func Document(statements col.Sequential[Statement]) DocumentLike {
 	var v = &document{}
 	v.SetStatements(statements)
 	return v
@@ -34,16 +34,16 @@ func Document(statements col.Sequential[StatementLike]) DocumentLike {
 
 // This type defines the structure and methods associated with a document.
 type document struct {
-	statements col.Sequential[StatementLike]
+	statements col.Sequential[Statement]
 }
 
 // This method returns the statements for this document.
-func (v *document) GetStatements() col.Sequential[StatementLike] {
+func (v *document) GetStatements() col.Sequential[Statement] {
 	return v.statements
 }
 
 // This method sets the statements for this document.
-func (v *document) SetStatements(statements col.Sequential[StatementLike]) {
+func (v *document) SetStatements(statements col.Sequential[Statement]) {
 	if statements == nil || statements.IsEmpty() {
 		panic("A document requires at least one statement.")
 	}

@@ -88,6 +88,10 @@ func (v *compiler) DecrementDepth() {
 func (v *compiler) AtCHARACTER(character CHARACTER) {
 }
 
+// This public method is called between the two two characters in a range.
+func (v *compiler) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
+}
+
 // This public method is called for each comment token.
 func (v *compiler) AtCOMMENT(comment COMMENT) {
 }
@@ -96,16 +100,16 @@ func (v *compiler) AtCOMMENT(comment COMMENT) {
 func (v *compiler) AtINTRINSIC(intrinsic INTRINSIC) {
 }
 
+// This public method is called for each limit token.
+func (v *compiler) AtLIMIT(limit LIMIT) {
+}
+
 // This public method is called for each name token.
 func (v *compiler) AtNAME(name NAME) {
 }
 
 // This public method is called for each note token.
 func (v *compiler) AtNOTE(note NOTE) {
-}
-
-// This public method is called for each number token.
-func (v *compiler) AtNUMBER(number NUMBER) {
 }
 
 // This public method is called for each string token.
@@ -136,6 +140,14 @@ func (v *compiler) BeforeAlternative(alternative AlternativeLike, slot int, size
 func (v *compiler) AfterAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
 }
 
+// This public method is called before each constraint.
+func (v *compiler) BeforeConstraint(constraint ConstraintLike) {
+}
+
+// This public method is called after each constraint.
+func (v *compiler) AfterConstraint(constraint ConstraintLike) {
+}
+
 // This public method is called before each definition.
 func (v *compiler) BeforeDefinition(definition DefinitionLike) {
 }
@@ -148,38 +160,6 @@ func (v *compiler) AfterDefinition(definition DefinitionLike) {
 		v.appendParseRuleEnd(name)
 		v.appendVisitRuleEnd(name)
 	}
-}
-
-// This public method is called before each element.
-func (v *compiler) BeforeElement(element Element) {
-}
-
-// This public method is called after each element.
-func (v *compiler) AfterElement(element Element) {
-}
-
-// This public method is called before each exactly N grouping.
-func (v *compiler) BeforeExactlyN(exactlyN ExactlyNLike, n NUMBER) {
-}
-
-// This public method is called after each exactly N grouping.
-func (v *compiler) AfterExactlyN(exactlyN ExactlyNLike, n NUMBER) {
-}
-
-// This public method is called before each expression.
-func (v *compiler) BeforeExpression(expression ExpressionLike) {
-}
-
-// This public method is called after each expression.
-func (v *compiler) AfterExpression(expression ExpressionLike) {
-}
-
-// This public method is called before each factor in an alternative.
-func (v *compiler) BeforeFactor(factor Factor, slot int, size int) {
-}
-
-// This public method is called after each factor in an alternative.
-func (v *compiler) AfterFactor(factor Factor, slot int, size int) {
 }
 
 // This public method is called before the document.
@@ -197,36 +177,48 @@ func (v *compiler) AfterDocument(document DocumentLike) {
 	v.finalizeVisitor()
 }
 
-// This public method is called before each grouping.
-func (v *compiler) BeforeGrouping(grouping Grouping) {
+// This public method is called before each element.
+func (v *compiler) BeforeElement(element Element) {
 }
 
-// This public method is called after each grouping.
-func (v *compiler) AfterGrouping(grouping Grouping) {
+// This public method is called after each element.
+func (v *compiler) AfterElement(element Element) {
 }
 
-// This public method is called before each inverse factor.
-func (v *compiler) BeforeInverse(inverse InverseLike) {
+// This public method is called before each expression.
+func (v *compiler) BeforeExpression(expression ExpressionLike) {
 }
 
-// This public method is called after each inverse factor.
-func (v *compiler) AfterInverse(inverse InverseLike) {
+// This public method is called after each expression.
+func (v *compiler) AfterExpression(expression ExpressionLike) {
 }
 
-// This public method is called before each one or more grouping.
-func (v *compiler) BeforeOneOrMore(oneOrMore OneOrMoreLike) {
+// This public method is called before each factor in an alternative.
+func (v *compiler) BeforeFactor(factor Factor) {
 }
 
-// This public method is called after each one or more grouping.
-func (v *compiler) AfterOneOrMore(oneOrMore OneOrMoreLike) {
+// This public method is called after each factor in an alternative.
+func (v *compiler) AfterFactor(factor Factor) {
+}
+
+// This public method is called before each precedence.
+func (v *compiler) BeforePrecedence(precedence PrecedenceLike) {
+}
+
+// This public method is called after each precedence.
+func (v *compiler) AfterPrecedence(precedence PrecedenceLike) {
+}
+
+// This public method is called before each predicate.
+func (v *compiler) BeforePredicate(predicate Predicate, slot int, size int) {
+}
+
+// This public method is called after each predicate.
+func (v *compiler) AfterPredicate(predicate Predicate, slot int, size int) {
 }
 
 // This public method is called before each character range.
 func (v *compiler) BeforeRange(range_ RangeLike) {
-}
-
-// This public method is called between the two two characters in a range.
-func (v *compiler) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
 }
 
 // This public method is called after each character range.
@@ -234,27 +226,11 @@ func (v *compiler) AfterRange(range_ RangeLike) {
 }
 
 // This public method is called before each statement in a document.
-func (v *compiler) BeforeStatement(statement StatementLike, slot int, size int) {
+func (v *compiler) BeforeStatement(statement Statement, slot int, size int) {
 }
 
 // This public method is called after each statement in a document.
-func (v *compiler) AfterStatement(statement StatementLike, slot int, size int) {
-}
-
-// This public method is called before each zero or more grouping.
-func (v *compiler) BeforeZeroOrMore(zeroOrMore ZeroOrMoreLike) {
-}
-
-// This public method is called after each zero or more grouping.
-func (v *compiler) AfterZeroOrMore(zeroOrMore ZeroOrMoreLike) {
-}
-
-// This public method is called before each zero or one grouping.
-func (v *compiler) BeforeZeroOrOne(zeroOrOne ZeroOrOneLike) {
-}
-
-// This public method is called after each zero or one grouping.
-func (v *compiler) AfterZeroOrOne(zeroOrOne ZeroOrOneLike) {
+func (v *compiler) AfterStatement(statement Statement, slot int, size int) {
 }
 
 // PRIVATE METHODS

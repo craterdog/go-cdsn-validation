@@ -10,39 +10,38 @@
 
 package cdsn
 
-// ZERO OR ONE GROUPING INTERFACE
+// PRECEDENCE INTERFACE
 
-// This interface defines the methods supported by all zero-or-one-like
+// This interface defines the methods supported by all precedence-like
 // components.
-type ZeroOrOneLike interface {
+type PrecedenceLike interface {
 	GetExpression() ExpressionLike
 	SetExpression(expression ExpressionLike)
 }
 
-// This constructor creates a new zero or more grouping.
-func ZeroOrOne(expression ExpressionLike) ZeroOrOneLike {
-	var v = &zeroOrOne{}
+// This constructor creates a new precedence.
+func Precedence(expression ExpressionLike) PrecedenceLike {
+	var v = &precedence{}
 	v.SetExpression(expression)
 	return v
 }
 
-// ZERO OR ONE GROUPING IMPLEMENTATION
+// PRECEDENCE IMPLEMENTATION
 
-// This type defines the structure and methods associated with an zero or more
-// grouping.
-type zeroOrOne struct {
+// This type defines the structure and methods associated with a precedence.
+type precedence struct {
 	expression ExpressionLike
 }
 
-// This method returns the expression for this zero or more grouping.
-func (v *zeroOrOne) GetExpression() ExpressionLike {
+// This method returns the expression for this precedence.
+func (v *precedence) GetExpression() ExpressionLike {
 	return v.expression
 }
 
-// This method sets the expression for this zero or more grouping.
-func (v *zeroOrOne) SetExpression(expression ExpressionLike) {
+// This method sets the expression for this precedence.
+func (v *precedence) SetExpression(expression ExpressionLike) {
 	if expression == nil {
-		panic("An zero or more grouping requires an expression.")
+		panic("A precedence requires an expression.")
 	}
 	v.expression = expression
 }

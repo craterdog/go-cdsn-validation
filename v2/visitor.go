@@ -13,7 +13,6 @@ package cdsn
 import (
 	fmt "fmt"
 	col "github.com/craterdog/go-collection-framework/v2"
-	ref "reflect"
 )
 
 // VISITOR INTERFACE
@@ -35,39 +34,33 @@ type Specialized interface {
 	BetweenCHARACTERs(first CHARACTER, last CHARACTER)
 	AtCOMMENT(comment COMMENT)
 	AtINTRINSIC(intrinsic INTRINSIC)
+	AtLIMIT(limit LIMIT)
 	AtNAME(name NAME)
 	AtNOTE(note NOTE)
-	AtNUMBER(number NUMBER)
 	AtSTRING(string_ STRING)
 	AtSYMBOL(symbol SYMBOL, isMultiline bool)
 	BeforeAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool)
 	AfterAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool)
+	BeforeConstraint(constraint ConstraintLike)
+	AfterConstraint(constraint ConstraintLike)
 	BeforeDefinition(definition DefinitionLike)
 	AfterDefinition(definition DefinitionLike)
-	BeforeElement(element Element)
-	AfterElement(element Element)
-	BeforeExactlyN(exactlyN ExactlyNLike, n NUMBER)
-	AfterExactlyN(exactlyN ExactlyNLike, n NUMBER)
-	BeforeExpression(expression ExpressionLike)
-	AfterExpression(expression ExpressionLike)
-	BeforeFactor(factor Factor, slot int, size int)
-	AfterFactor(factor Factor, slot int, size int)
 	BeforeDocument(document DocumentLike)
 	AfterDocument(document DocumentLike)
-	BeforeGrouping(grouping Grouping)
-	AfterGrouping(grouping Grouping)
-	BeforeInverse(inverse InverseLike)
-	AfterInverse(inverse InverseLike)
-	BeforeOneOrMore(oneOrMore OneOrMoreLike)
-	AfterOneOrMore(oneOrMore OneOrMoreLike)
+	BeforeElement(element Element)
+	AfterElement(element Element)
+	BeforeExpression(expression ExpressionLike)
+	AfterExpression(expression ExpressionLike)
+	BeforeFactor(factor Factor)
+	AfterFactor(factor Factor)
+	BeforePrecedence(precedence PrecedenceLike)
+	AfterPrecedence(precedence PrecedenceLike)
+	BeforePredicate(predicate Predicate, slot int, size int)
+	AfterPredicate(predicate Predicate, slot int, size int)
 	BeforeRange(range_ RangeLike)
 	AfterRange(range_ RangeLike)
-	BeforeStatement(statement StatementLike, slot int, size int)
-	AfterStatement(statement StatementLike, slot int, size int)
-	BeforeZeroOrMore(zeroOrMore ZeroOrMoreLike)
-	AfterZeroOrMore(zeroOrMore ZeroOrMoreLike)
-	BeforeZeroOrOne(zeroOrOne ZeroOrOneLike)
-	AfterZeroOrOne(zeroOrOne ZeroOrOneLike)
+	BeforeStatement(statement Statement, slot int, size int)
+	AfterStatement(statement Statement, slot int, size int)
 }
 
 // VISITOR IMPLEMENTATION
@@ -80,21 +73,31 @@ type visitor struct {
 
 // This private method visits the specified alternative.
 func (v *visitor) visitAlternative(alternative AlternativeLike) {
-	var factors = alternative.GetFactors()
-	var size = factors.GetSize()
-	var iterator = col.Iterator(factors)
+	var predicates = alternative.GetPredicates()
+	var size = predicates.GetSize()
+	var iterator = col.Iterator(predicates)
 	for iterator.HasNext() {
 		var slot = iterator.GetSlot()
-		var factor = iterator.GetNext()
-		v.agent.BeforeFactor(factor, slot, size)
-		v.visitFactor(factor)
+		var predicate = iterator.GetNext()
+		v.agent.BeforePredicate(predicate, slot, size)
+		v.visitPredicate(predicate)
 		slot++
-		v.agent.AfterFactor(factor, slot, size)
+		v.agent.AfterPredicate(predicate, slot, size)
 	}
 	var note = alternative.GetNOTE()
 	if len(note) > 0 {
 		v.agent.AtNOTE(note)
 	}
+}
+
+// This private method visits the specified constraint.
+func (v *visitor) visitConstraint(constraint ConstraintLike) {
+	var limit = constraint.GetLIMIT()
+	v.agent.AtLIMIT(limit)
+	var factor = constraint.GetFactor()
+	v.agent.BeforeFactor(factor)
+	v.visitFactor(factor)
+	v.agent.AfterFactor(factor)
 }
 
 // This private method visits the specified definition.
@@ -107,28 +110,33 @@ func (v *visitor) visitDefinition(definition DefinitionLike) {
 	v.agent.AfterExpression(expression)
 }
 
+// This private method visits the specified document.
+func (v *visitor) visitDocument(document DocumentLike) {
+	var statements = document.GetStatements()
+	var size = statements.GetSize()
+	var iterator = col.Iterator(statements)
+	for iterator.HasNext() {
+		var slot = iterator.GetSlot()
+		var statement = iterator.GetNext()
+		v.agent.BeforeStatement(statement, slot, size)
+		v.visitStatement(statement)
+		slot++
+		v.agent.AfterStatement(statement, slot, size)
+	}
+}
+
 // This private method visits the specified element.
 func (v *visitor) visitElement(element Element) {
 	switch actual := element.(type) {
 	case INTRINSIC:
 		v.agent.AtINTRINSIC(actual)
-	case STRING:
-		v.agent.AtSTRING(actual)
-	case NUMBER:
-		v.agent.AtNUMBER(actual)
 	case NAME:
 		v.agent.AtNAME(actual)
+	case STRING:
+		v.agent.AtSTRING(actual)
 	default:
 		panic(fmt.Sprintf("Attempted to visit:\n    element: %v\n    type: %t\n", actual, element))
 	}
-}
-
-// This private method visits the specified exactly N grouping.
-func (v *visitor) visitExactlyN(group ExactlyNLike) {
-	var expression = group.GetExpression()
-	v.agent.BeforeExpression(expression)
-	v.visitExpression(expression)
-	v.agent.AfterExpression(expression)
 }
 
 // This private method visits the specified expression.
@@ -151,82 +159,42 @@ func (v *visitor) visitExpression(expression ExpressionLike) {
 
 // This private method visits the specified factor.
 func (v *visitor) visitFactor(factor Factor) {
-	if ref.ValueOf(factor).Kind() == ref.String {
-		v.agent.BeforeElement(factor)
-		v.visitElement(factor)
-		v.agent.AfterElement(factor)
-		return
-	}
 	switch actual := factor.(type) {
+	case *precedence:
+		v.agent.BeforePrecedence(actual)
+		v.visitPrecedence(actual)
+		v.agent.AfterPrecedence(actual)
+	default:
+		v.agent.BeforeElement(actual)
+		v.visitElement(actual)
+		v.agent.AfterElement(actual)
+	}
+}
+
+// This private method visits the specified precedence.
+func (v *visitor) visitPrecedence(definition PrecedenceLike) {
+	var expression = definition.GetExpression()
+	v.agent.BeforeExpression(expression)
+	v.visitExpression(expression)
+	v.agent.AfterExpression(expression)
+}
+
+// This private method visits the specified predicate.
+func (v *visitor) visitPredicate(predicate Predicate) {
+	switch actual := predicate.(type) {
 	case *range_:
 		v.agent.BeforeRange(actual)
 		v.visitRange(actual)
 		v.agent.AfterRange(actual)
-	case *inverse:
-		v.agent.BeforeInverse(actual)
-		v.visitInverse(actual)
-		v.agent.AfterInverse(actual)
+	case *constraint:
+		v.agent.BeforeConstraint(actual)
+		v.visitConstraint(actual)
+		v.agent.AfterConstraint(actual)
 	default:
-		v.agent.BeforeGrouping(actual)
-		v.visitGrouping(actual)
-		v.agent.AfterGrouping(actual)
+		v.agent.BeforeFactor(actual)
+		v.visitFactor(actual)
+		v.agent.AfterFactor(actual)
 	}
-}
-
-// This private method visits the specified document.
-func (v *visitor) visitDocument(document DocumentLike) {
-	var statements = document.GetStatements()
-	var size = statements.GetSize()
-	var iterator = col.Iterator(statements)
-	for iterator.HasNext() {
-		var slot = iterator.GetSlot()
-		var statement = iterator.GetNext()
-		v.agent.BeforeStatement(statement, slot, size)
-		v.visitStatement(statement)
-		slot++
-		v.agent.AfterStatement(statement, slot, size)
-	}
-}
-
-// This private method visits the specified grouping.
-func (v *visitor) visitGrouping(grouping Grouping) {
-	switch actual := grouping.(type) {
-	case *exactlyN:
-		var n = actual.GetN()
-		v.agent.BeforeExactlyN(actual, n)
-		v.visitExactlyN(actual)
-		v.agent.AfterExactlyN(actual, n)
-	case *zeroOrOne:
-		v.agent.BeforeZeroOrOne(actual)
-		v.visitZeroOrOne(actual)
-		v.agent.AfterZeroOrOne(actual)
-	case *zeroOrMore:
-		v.agent.BeforeZeroOrMore(actual)
-		v.visitZeroOrMore(actual)
-		v.agent.AfterZeroOrMore(actual)
-	case *oneOrMore:
-		v.agent.BeforeOneOrMore(actual)
-		v.visitOneOrMore(actual)
-		v.agent.AfterOneOrMore(actual)
-	default:
-		panic(fmt.Sprintf("Attempted to visit:\n    grouping: %v\n    type: %t\n", actual, grouping))
-	}
-}
-
-// This private method visits the specified inverse.
-func (v *visitor) visitInverse(inverse InverseLike) {
-	var factor = inverse.GetFactor()
-	v.agent.BeforeFactor(factor, 0, 0)
-	v.visitFactor(factor)
-	v.agent.AfterFactor(factor, 0, 0)
-}
-
-// This private method visits the specified one or more grouping.
-func (v *visitor) visitOneOrMore(group OneOrMoreLike) {
-	var expression = group.GetExpression()
-	v.agent.BeforeExpression(expression)
-	v.visitExpression(expression)
-	v.agent.AfterExpression(expression)
 }
 
 // This private method visits the specified range.
@@ -241,30 +209,13 @@ func (v *visitor) visitRange(range_ RangeLike) {
 }
 
 // This private method visits the specified statement.
-func (v *visitor) visitStatement(statement StatementLike) {
-	var comment = statement.GetCOMMENT()
-	if len(comment) > 0 {
-		v.agent.AtCOMMENT(comment)
-	} else {
-		var definition = statement.GetDefinition()
-		v.agent.BeforeDefinition(definition)
-		v.visitDefinition(definition)
-		v.agent.AfterDefinition(definition)
+func (v *visitor) visitStatement(statement Statement) {
+	switch actual := statement.(type) {
+	case *definition:
+		v.agent.BeforeDefinition(actual)
+		v.visitDefinition(actual)
+		v.agent.AfterDefinition(actual)
+	case COMMENT:
+		v.agent.AtCOMMENT(actual)
 	}
-}
-
-// This private method visits the specified zero or more grouping.
-func (v *visitor) visitZeroOrMore(group ZeroOrMoreLike) {
-	var expression = group.GetExpression()
-	v.agent.BeforeExpression(expression)
-	v.visitExpression(expression)
-	v.agent.AfterExpression(expression)
-}
-
-// This private method visits the specified zero or one grouping.
-func (v *visitor) visitZeroOrOne(group ZeroOrOneLike) {
-	var expression = group.GetExpression()
-	v.agent.BeforeExpression(expression)
-	v.visitExpression(expression)
-	v.agent.AfterExpression(expression)
 }

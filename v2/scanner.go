@@ -163,9 +163,9 @@ func (v *scanner) processToken() bool {
 	case v.scanCOMMENT():
 	case v.scanCHARACTER():
 	case v.scanSTRING():
-	case v.scanNUMBER():
 	case v.scanNAME():
 	case v.scanSYMBOL():
+	case v.scanLIMIT():
 	case v.scanLITERAL():
 	default:
 		// No valid token was found.
@@ -280,19 +280,6 @@ func (v *scanner) scanNOTE() bool {
 	return false
 }
 
-// This method adds a number token with the current scanner information to the
-// token channel. It returns true if a number token was found.
-func (v *scanner) scanNUMBER() bool {
-	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(numberScanner.FindSubmatch(s))
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenNUMBER)
-		return true
-	}
-	return false
-}
-
 // This method adds a string token with the current scanner information to the
 // token channel. It returns true if a string token was found.
 func (v *scanner) scanSTRING() bool {
@@ -314,6 +301,19 @@ func (v *scanner) scanSYMBOL() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenSYMBOL)
+		return true
+	}
+	return false
+}
+
+// This method adds a limit token with the current scanner information to the
+// token channel. It returns true if a limit token was found.
+func (v *scanner) scanLIMIT() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(limitScanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenLIMIT)
 		return true
 	}
 	return false

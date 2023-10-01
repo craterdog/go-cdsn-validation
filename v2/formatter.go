@@ -49,6 +49,11 @@ func (v *formatter) AtCHARACTER(character CHARACTER) {
 	v.appendString(string(character))
 }
 
+// This public method is called between the two two characters in a range.
+func (v *formatter) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
+	v.appendString("..")
+}
+
 // This public method is called for each comment token.
 func (v *formatter) AtCOMMENT(comment COMMENT) {
 	v.appendNewline()
@@ -60,6 +65,11 @@ func (v *formatter) AtINTRINSIC(intrinsic INTRINSIC) {
 	v.appendString(string(intrinsic))
 }
 
+// This public method is called for each limit token.
+func (v *formatter) AtLIMIT(limit LIMIT) {
+	v.appendString(string(limit))
+}
+
 // This public method is called for each name token.
 func (v *formatter) AtNAME(name NAME) {
 	v.appendString(string(name))
@@ -69,11 +79,6 @@ func (v *formatter) AtNAME(name NAME) {
 func (v *formatter) AtNOTE(note NOTE) {
 	v.appendString("  ")
 	v.appendString(string(note))
-}
-
-// This public method is called for each number token.
-func (v *formatter) AtNUMBER(number NUMBER) {
-	v.appendString(string(number))
 }
 
 // This public method is called for each string token.
@@ -110,52 +115,20 @@ func (v *formatter) AfterAlternative(alternative AlternativeLike, slot int, size
 	}
 }
 
+// This public method is called before each constaint.
+func (v *formatter) BeforeConstraint(constraint ConstraintLike) {
+}
+
+// This public method is called after each constaint.
+func (v *formatter) AfterConstraint(constraint ConstraintLike) {
+}
+
 // This public method is called before each definition.
 func (v *formatter) BeforeDefinition(definition DefinitionLike) {
 }
 
 // This public method is called after each definition.
 func (v *formatter) AfterDefinition(definition DefinitionLike) {
-}
-
-// This public method is called before each element.
-func (v *formatter) BeforeElement(element Element) {
-}
-
-// This public method is called after each element.
-func (v *formatter) AfterElement(element Element) {
-}
-
-// This public method is called before each exactly N grouping.
-func (v *formatter) BeforeExactlyN(exactlyN ExactlyNLike, n NUMBER) {
-	v.appendString("(")
-}
-
-// This public method is called after each exactly N grouping.
-func (v *formatter) AfterExactlyN(exactlyN ExactlyNLike, n NUMBER) {
-	v.appendString(")")
-	if len(n) > 0 {
-		v.AtNUMBER(n)
-	}
-}
-
-// This public method is called before each expression.
-func (v *formatter) BeforeExpression(expression ExpressionLike) {
-}
-
-// This public method is called after each expression.
-func (v *formatter) AfterExpression(expression ExpressionLike) {
-}
-
-// This public method is called before each factor in an alternative.
-func (v *formatter) BeforeFactor(factor Factor, slot int, size int) {
-	if slot > 0 {
-		v.appendString(" ")
-	}
-}
-
-// This public method is called after each factor in an alternative.
-func (v *formatter) AfterFactor(factor Factor, slot int, size int) {
 }
 
 // This public method is called before the document.
@@ -166,40 +139,53 @@ func (v *formatter) BeforeDocument(document DocumentLike) {
 func (v *formatter) AfterDocument(document DocumentLike) {
 }
 
-// This public method is called before each grouping.
-func (v *formatter) BeforeGrouping(grouping Grouping) {
+// This public method is called before each element.
+func (v *formatter) BeforeElement(element Element) {
 }
 
-// This public method is called after each grouping.
-func (v *formatter) AfterGrouping(grouping Grouping) {
+// This public method is called after each element.
+func (v *formatter) AfterElement(element Element) {
 }
 
-// This public method is called before each inverse factor.
-func (v *formatter) BeforeInverse(inverse InverseLike) {
-	v.appendString("~")
+// This public method is called before each expression.
+func (v *formatter) BeforeExpression(expression ExpressionLike) {
 }
 
-// This public method is called after each inverse factor.
-func (v *formatter) AfterInverse(inverse InverseLike) {
+// This public method is called after each expression.
+func (v *formatter) AfterExpression(expression ExpressionLike) {
 }
 
-// This public method is called before each one or more grouping.
-func (v *formatter) BeforeOneOrMore(oneOrMore OneOrMoreLike) {
-	v.appendString("<")
+// This public method is called before each factor.
+func (v *formatter) BeforeFactor(factor Factor) {
 }
 
-// This public method is called after each one or more grouping.
-func (v *formatter) AfterOneOrMore(oneOrMore OneOrMoreLike) {
-	v.appendString(">")
+// This public method is called after each factor.
+func (v *formatter) AfterFactor(factor Factor) {
+}
+
+// This public method is called before each precedence.
+func (v *formatter) BeforePrecedence(precedence PrecedenceLike) {
+	v.appendString("(")
+}
+
+// This public method is called after each precedence.
+func (v *formatter) AfterPrecedence(precedence PrecedenceLike) {
+	v.appendString(")")
+}
+
+// This public method is called before each predicate.
+func (v *formatter) BeforePredicate(predicate Predicate, slot int, size int) {
+	if slot > 0 {
+		v.appendString(" ")
+	}
+}
+
+// This public method is called after each predicate.
+func (v *formatter) AfterPredicate(predicate Predicate, slot int, size int) {
 }
 
 // This public method is called before each character range.
 func (v *formatter) BeforeRange(range_ RangeLike) {
-}
-
-// This public method is called between the two two characters in a range.
-func (v *formatter) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
-	v.appendString("..")
 }
 
 // This public method is called after each character range.
@@ -207,33 +193,13 @@ func (v *formatter) AfterRange(range_ RangeLike) {
 }
 
 // This public method is called before each statement in a document.
-func (v *formatter) BeforeStatement(statement StatementLike, slot int, size int) {
+func (v *formatter) BeforeStatement(statement Statement, slot int, size int) {
 }
 
 // This public method is called after each statement in a document.
-func (v *formatter) AfterStatement(statement StatementLike, slot int, size int) {
+func (v *formatter) AfterStatement(statement Statement, slot int, size int) {
 	v.appendNewline()
 	v.appendNewline()
-}
-
-// This public method is called before each zero or more grouping.
-func (v *formatter) BeforeZeroOrMore(zeroOrMore ZeroOrMoreLike) {
-	v.appendString("{")
-}
-
-// This public method is called after each zero or more grouping.
-func (v *formatter) AfterZeroOrMore(zeroOrMore ZeroOrMoreLike) {
-	v.appendString("}")
-}
-
-// This public method is called before each zero or one grouping.
-func (v *formatter) BeforeZeroOrOne(zeroOrOne ZeroOrOneLike) {
-	v.appendString("[")
-}
-
-// This public method is called after each zero or one grouping.
-func (v *formatter) AfterZeroOrOne(zeroOrOne ZeroOrOneLike) {
-	v.appendString("]")
 }
 
 // PRIVATE METHODS

@@ -10,4 +10,4 @@
 
 package cdsn
 
-type Grouping any
+type Predicate any
