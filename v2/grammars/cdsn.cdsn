@@ -51,7 +51,7 @@ $LIMIT: "~" | "?" | "*" | "+" | +DIGIT
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
     separated by whitespace which is ignored by the parser.  The factors within the predicates may
     be constrained by one of the following limits:
-     * ~factor - Anything except the constrained factor
+     * ~factor - Any factor EXCEPT the constrained factor
      * ?factor - Zero or one instances of the constrained factor
      * *factor - Zero or more instances of the constrained factor
      * +factor - One or more instances of the constrained factor
