@@ -36,11 +36,11 @@ $CHARACTER: "'" ~EOL "'"
 
 $STRING: '"' *(ESCAPE | ~('"' | EOL)) '"'
 
-$NUMBER: +DIGIT
-
 $NAME: LOWER_CASE | UPPER_CASE *(?SEPARATOR (LOWER_CASE | UPPER_CASE | DIGIT))
 
 $SYMBOL: "$" NAME
+
+$LIMIT: "~" | "?" | "*" | "+" | +DIGIT
 
 
 !>
@@ -55,7 +55,7 @@ $SYMBOL: "$" NAME
 
 $document: +statement EOF  ! Terminated with an end-of-file marker.
 
-$statement: COMMENT | definition
+$statement: definition | COMMENT
 
 $definition: SYMBOL ":" expression  ! This works for both tokens and rules.
 
@@ -63,15 +63,15 @@ $expression: alternative *("|" alternative)
 
 $alternative: +predicate ?NOTE
 
-$predicate: factor | range | constraint
-
-$factor: element | precedence
-
-$element: INTRINSIC | NAME | STRING
-
-$precedence: "(" expression ")"
+$predicate: range | constraint | factor
 
 $range: CHARACTER ?(".." CHARACTER)  ! A range of CHARACTERs is inclusive.
 
-$constraint: ("~" | "?" | "*" | "+" | NUMBER) factor
+$constraint: LIMIT factor
+
+$factor: precedence | element
+
+$precedence: "(" expression ")"
+
+$element: INTRINSIC | NAME | STRING
 
