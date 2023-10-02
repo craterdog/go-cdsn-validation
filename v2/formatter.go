@@ -32,6 +32,29 @@ type formatter struct {
 	result sts.Builder
 }
 
+// PRIVATE METHODS
+
+// This private method appends a properly indented newline to the result.
+func (v *formatter) appendNewline() {
+	var separator = "\n"
+	for level := 0; level < v.depth; level++ {
+		separator += "    "
+	}
+	v.result.WriteString(separator)
+}
+
+// This private method appends the specified string to the result.
+func (v *formatter) appendString(s string) {
+	v.result.WriteString(s)
+}
+
+// This private method returns the canonically formatted string result.
+func (v *formatter) getResult() string {
+	var result = v.result.String()
+	v.result.Reset()
+	return result
+}
+
 // PUBLIC METHODS
 
 // This public method increments the depth of the traversal by one.
@@ -60,14 +83,14 @@ func (v *formatter) AtCOMMENT(comment COMMENT) {
 	v.appendString(string(comment))
 }
 
+// This public method is called for each constraint token.
+func (v *formatter) AtCONSTRAINT(constraint CONSTRAINT) {
+	v.appendString(string(constraint))
+}
+
 // This public method is called for each intrinsic token.
 func (v *formatter) AtINTRINSIC(intrinsic INTRINSIC) {
 	v.appendString(string(intrinsic))
-}
-
-// This public method is called for each limit token.
-func (v *formatter) AtLIMIT(limit LIMIT) {
-	v.appendString(string(limit))
 }
 
 // This public method is called for each name token.
@@ -113,14 +136,6 @@ func (v *formatter) AfterAlternative(alternative AlternativeLike, slot int, size
 	if !isMultilined && slot < size {
 		v.appendString(" ")
 	}
-}
-
-// This public method is called before each constaint.
-func (v *formatter) BeforeConstraint(constraint ConstraintLike) {
-}
-
-// This public method is called after each constaint.
-func (v *formatter) AfterConstraint(constraint ConstraintLike) {
 }
 
 // This public method is called before each definition.
@@ -192,6 +207,14 @@ func (v *formatter) BeforeRange(range_ RangeLike) {
 func (v *formatter) AfterRange(range_ RangeLike) {
 }
 
+// This public method is called before each constaint.
+func (v *formatter) BeforeRepetition(repetition RepetitionLike) {
+}
+
+// This public method is called after each constaint.
+func (v *formatter) AfterRepetition(repetition RepetitionLike) {
+}
+
 // This public method is called before each statement in a document.
 func (v *formatter) BeforeStatement(statement Statement, slot int, size int) {
 }
@@ -200,27 +223,4 @@ func (v *formatter) BeforeStatement(statement Statement, slot int, size int) {
 func (v *formatter) AfterStatement(statement Statement, slot int, size int) {
 	v.appendNewline()
 	v.appendNewline()
-}
-
-// PRIVATE METHODS
-
-// This private method appends a properly indented newline to the result.
-func (v *formatter) appendNewline() {
-	var separator = "\n"
-	for level := 0; level < v.depth; level++ {
-		separator += "    "
-	}
-	v.result.WriteString(separator)
-}
-
-// This private method appends the specified string to the result.
-func (v *formatter) appendString(s string) {
-	v.result.WriteString(s)
-}
-
-// This private method returns the canonically formatted string result.
-func (v *formatter) getResult() string {
-	var result = v.result.String()
-	v.result.Reset()
-	return result
 }

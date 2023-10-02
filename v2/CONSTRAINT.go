@@ -14,13 +14,13 @@ import (
 	reg "regexp"
 )
 
-type LIMIT string
+type CONSTRAINT string
 
-const TokenLIMIT TokenType = "LIMIT"
+const TokenCONSTRAINT TokenType = "CONSTRAINT"
 const (
-	number = digit + `+`
-	limit  = `[~?*+]|` + number
+	number     = digit + `+`
+	constraint = `[~?*+]|` + number
 )
 
-// This scanner is used for matching limit tokens.
-var limitScanner = reg.MustCompile(`^(?:` + limit + `)`)
+// This scanner is used for matching constraint tokens.
+var constraintScanner = reg.MustCompile(`^(?:` + constraint + `)`)

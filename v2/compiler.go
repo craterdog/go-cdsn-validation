@@ -72,167 +72,6 @@ func replaceName(template []byte, target string, name string) []byte {
 	return template
 }
 
-// PUBLIC METHODS
-
-// This public method increments the depth of the traversal by one.
-func (v *compiler) IncrementDepth() {
-	v.depth++
-}
-
-// This public method decrements the depth of the traversal by one.
-func (v *compiler) DecrementDepth() {
-	v.depth--
-}
-
-// This public method is called for each character token.
-func (v *compiler) AtCHARACTER(character CHARACTER) {
-}
-
-// This public method is called between the two two characters in a range.
-func (v *compiler) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
-}
-
-// This public method is called for each comment token.
-func (v *compiler) AtCOMMENT(comment COMMENT) {
-}
-
-// This public method is called for each intrinsic token.
-func (v *compiler) AtINTRINSIC(intrinsic INTRINSIC) {
-}
-
-// This public method is called for each limit token.
-func (v *compiler) AtLIMIT(limit LIMIT) {
-}
-
-// This public method is called for each name token.
-func (v *compiler) AtNAME(name NAME) {
-}
-
-// This public method is called for each note token.
-func (v *compiler) AtNOTE(note NOTE) {
-}
-
-// This public method is called for each string token.
-func (v *compiler) AtSTRING(string_ STRING) {
-}
-
-// This public method is called for each symbol token.
-func (v *compiler) AtSYMBOL(symbol SYMBOL, isMultilined bool) {
-	var name = symbol.GetNAME()
-	if string(name) == "INTRINSIC" {
-		// Intrinsics are already part of every parser.
-		return
-	}
-	if isTokenName(name) {
-		v.appendScanToken(name)
-		v.appendParseToken(name)
-	} else {
-		v.appendParseRuleStart(name)
-		v.appendVisitRuleStart(name)
-	}
-}
-
-// This public method is called before each alternative in an expression.
-func (v *compiler) BeforeAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
-}
-
-// This public method is called after each alternative in an expression.
-func (v *compiler) AfterAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
-}
-
-// This public method is called before each constraint.
-func (v *compiler) BeforeConstraint(constraint ConstraintLike) {
-}
-
-// This public method is called after each constraint.
-func (v *compiler) AfterConstraint(constraint ConstraintLike) {
-}
-
-// This public method is called before each definition.
-func (v *compiler) BeforeDefinition(definition DefinitionLike) {
-}
-
-// This public method is called after each definition.
-func (v *compiler) AfterDefinition(definition DefinitionLike) {
-	var symbol = definition.GetSYMBOL()
-	var name = symbol.GetNAME()
-	if !isTokenName(name) {
-		v.appendParseRuleEnd(name)
-		v.appendVisitRuleEnd(name)
-	}
-}
-
-// This public method is called before the document.
-func (v *compiler) BeforeDocument(document DocumentLike) {
-	v.initializeConfiguration()
-	v.initializeScanner()
-	v.initializeParser()
-	v.initializeVisitor()
-}
-
-// This public method is called after the document.
-func (v *compiler) AfterDocument(document DocumentLike) {
-	v.finalizeScanner()
-	v.finalizeParser()
-	v.finalizeVisitor()
-}
-
-// This public method is called before each element.
-func (v *compiler) BeforeElement(element Element) {
-}
-
-// This public method is called after each element.
-func (v *compiler) AfterElement(element Element) {
-}
-
-// This public method is called before each expression.
-func (v *compiler) BeforeExpression(expression ExpressionLike) {
-}
-
-// This public method is called after each expression.
-func (v *compiler) AfterExpression(expression ExpressionLike) {
-}
-
-// This public method is called before each factor in an alternative.
-func (v *compiler) BeforeFactor(factor Factor) {
-}
-
-// This public method is called after each factor in an alternative.
-func (v *compiler) AfterFactor(factor Factor) {
-}
-
-// This public method is called before each precedence.
-func (v *compiler) BeforePrecedence(precedence PrecedenceLike) {
-}
-
-// This public method is called after each precedence.
-func (v *compiler) AfterPrecedence(precedence PrecedenceLike) {
-}
-
-// This public method is called before each predicate.
-func (v *compiler) BeforePredicate(predicate Predicate, slot int, size int) {
-}
-
-// This public method is called after each predicate.
-func (v *compiler) AfterPredicate(predicate Predicate, slot int, size int) {
-}
-
-// This public method is called before each character range.
-func (v *compiler) BeforeRange(range_ RangeLike) {
-}
-
-// This public method is called after each character range.
-func (v *compiler) AfterRange(range_ RangeLike) {
-}
-
-// This public method is called before each statement in a document.
-func (v *compiler) BeforeStatement(statement Statement, slot int, size int) {
-}
-
-// This public method is called after each statement in a document.
-func (v *compiler) AfterStatement(statement Statement, slot int, size int) {
-}
-
 // PRIVATE METHODS
 
 // This private method creates a new configuration (package.go) file if one
@@ -379,4 +218,165 @@ func (v *compiler) finalizeVisitor() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// PUBLIC METHODS
+
+// This public method increments the depth of the traversal by one.
+func (v *compiler) IncrementDepth() {
+	v.depth++
+}
+
+// This public method decrements the depth of the traversal by one.
+func (v *compiler) DecrementDepth() {
+	v.depth--
+}
+
+// This public method is called for each character token.
+func (v *compiler) AtCHARACTER(character CHARACTER) {
+}
+
+// This public method is called between the two two characters in a range.
+func (v *compiler) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
+}
+
+// This public method is called for each comment token.
+func (v *compiler) AtCOMMENT(comment COMMENT) {
+}
+
+// This public method is called for each constraint token.
+func (v *compiler) AtCONSTRAINT(constraint CONSTRAINT) {
+}
+
+// This public method is called for each intrinsic token.
+func (v *compiler) AtINTRINSIC(intrinsic INTRINSIC) {
+}
+
+// This public method is called for each name token.
+func (v *compiler) AtNAME(name NAME) {
+}
+
+// This public method is called for each note token.
+func (v *compiler) AtNOTE(note NOTE) {
+}
+
+// This public method is called for each string token.
+func (v *compiler) AtSTRING(string_ STRING) {
+}
+
+// This public method is called for each symbol token.
+func (v *compiler) AtSYMBOL(symbol SYMBOL, isMultilined bool) {
+	var name = symbol.GetNAME()
+	if string(name) == "INTRINSIC" {
+		// Intrinsics are already part of every parser.
+		return
+	}
+	if isTokenName(name) {
+		v.appendScanToken(name)
+		v.appendParseToken(name)
+	} else {
+		v.appendParseRuleStart(name)
+		v.appendVisitRuleStart(name)
+	}
+}
+
+// This public method is called before each alternative in an expression.
+func (v *compiler) BeforeAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
+}
+
+// This public method is called after each alternative in an expression.
+func (v *compiler) AfterAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
+}
+
+// This public method is called before each definition.
+func (v *compiler) BeforeDefinition(definition DefinitionLike) {
+}
+
+// This public method is called after each definition.
+func (v *compiler) AfterDefinition(definition DefinitionLike) {
+	var symbol = definition.GetSYMBOL()
+	var name = symbol.GetNAME()
+	if !isTokenName(name) {
+		v.appendParseRuleEnd(name)
+		v.appendVisitRuleEnd(name)
+	}
+}
+
+// This public method is called before the document.
+func (v *compiler) BeforeDocument(document DocumentLike) {
+	v.initializeConfiguration()
+	v.initializeScanner()
+	v.initializeParser()
+	v.initializeVisitor()
+}
+
+// This public method is called after the document.
+func (v *compiler) AfterDocument(document DocumentLike) {
+	v.finalizeScanner()
+	v.finalizeParser()
+	v.finalizeVisitor()
+}
+
+// This public method is called before each element.
+func (v *compiler) BeforeElement(element Element) {
+}
+
+// This public method is called after each element.
+func (v *compiler) AfterElement(element Element) {
+}
+
+// This public method is called before each expression.
+func (v *compiler) BeforeExpression(expression ExpressionLike) {
+}
+
+// This public method is called after each expression.
+func (v *compiler) AfterExpression(expression ExpressionLike) {
+}
+
+// This public method is called before each factor in an alternative.
+func (v *compiler) BeforeFactor(factor Factor) {
+}
+
+// This public method is called after each factor in an alternative.
+func (v *compiler) AfterFactor(factor Factor) {
+}
+
+// This public method is called before each precedence.
+func (v *compiler) BeforePrecedence(precedence PrecedenceLike) {
+}
+
+// This public method is called after each precedence.
+func (v *compiler) AfterPrecedence(precedence PrecedenceLike) {
+}
+
+// This public method is called before each predicate.
+func (v *compiler) BeforePredicate(predicate Predicate, slot int, size int) {
+}
+
+// This public method is called after each predicate.
+func (v *compiler) AfterPredicate(predicate Predicate, slot int, size int) {
+}
+
+// This public method is called before each character range.
+func (v *compiler) BeforeRange(range_ RangeLike) {
+}
+
+// This public method is called after each character range.
+func (v *compiler) AfterRange(range_ RangeLike) {
+}
+
+// This public method is called before each repetition.
+func (v *compiler) BeforeRepetition(repetition RepetitionLike) {
+}
+
+// This public method is called after each repetition.
+func (v *compiler) AfterRepetition(repetition RepetitionLike) {
+}
+
+// This public method is called before each statement in a document.
+func (v *compiler) BeforeStatement(statement Statement, slot int, size int) {
+}
+
+// This public method is called after each statement in a document.
+func (v *compiler) AfterStatement(statement Statement, slot int, size int) {
 }

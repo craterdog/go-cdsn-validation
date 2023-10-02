@@ -65,9 +65,9 @@ var grammar_ = map[string]string{
 	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
 	"$expression":  `alternative *("|" alternative)`,
 	"$alternative": `+predicate ?NOTE`,
-	"$predicate":   `range | constraint | factor`,
+	"$predicate":   `range | repetition | factor`,
 	"$range":       `CHARACTER ?(".." CHARACTER)  ! A range of CHARACTERs is inclusive.`,
-	"$constraint":  `LIMIT factor`,
+	"$repetition":  `CONSTRAINT factor`,
 	"$factor":      `precedence | element`,
 	"$precedence":  `"(" expression ")"`,
 	"$element":     `INTRINSIC | NAME | STRING`,
@@ -235,19 +235,6 @@ func (v *parser) parseSTRING() (STRING, *Token, bool) {
 	return string_, token, true
 }
 
-// This method attempts to parse the limit token. It returns the token
-// and whether or not the limit token was successfully parsed.
-func (v *parser) parseLIMIT() (LIMIT, *Token, bool) {
-	var limit LIMIT
-	var token = v.nextToken()
-	if token.Type != TokenLIMIT {
-		v.backupOne()
-		return limit, token, false
-	}
-	limit = LIMIT(token.Value)
-	return limit, token, true
-}
-
 // This method attempts to parse the name token. It returns the token
 // and whether or not the name token was successfully parsed.
 func (v *parser) parseNAME() (NAME, *Token, bool) {
@@ -278,6 +265,19 @@ func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
 	}
 	symbol = SYMBOL(token.Value)
 	return symbol, token, true
+}
+
+// This method attempts to parse the constraint token. It returns the token
+// and whether or not the constraint token was successfully parsed.
+func (v *parser) parseCONSTRAINT() (CONSTRAINT, *Token, bool) {
+	var constraint CONSTRAINT
+	var token = v.nextToken()
+	if token.Type != TokenCONSTRAINT {
+		v.backupOne()
+		return constraint, token, false
+	}
+	constraint = CONSTRAINT(token.Value)
+	return constraint, token, true
 }
 
 // This method attempts to parse a document. It returns the document and whether
@@ -441,7 +441,7 @@ func (v *parser) parsePredicate() (Predicate, *Token, bool) {
 	var predicate Predicate
 	predicate, token, ok = v.parseRange()
 	if !ok {
-		predicate, token, ok = v.parseConstraint()
+		predicate, token, ok = v.parseRepetition()
 	}
 	if !ok {
 		predicate, token, ok = v.parseFactor()
@@ -477,30 +477,30 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	return range_, token, true
 }
 
-// This method attempts to parse a constraint. It returns the constraint
-// and whether or not the constraint was successfully parsed.
-func (v *parser) parseConstraint() (ConstraintLike, *Token, bool) {
+// This method attempts to parse a repetition. It returns the repetition
+// and whether or not the repetition was successfully parsed.
+func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var limit LIMIT
+	var constraint CONSTRAINT
 	var factor Factor
-	var constraint ConstraintLike
-	limit, token, ok = v.parseLIMIT()
+	var repetition RepetitionLike
+	constraint, token, ok = v.parseCONSTRAINT()
 	if !ok {
-		// This is not a constraint.
-		return constraint, token, false
+		// This is not a repetition.
+		return repetition, token, false
 	}
 	factor, token, ok = v.parseFactor()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("LIMIT",
-			"$constraint",
-			"$LIMIT",
+		message += generateGrammar("factor",
+			"$repetition",
+			"$CONSTRAINT",
 			"$factor")
 		panic(message)
 	}
-	constraint = Constraint(limit, factor)
-	return constraint, token, true
+	repetition = Repetition(constraint, factor)
+	return repetition, token, true
 }
 
 // This method attempts to parse a factor. It returns the factor and whether or

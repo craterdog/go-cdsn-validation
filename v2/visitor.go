@@ -33,16 +33,14 @@ type Specialized interface {
 	AtCHARACTER(character CHARACTER)
 	BetweenCHARACTERs(first CHARACTER, last CHARACTER)
 	AtCOMMENT(comment COMMENT)
+	AtCONSTRAINT(constraint CONSTRAINT)
 	AtINTRINSIC(intrinsic INTRINSIC)
-	AtLIMIT(limit LIMIT)
 	AtNAME(name NAME)
 	AtNOTE(note NOTE)
 	AtSTRING(string_ STRING)
 	AtSYMBOL(symbol SYMBOL, isMultiline bool)
 	BeforeAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool)
 	AfterAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool)
-	BeforeConstraint(constraint ConstraintLike)
-	AfterConstraint(constraint ConstraintLike)
 	BeforeDefinition(definition DefinitionLike)
 	AfterDefinition(definition DefinitionLike)
 	BeforeDocument(document DocumentLike)
@@ -59,6 +57,8 @@ type Specialized interface {
 	AfterPredicate(predicate Predicate, slot int, size int)
 	BeforeRange(range_ RangeLike)
 	AfterRange(range_ RangeLike)
+	BeforeRepetition(repetition RepetitionLike)
+	AfterRepetition(repetition RepetitionLike)
 	BeforeStatement(statement Statement, slot int, size int)
 	AfterStatement(statement Statement, slot int, size int)
 }
@@ -88,16 +88,6 @@ func (v *visitor) visitAlternative(alternative AlternativeLike) {
 	if len(note) > 0 {
 		v.agent.AtNOTE(note)
 	}
-}
-
-// This private method visits the specified constraint.
-func (v *visitor) visitConstraint(constraint ConstraintLike) {
-	var limit = constraint.GetLIMIT()
-	v.agent.AtLIMIT(limit)
-	var factor = constraint.GetFactor()
-	v.agent.BeforeFactor(factor)
-	v.visitFactor(factor)
-	v.agent.AfterFactor(factor)
 }
 
 // This private method visits the specified definition.
@@ -186,10 +176,10 @@ func (v *visitor) visitPredicate(predicate Predicate) {
 		v.agent.BeforeRange(actual)
 		v.visitRange(actual)
 		v.agent.AfterRange(actual)
-	case *constraint:
-		v.agent.BeforeConstraint(actual)
-		v.visitConstraint(actual)
-		v.agent.AfterConstraint(actual)
+	case *repetition:
+		v.agent.BeforeRepetition(actual)
+		v.visitRepetition(actual)
+		v.agent.AfterRepetition(actual)
 	default:
 		v.agent.BeforeFactor(actual)
 		v.visitFactor(actual)
@@ -206,6 +196,16 @@ func (v *visitor) visitRange(range_ RangeLike) {
 		v.agent.BetweenCHARACTERs(first, last)
 		v.agent.AtCHARACTER(last)
 	}
+}
+
+// This private method visits the specified repetition.
+func (v *visitor) visitRepetition(repetition RepetitionLike) {
+	var constraint = repetition.GetCONSTRAINT()
+	v.agent.AtCONSTRAINT(constraint)
+	var factor = repetition.GetFactor()
+	v.agent.BeforeFactor(factor)
+	v.visitFactor(factor)
+	v.agent.AfterFactor(factor)
 }
 
 // This private method visits the specified statement.
