@@ -40,7 +40,7 @@ $NAME: LOWER_CASE | UPPER_CASE *(?SEPARATOR (LOWER_CASE | UPPER_CASE | DIGIT))
 
 $SYMBOL: "$" NAME
 
-$LIMIT: "~" | "?" | "*" | "+" | +DIGIT
+$CONSTRAINT: "~" | "?" | "*" | "+" | +DIGIT
 
 
 !>
@@ -50,12 +50,12 @@ $LIMIT: "~" | "?" | "*" | "+" | +DIGIT
     names of tokens or other rules and are matched by the parser in the order listed.  Rule
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
     separated by whitespace which is ignored by the parser.  The factors within the predicates may
-    be constrained by one of the following limits:
-     * ~factor - Any factor EXCEPT the constrained factor
-     * ?factor - Zero or one instances of the constrained factor
-     * *factor - Zero or more instances of the constrained factor
-     * +factor - One or more instances of the constrained factor
-     * Nfactor - Exactly N instances of the constrained factor
+    be limited by one of the following constraints:
+     * ~factor - Any factor EXCEPT the specified factor
+     * ?factor - Zero or one instances of the specified factor
+     * *factor - Zero or more instances of the specified factor
+     * +factor - One or more instances of the specified factor
+     * Nfactor - Exactly N instances of the specified factor
     The following rules are attempted in the order listed below.
 <!
 
@@ -69,11 +69,11 @@ $expression: alternative *("|" alternative)
 
 $alternative: +predicate ?NOTE
 
-$predicate: range | constraint | factor
+$predicate: range | repetition | factor
 
 $range: CHARACTER ?(".." CHARACTER)  ! A range of CHARACTERs is inclusive.
 
-$constraint: LIMIT factor
+$repetition: CONSTRAINT factor
 
 $factor: precedence | element
 
