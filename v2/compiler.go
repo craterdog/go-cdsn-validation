@@ -266,18 +266,6 @@ func (v *compiler) AtSTRING(string_ STRING) {
 
 // This public method is called for each symbol token.
 func (v *compiler) AtSYMBOL(symbol SYMBOL, isMultilined bool) {
-	var name = symbol.GetNAME()
-	if string(name) == "INTRINSIC" {
-		// Intrinsics are already part of every parser.
-		return
-	}
-	if isTokenName(name) {
-		v.appendScanToken(name)
-		v.appendParseToken(name)
-	} else {
-		v.appendParseRuleStart(name)
-		v.appendVisitRuleStart(name)
-	}
 }
 
 // This public method is called before each alternative in an expression.
@@ -290,6 +278,18 @@ func (v *compiler) AfterAlternative(alternative AlternativeLike, slot int, size 
 
 // This public method is called before each definition.
 func (v *compiler) BeforeDefinition(definition DefinitionLike) {
+	var symbol = definition.GetSYMBOL()
+	var name = symbol.GetNAME()
+	switch {
+	case string(name) == "INTRINSIC":
+		// Intrinsics are already part of every parser.
+	case isTokenName(name):
+		v.appendScanToken(name)
+		v.appendParseToken(name)
+	default:
+		v.appendParseRuleStart(name)
+		v.appendVisitRuleStart(name)
+	}
 }
 
 // This public method is called after each definition.
@@ -327,10 +327,12 @@ func (v *compiler) AfterElement(element Element) {
 
 // This public method is called before each expression.
 func (v *compiler) BeforeExpression(expression ExpressionLike) {
+	v.IncrementDepth()
 }
 
 // This public method is called after each expression.
 func (v *compiler) AfterExpression(expression ExpressionLike) {
+	v.DecrementDepth()
 }
 
 // This public method is called before each factor in an alternative.
