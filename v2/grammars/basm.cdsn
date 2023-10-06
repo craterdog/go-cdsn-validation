@@ -74,8 +74,8 @@ $note: "NOTE" NOTE
 
 !>
     Jump to the address at the label if the value on the component stack matches
-	the condition. Otherwise, continue execution at the next instruction. If
-	there is no condition then jump unconditionally.
+    the condition. Otherwise, continue execution at the next instruction. If
+    there is no condition then jump unconditionally.
 <!
 
 $jump: "JUMP" "TO" ("NEXT" "INSTRUCTION" | LABEL ?("ON" ("EMPTY" | "NONE" | "FALSE")))
@@ -84,7 +84,7 @@ $jump: "JUMP" "TO" ("NEXT" "INSTRUCTION" | LABEL ?("ON" ("EMPTY" | "NONE" | "FAL
 !>
     Push a literal component, constant or parameter onto the component stack, or
     push the handler address for the current exception handlers onto the handler
-	stack.
+    stack.
 <!
 
 $push: "PUSH" ("HANDLER" LABEL | "LITERAL" LITERAL | "CONSTANT" SYMBOL | "ARGUMENT" SYMBOL)
@@ -100,7 +100,7 @@ $pull: "PULL" ("HANDLER" | "COMPONENT" | "RESULT" | "EXCEPTION")
 
 !>
     Load onto the component stack a variable value, document, contract or random
-	message from a bag.
+    message from a bag.
 <!
 
 $load: "LOAD" ("VARIABLE" | "DOCUMENT" | "CONTRACT" | "MESSAGE") SYMBOL
@@ -108,7 +108,7 @@ $load: "LOAD" ("VARIABLE" | "DOCUMENT" | "CONTRACT" | "MESSAGE") SYMBOL
 
 !>
     Save the top of the component stack to a variable value, document, contract
-	or message bag.
+    or message bag.
 <!
 
 $save: "SAVE" ("VARIABLE" | "DOCUMENT" | "CONTRACT" | "MESSAGE") SYMBOL
@@ -134,7 +134,7 @@ $call: "CALL" SYMBOL ?("WITH" ("1" "ARGUMENT" | NUMBER "ARGUMENTS"))
     Send a message with an optional list of arguments to the local component or
     document referenced by the name or citation that is on top of the component
     stack. If the recipient is a document, a new procedure context containing
-	the message, arguments, and contract name is placed in a bag to be executed
+    the message, arguments, and contract name is placed in a bag to be executed
     by the next available processor. Otherwise, the current processor loads the
     bytecode for the procedure associated with the message defined in the
     local component's type definition into a new procedure context and begins
