@@ -319,7 +319,7 @@ func (v *scanner) scanCONSTRAINT() bool {
 	return false
 }
 
-const literal = `[~:|()[\]{}<>]|\.\.`
+const literal = `[:|()]|\.\.`
 
 // This scanner is used for matching literal tokens.
 var literalScanner = reg.MustCompile(`^(?:` + literal + `)`)

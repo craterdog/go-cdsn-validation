@@ -11,6 +11,7 @@
 package cdsn
 
 import (
+	col "github.com/craterdog/go-collection-framework/v2"
 	sts "strings"
 )
 
@@ -19,9 +20,9 @@ import (
 // This function returns the bytes containing the canonical format for the
 // specified document including the POSIX standard EOF marker.
 func FormatDocument(document DocumentLike) []byte {
-	var agent = &formatter{}
-	VisitDocument(agent, document)
-	return []byte(agent.getResult())
+	var v = &formatter{}
+	v.formatDocument(document)
+	return []byte(v.getResult())
 }
 
 // FORMATTER IMPLEMENTATION
@@ -31,8 +32,6 @@ type formatter struct {
 	depth  int
 	result sts.Builder
 }
-
-// PRIVATE METHODS
 
 // This private method appends a properly indented newline to the result.
 func (v *formatter) appendNewline() {
@@ -48,179 +47,144 @@ func (v *formatter) appendString(s string) {
 	v.result.WriteString(s)
 }
 
+// This private method formats the specified alternative.
+func (v *formatter) formatAlternative(alternative AlternativeLike) {
+	var predicates = alternative.GetPredicates()
+	var iterator = col.Iterator(predicates)
+	var predicate = iterator.GetNext()
+	v.formatPredicate(predicate)
+	for iterator.HasNext() {
+		predicate = iterator.GetNext()
+		v.appendString(" ")
+		v.formatPredicate(predicate)
+	}
+	var note = alternative.GetNOTE()
+	if len(note) > 0 {
+		v.appendString("  ")
+		v.appendString(string(note))
+	}
+}
+
+// This private method formats the specified definition.
+func (v *formatter) formatDefinition(definition DefinitionLike) {
+	var symbol = definition.GetSYMBOL()
+	v.appendString(string(symbol))
+	v.appendString(":")
+	var expression = definition.GetExpression()
+	if !expression.IsAnnotated() {
+		v.appendString(" ")
+	}
+	v.formatExpression(expression)
+}
+
+// This private method formats the specified document.
+func (v *formatter) formatDocument(document DocumentLike) {
+	var statements = document.GetStatements()
+	var iterator = col.Iterator(statements)
+	for iterator.HasNext() {
+		var statement = iterator.GetNext()
+		v.formatStatement(statement)
+	}
+}
+
+// This private method formats the specified element.
+func (v *formatter) formatElement(element Element) {
+	v.appendString(string(element))
+}
+
+// This private method formats the specified expression.
+func (v *formatter) formatExpression(expression ExpressionLike) {
+	v.depth++
+	if expression.IsAnnotated() {
+		v.appendNewline()
+		v.appendString("  ") // Indent additional two spaces to align with subsequent alternatives.
+	}
+	var alternatives = expression.GetAlternatives()
+	var iterator = col.Iterator(alternatives)
+	var alternative = iterator.GetNext()
+	v.formatAlternative(alternative)
+	for iterator.HasNext() {
+		alternative = iterator.GetNext()
+		if expression.IsAnnotated() {
+			v.appendNewline()
+		} else {
+			v.appendString(" ")
+		}
+		v.appendString("| ")
+		v.formatAlternative(alternative)
+	}
+	v.depth--
+}
+
+// This private method formats the specified factor.
+func (v *formatter) formatFactor(factor Factor) {
+	switch actual := factor.(type) {
+	case *precedence:
+		v.formatPrecedence(actual)
+	case INTRINSIC:
+		v.formatElement(Element(actual))
+	case NAME:
+		v.formatElement(Element(actual))
+	case STRING:
+		v.formatElement(Element(actual))
+	}
+}
+
+// This private method formats the specified precedence.
+func (v *formatter) formatPrecedence(definition PrecedenceLike) {
+	v.appendString("(")
+	var expression = definition.GetExpression()
+	v.formatExpression(expression)
+	v.appendString(")")
+}
+
+// This private method formats the specified predicate.
+func (v *formatter) formatPredicate(predicate Predicate) {
+	switch actual := predicate.(type) {
+	case *range_:
+		v.formatRange(actual)
+	case *repetition:
+		v.formatRepetition(actual)
+	default:
+		v.formatFactor(actual)
+	}
+}
+
+// This private method formats the specified range.
+func (v *formatter) formatRange(range_ RangeLike) {
+	var first = range_.GetFirstCHARACTER()
+	v.appendString(string(first))
+	var last = range_.GetLastCHARACTER()
+	if len(last) > 0 {
+		v.appendString("..")
+		v.appendString(string(last))
+	}
+}
+
+// This private method formats the specified repetition.
+func (v *formatter) formatRepetition(repetition RepetitionLike) {
+	var constraint = repetition.GetCONSTRAINT()
+	v.appendString(string(constraint))
+	var factor = repetition.GetFactor()
+	v.formatFactor(factor)
+}
+
+// This private method formats the specified statement.
+func (v *formatter) formatStatement(statement Statement) {
+	switch actual := statement.(type) {
+	case *definition:
+		v.formatDefinition(actual)
+	case COMMENT:
+		v.appendNewline()
+		v.appendString(string(actual))
+	}
+	v.appendNewline()
+	v.appendNewline()
+}
+
 // This private method returns the canonically formatted string result.
 func (v *formatter) getResult() string {
 	var result = v.result.String()
 	v.result.Reset()
 	return result
-}
-
-// PUBLIC METHODS
-
-// This public method increments the depth of the traversal by one.
-func (v *formatter) IncrementDepth() {
-	v.depth++
-}
-
-// This public method decrements the depth of the traversal by one.
-func (v *formatter) DecrementDepth() {
-	v.depth--
-}
-
-// This public method is called for each character token.
-func (v *formatter) AtCHARACTER(character CHARACTER) {
-	v.appendString(string(character))
-}
-
-// This public method is called between the two two characters in a range.
-func (v *formatter) BetweenCHARACTERs(first CHARACTER, last CHARACTER) {
-	v.appendString("..")
-}
-
-// This public method is called for each comment token.
-func (v *formatter) AtCOMMENT(comment COMMENT) {
-	v.appendNewline()
-	v.appendString(string(comment))
-}
-
-// This public method is called for each constraint token.
-func (v *formatter) AtCONSTRAINT(constraint CONSTRAINT) {
-	v.appendString(string(constraint))
-}
-
-// This public method is called for each intrinsic token.
-func (v *formatter) AtINTRINSIC(intrinsic INTRINSIC) {
-	v.appendString(string(intrinsic))
-}
-
-// This public method is called for each name token.
-func (v *formatter) AtNAME(name NAME) {
-	v.appendString(string(name))
-}
-
-// This public method is called for each note token.
-func (v *formatter) AtNOTE(note NOTE) {
-	v.appendString("  ")
-	v.appendString(string(note))
-}
-
-// This public method is called for each string token.
-func (v *formatter) AtSTRING(string_ STRING) {
-	v.appendString(string(string_))
-}
-
-// This public method is called for each symbol token.
-func (v *formatter) AtSYMBOL(symbol SYMBOL, isMultilined bool) {
-	v.appendString(string(symbol))
-	v.appendString(":")
-	if !isMultilined {
-		v.appendString(" ")
-	}
-}
-
-// This public method is called before each alternative in an expression.
-func (v *formatter) BeforeAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
-	if isMultilined {
-		v.appendNewline()
-		if slot == 0 {
-			v.appendString("  ") // Indent additional two spaces to align with subsequent alternatives.
-		}
-	}
-	if slot > 0 {
-		v.appendString("| ")
-	}
-}
-
-// This public method is called after each alternative in an expression.
-func (v *formatter) AfterAlternative(alternative AlternativeLike, slot int, size int, isMultilined bool) {
-	if !isMultilined && slot < size {
-		v.appendString(" ")
-	}
-}
-
-// This public method is called before each definition.
-func (v *formatter) BeforeDefinition(definition DefinitionLike) {
-}
-
-// This public method is called after each definition.
-func (v *formatter) AfterDefinition(definition DefinitionLike) {
-}
-
-// This public method is called before the document.
-func (v *formatter) BeforeDocument(document DocumentLike) {
-}
-
-// This public method is called after the document.
-func (v *formatter) AfterDocument(document DocumentLike) {
-}
-
-// This public method is called before each element.
-func (v *formatter) BeforeElement(element Element) {
-}
-
-// This public method is called after each element.
-func (v *formatter) AfterElement(element Element) {
-}
-
-// This public method is called before each expression.
-func (v *formatter) BeforeExpression(expression ExpressionLike) {
-}
-
-// This public method is called after each expression.
-func (v *formatter) AfterExpression(expression ExpressionLike) {
-}
-
-// This public method is called before each factor.
-func (v *formatter) BeforeFactor(factor Factor) {
-}
-
-// This public method is called after each factor.
-func (v *formatter) AfterFactor(factor Factor) {
-}
-
-// This public method is called before each precedence.
-func (v *formatter) BeforePrecedence(precedence PrecedenceLike) {
-	v.appendString("(")
-}
-
-// This public method is called after each precedence.
-func (v *formatter) AfterPrecedence(precedence PrecedenceLike) {
-	v.appendString(")")
-}
-
-// This public method is called before each predicate.
-func (v *formatter) BeforePredicate(predicate Predicate, slot int, size int) {
-	if slot > 0 {
-		v.appendString(" ")
-	}
-}
-
-// This public method is called after each predicate.
-func (v *formatter) AfterPredicate(predicate Predicate, slot int, size int) {
-}
-
-// This public method is called before each character range.
-func (v *formatter) BeforeRange(range_ RangeLike) {
-}
-
-// This public method is called after each character range.
-func (v *formatter) AfterRange(range_ RangeLike) {
-}
-
-// This public method is called before each constaint.
-func (v *formatter) BeforeRepetition(repetition RepetitionLike) {
-}
-
-// This public method is called after each constaint.
-func (v *formatter) AfterRepetition(repetition RepetitionLike) {
-}
-
-// This public method is called before each statement in a document.
-func (v *formatter) BeforeStatement(statement Statement, slot int, size int) {
-}
-
-// This public method is called after each statement in a document.
-func (v *formatter) AfterStatement(statement Statement, slot int, size int) {
-	v.appendNewline()
-	v.appendNewline()
 }

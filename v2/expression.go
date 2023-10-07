@@ -19,8 +19,8 @@ import (
 // This interface defines the methods supported by all expression-like
 // components.
 type ExpressionLike interface {
-	IsMultilined() bool
-	SetMultilined(isMultilined bool)
+	IsAnnotated() bool
+	SetAnnotated(isAnnotated bool)
 	GetAlternatives() col.Sequential[AlternativeLike]
 	SetAlternatives(alternatives col.Sequential[AlternativeLike])
 }
@@ -36,18 +36,18 @@ func Expression(alternatives col.Sequential[AlternativeLike]) ExpressionLike {
 
 // This type defines the structure and methods associated with an expression.
 type expression struct {
-	isMultilined bool
+	isAnnotated  bool
 	alternatives col.Sequential[AlternativeLike]
 }
 
 // This method determines whether or not this expression is multlined.
-func (v *expression) IsMultilined() bool {
-	return v.isMultilined
+func (v *expression) IsAnnotated() bool {
+	return v.isAnnotated
 }
 
 // This method sets whether or not this expression is multlined.
-func (v *expression) SetMultilined(isMultilined bool) {
-	v.isMultilined = isMultilined
+func (v *expression) SetAnnotated(isAnnotated bool) {
+	v.isAnnotated = isAnnotated
 }
 
 // This method returns the alternatives for this expression.
@@ -60,12 +60,14 @@ func (v *expression) SetAlternatives(alternatives col.Sequential[AlternativeLike
 	if alternatives == nil || alternatives.IsEmpty() {
 		panic("A expression requires at least one alternative.")
 	}
-	var iterator = col.Iterator(alternatives)
-	for iterator.HasNext() {
-		var alternative = iterator.GetNext()
-		if alternatives.GetSize() > 1 && (alternative.GetPredicates().GetSize() > 2 || len(alternative.GetNOTE()) > 0) {
-			v.isMultilined = true
-			break
+	if alternatives.GetSize() > 1 {
+		var iterator = col.Iterator(alternatives)
+		for iterator.HasNext() {
+			var alternative = iterator.GetNext()
+			if alternative.GetPredicates().GetSize() > 2 || len(alternative.GetNOTE()) > 0 {
+				v.isAnnotated = true
+				break
+			}
 		}
 	}
 	v.alternatives = alternatives

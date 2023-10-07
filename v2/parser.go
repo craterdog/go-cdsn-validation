@@ -536,7 +536,7 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 			"$expression")
 		panic(message)
 	}
-	expression.SetMultilined(false)
+	expression.SetAnnotated(false)
 	_, token, ok = v.parseLITERAL(")")
 	if !ok {
 		var message = v.formatError(token)

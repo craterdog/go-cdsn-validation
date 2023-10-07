@@ -10,4 +10,4 @@
 
 package cdsn
 
-type Element any
+type Element string
