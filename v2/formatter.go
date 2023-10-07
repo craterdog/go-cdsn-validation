@@ -145,7 +145,7 @@ func (v *formatter) formatPredicate(predicate Predicate) {
 		v.formatRange(actual)
 	case *repetition:
 		v.formatRepetition(actual)
-	default:
+	case Factor:
 		v.formatFactor(actual)
 	}
 }
