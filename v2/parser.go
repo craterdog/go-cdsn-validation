@@ -83,19 +83,17 @@ func generateGrammar(expected string, symbols ...string) string {
 
 // This type defines the structure and methods for the parser agent.
 type parser struct {
-	symbols        col.CatalogLike[SYMBOL, DefinitionLike]
-	source         []byte
-	next           col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
-	tokens         chan Token            // The queue of unread tokens coming from the scanner.
-	p1, p2, p3, p4 *Token                // The previous four tokens that have been retrieved.
-	isToken        bool                  // Whether or not the current definition is a token definition.
+	symbols col.CatalogLike[SYMBOL, DefinitionLike]
+	source  []byte
+	next    col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
+	tokens  chan Token            // The queue of unread tokens coming from the scanner.
+	isToken bool                  // Whether or not the current definition is a token definition.
 }
 
 // This method puts back the current token onto the token stream so that it can
 // be retrieved by another parsing method.
-func (v *parser) backupOne() {
-	v.next.AddValue(v.p1)
-	v.p1, v.p2, v.p3, v.p4 = v.p2, v.p3, v.p4, nil
+func (v *parser) backupOne(token *Token) {
+	v.next.AddValue(token)
 }
 
 // This method returns an error message containing the context for a parsing
@@ -144,7 +142,6 @@ func (v *parser) nextToken() *Token {
 	} else {
 		next = v.next.RemoveTop()
 	}
-	v.p4, v.p3, v.p2, v.p1 = v.p3, v.p2, v.p1, next
 	return next
 }
 
@@ -152,8 +149,8 @@ func (v *parser) nextToken() *Token {
 // and whether or not the specified literal token was successfully parsed.
 func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
 	var token = v.nextToken()
-	if token.Type == TokenEOF || token.Value != literal {
-		v.backupOne()
+	if token.Type != TokenLITERAL || token.Value != literal {
+		v.backupOne(token)
 		return literal, token, false
 	}
 	return literal, token, true
@@ -164,7 +161,7 @@ func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
 func (v *parser) parseEOF() (*Token, *Token, bool) {
 	var token = v.nextToken()
 	if token.Type != TokenEOF {
-		v.backupOne()
+		v.backupOne(token)
 		return token, token, false
 	}
 	return token, token, true
@@ -176,7 +173,7 @@ func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
 	var intrinsic INTRINSIC
 	var token = v.nextToken()
 	if token.Type != TokenINTRINSIC {
-		v.backupOne()
+		v.backupOne(token)
 		return intrinsic, token, false
 	}
 	intrinsic = INTRINSIC(token.Value)
@@ -189,7 +186,7 @@ func (v *parser) parseNOTE() (NOTE, *Token, bool) {
 	var note NOTE
 	var token = v.nextToken()
 	if token.Type != TokenNOTE {
-		v.backupOne()
+		v.backupOne(token)
 		return note, token, false
 	}
 	note = NOTE(token.Value)
@@ -202,7 +199,7 @@ func (v *parser) parseCOMMENT() (COMMENT, *Token, bool) {
 	var comment COMMENT
 	var token = v.nextToken()
 	if token.Type != TokenCOMMENT {
-		v.backupOne()
+		v.backupOne(token)
 		return comment, token, false
 	}
 	comment = COMMENT(token.Value)
@@ -215,7 +212,7 @@ func (v *parser) parseCHARACTER() (CHARACTER, *Token, bool) {
 	var character CHARACTER
 	var token = v.nextToken()
 	if token.Type != TokenCHARACTER {
-		v.backupOne()
+		v.backupOne(token)
 		return character, token, false
 	}
 	character = CHARACTER(token.Value)
@@ -228,7 +225,7 @@ func (v *parser) parseSTRING() (STRING, *Token, bool) {
 	var string_ STRING
 	var token = v.nextToken()
 	if token.Type != TokenSTRING {
-		v.backupOne()
+		v.backupOne(token)
 		return string_, token, false
 	}
 	string_ = STRING(token.Value)
@@ -241,7 +238,7 @@ func (v *parser) parseNAME() (NAME, *Token, bool) {
 	var name NAME
 	var token = v.nextToken()
 	if token.Type != TokenNAME {
-		v.backupOne()
+		v.backupOne(token)
 		return name, token, false
 	}
 	if v.isToken && uni.IsLower(rune(token.Value[0])) {
@@ -260,7 +257,7 @@ func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
 	var symbol SYMBOL
 	var token = v.nextToken()
 	if token.Type != TokenSYMBOL {
-		v.backupOne()
+		v.backupOne(token)
 		return symbol, token, false
 	}
 	symbol = SYMBOL(token.Value)
@@ -273,7 +270,7 @@ func (v *parser) parseCONSTRAINT() (CONSTRAINT, *Token, bool) {
 	var constraint CONSTRAINT
 	var token = v.nextToken()
 	if token.Type != TokenCONSTRAINT {
-		v.backupOne()
+		v.backupOne(token)
 		return constraint, token, false
 	}
 	constraint = CONSTRAINT(token.Value)

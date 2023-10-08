@@ -207,4 +207,3 @@ func (v *compiler) compileStatement(statement Statement) {
 	case COMMENT:
 	}
 }
-
