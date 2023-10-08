@@ -25,9 +25,8 @@ type TokenType string
 
 // This enumeration defines all possible token types including the error token.
 const (
-	TokenEOF     TokenType = "EOF"
-	TokenERROR   TokenType = "ERROR"
-	TokenLITERAL TokenType = "LITERAL"
+	TokenEOF   TokenType = "EOF"
+	TokenERROR TokenType = "ERROR"
 )
 
 // This type defines the structure and methods for each token returned by the
@@ -318,11 +317,6 @@ func (v *scanner) scanCONSTRAINT() bool {
 	}
 	return false
 }
-
-const literal = `[:|()]|\.\.`
-
-// This scanner is used for matching literal tokens.
-var literalScanner = reg.MustCompile(`^(?:` + literal + `)`)
 
 // This method adds a literal token with the current scanner information to
 // the token channel. It returns true if a literal token was found.
