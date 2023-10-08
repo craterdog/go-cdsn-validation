@@ -145,17 +145,6 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
-// This method attempts to parse the specified literal token. It returns the token
-// and whether or not the specified literal token was successfully parsed.
-func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
-	var token = v.nextToken()
-	if token.Type != TokenLITERAL || token.Value != literal {
-		v.backupOne(token)
-		return literal, token, false
-	}
-	return literal, token, true
-}
-
 // This method attempts to parse the end-of-file token. It returns the token
 // and whether or not the end-of-file token was successfully parsed.
 func (v *parser) parseEOF() (*Token, *Token, bool) {
@@ -178,6 +167,17 @@ func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
 	}
 	intrinsic = INTRINSIC(token.Value)
 	return intrinsic, token, true
+}
+
+// This method attempts to parse the specified literal token. It returns the token
+// and whether or not the specified literal token was successfully parsed.
+func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
+	var token = v.nextToken()
+	if token.Type != TokenLITERAL || token.Value != literal {
+		v.backupOne(token)
+		return literal, token, false
+	}
+	return literal, token, true
 }
 
 // This method attempts to parse the note token. It returns the token
