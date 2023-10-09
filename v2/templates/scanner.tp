@@ -176,3 +176,31 @@ func (v *scanner) scanWHITESPACE() bool {
 	}
 	return false
 }
+
+// This method adds a new intrinsic token with the current scanner information
+// to the token channel. It returns true if a new intrinsic token was found.
+func (v *scanner) scanINTRINSIC() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(intrinsicScanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenINTRINSIC)
+		v.line += sts.Count(matches[0], EOL)
+		return true
+	}
+	return false
+}
+
+// This method adds a new literal token with the current scanner information
+// to the token channel. It returns true if a new literal token was found.
+func (v *scanner) scanLITERAL() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(literalScanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenLITERAL)
+		v.line += sts.Count(matches[0], EOL)
+		return true
+	}
+	return false
+}
