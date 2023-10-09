@@ -87,7 +87,7 @@ func (v *compiler) initializeScanner() {
 		panic(err)
 	}
 	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
-	v.scannerBuffer.Write(template)
+	v.scannerBuffer.Write(template[0 : len(template)-1])
 	v.appendScanToken("INTRINSIC")
 	v.appendScanToken("LITERAL")
 }
@@ -99,7 +99,7 @@ func (v *compiler) initializeParser() {
 		panic(err)
 	}
 	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
-	v.parserBuffer.Write(template)
+	v.parserBuffer.Write(template[0 : len(template)-1])
 }
 
 // This private method appends the scan token template for the specified name to
@@ -119,8 +119,7 @@ func (v *scanner) scan#Token#() bool {
 		return true
 	}
 	return false
-}
-`
+}`
 	var snippet = replaceName(template, "token", string(name))
 	v.scannerBuffer.WriteString(snippet)
 }
@@ -141,8 +140,7 @@ func (v *parser) parse#Token#() (#Token#, *Token, bool) {
 	}
 	#token#_ = #Token#(token.Value)
 	return #token#_, token, true
-}
-`
+}`
 	var snippet = replaceName(template, "token", string(name))
 	v.parserBuffer.WriteString(snippet)
 }
@@ -168,8 +166,7 @@ func (v *compiler) appendParseRuleEnd(name NAME) {
 	const template = `
 	#rule#_ = #Rule#(#arguments#)
 	return #rule#_, token, true
-}
-`
+}`
 	var snippet = replaceName(template, "rule", string(name))
 	v.parserBuffer.WriteString(snippet)
 }
