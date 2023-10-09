@@ -67,7 +67,7 @@ var grammar_ = map[string]string{
 	"$alternative": `+predicate ?NOTE`,
 	"$predicate":   `range | repetition | factor`,
 	"$range":       `CHARACTER ?(".." CHARACTER)  ! A range of CHARACTERs is inclusive.`,
-	"$repetition":  `LIMIT factor`,
+	"$repetition":  `CONSTRAINT factor`,
 	"$factor":      `precedence | element`,
 	"$precedence":  `"(" expression ")"`,
 	"$element":     `INTRINSIC | NAME | STRING`,
@@ -83,19 +83,17 @@ func generateGrammar(expected string, symbols ...string) string {
 
 // This type defines the structure and methods for the parser agent.
 type parser struct {
-	symbols        col.CatalogLike[SYMBOL, DefinitionLike]
-	source         []byte
-	next           col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
-	tokens         chan Token            // The queue of unread tokens coming from the scanner.
-	p1, p2, p3, p4 *Token                // The previous four tokens that have been retrieved.
-	isToken        bool                  // Whether or not the current definition is a token definition.
+	symbols col.CatalogLike[SYMBOL, DefinitionLike]
+	source  []byte
+	next    col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
+	tokens  chan Token            // The queue of unread tokens coming from the scanner.
+	isToken bool                  // Whether or not the current definition is a token definition.
 }
 
 // This method puts back the current token onto the token stream so that it can
 // be retrieved by another parsing method.
-func (v *parser) backupOne() {
-	v.next.AddValue(v.p1)
-	v.p1, v.p2, v.p3, v.p4 = v.p2, v.p3, v.p4, nil
+func (v *parser) backupOne(token *Token) {
+	v.next.AddValue(token)
 }
 
 // This method returns an error message containing the context for a parsing
@@ -144,19 +142,7 @@ func (v *parser) nextToken() *Token {
 	} else {
 		next = v.next.RemoveTop()
 	}
-	v.p4, v.p3, v.p2, v.p1 = v.p3, v.p2, v.p1, next
 	return next
-}
-
-// This method attempts to parse the specified literal token. It returns the token
-// and whether or not the specified literal token was successfully parsed.
-func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
-	var token = v.nextToken()
-	if token.Type == TokenEOF || token.Value != literal {
-		v.backupOne()
-		return literal, token, false
-	}
-	return literal, token, true
 }
 
 // This method attempts to parse the end-of-file token. It returns the token
@@ -164,7 +150,7 @@ func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
 func (v *parser) parseEOF() (*Token, *Token, bool) {
 	var token = v.nextToken()
 	if token.Type != TokenEOF {
-		v.backupOne()
+		v.backupOne(token)
 		return token, token, false
 	}
 	return token, token, true
@@ -176,9 +162,20 @@ func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
 	var intrinsic INTRINSIC
 	var token = v.nextToken()
 	if token.Type != TokenINTRINSIC {
-		v.backupOne()
+		v.backupOne(token)
 		return intrinsic, token, false
 	}
 	intrinsic = INTRINSIC(token.Value)
 	return intrinsic, token, true
+}
+
+// This method attempts to parse the specified literal token. It returns the token
+// and whether or not the specified literal token was successfully parsed.
+func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
+	var token = v.nextToken()
+	if token.Type != TokenLITERAL || token.Value != literal {
+		v.backupOne(token)
+		return literal, token, false
+	}
+	return literal, token, true
 }

@@ -67,8 +67,8 @@ type scanner struct {
 	tokens    chan Token
 }
 
-// This method adds an error token with the current scanner information to the
-// token channel.
+// This method adds a new error token with the current scanner information
+// to the token channel.
 func (v *scanner) atError() {
 	var bytes = v.source[v.nextByte:]
 	var _, width = utf.DecodeRune(bytes)
@@ -183,34 +183,50 @@ func (v *scanner) scanWHITESPACE() bool {
 	return false
 }
 
-// This method adds an intrinsic token with the current scanner information
-// to the token channel. It returns true if an intrinsic token was found.
+// This method adds a new intrinsic token with the current scanner information
+// to the token channel. It returns true if a new intrinsic token was found.
 func (v *scanner) scanINTRINSIC() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(intrinsicScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenINTRINSIC)
+		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
 }
 
-// This method adds a note token with the current scanner information to the
-// token channel. It returns true if a note token was found.
+// This method adds a new literal token with the current scanner information
+// to the token channel. It returns true if a new literal token was found.
+func (v *scanner) scanLITERAL() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(literalScanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenLITERAL)
+		v.line += sts.Count(matches[0], EOL)
+		return true
+	}
+	return false
+}
+
+// This method adds a new note token with the current scanner information
+// to the token channel. It returns true if a new note token was found.
 func (v *scanner) scanNOTE() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(noteScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenNOTE)
+		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
 }
 
-// This method adds a comment token with the current scanner information
-// to the token channel. It returns true if a comment token was found.
+// This method adds a new comment token with the current scanner information
+// to the token channel. It returns true if a new comment token was found.
 func (v *scanner) scanCOMMENT() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(commentScanner.FindSubmatch(s))
@@ -223,79 +239,71 @@ func (v *scanner) scanCOMMENT() bool {
 	return false
 }
 
-// This method adds a character token with the current scanner information
-// to the token channel. It returns true if a character token was found.
+// This method adds a new character token with the current scanner information
+// to the token channel. It returns true if a new character token was found.
 func (v *scanner) scanCHARACTER() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(characterScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenCHARACTER)
+		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
 }
 
-// This method adds a string token with the current scanner information to the
-// token channel. It returns true if a string token was found.
+// This method adds a new string token with the current scanner information
+// to the token channel. It returns true if a new string token was found.
 func (v *scanner) scanSTRING() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(stringScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenSTRING)
+		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
 }
 
-// This method adds a name token with the current scanner information
-// to the token channel. It returns true if a name token was found.
+// This method adds a new name token with the current scanner information
+// to the token channel. It returns true if a new name token was found.
 func (v *scanner) scanNAME() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(nameScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenNAME)
+		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
 }
 
-// This method adds a symbol token with the current scanner information to
-// the token channel. It returns true if a symbol token was found.
+// This method adds a new symbol token with the current scanner information
+// to the token channel. It returns true if a new symbol token was found.
 func (v *scanner) scanSYMBOL() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(symbolScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenSYMBOL)
+		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
 }
 
-// This method adds a constraint token with the current scanner information to the
-// token channel. It returns true if a constraint token was found.
+// This method adds a new constraint token with the current scanner information
+// to the token channel. It returns true if a new constraint token was found.
 func (v *scanner) scanCONSTRAINT() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(constraintScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenCONSTRAINT)
-		return true
-	}
-	return false
-}
-
-// This method adds a literal token with the current scanner information to
-// the token channel. It returns true if a literal token was found.
-func (v *scanner) scanLITERAL() bool {
-	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(literalScanner.FindSubmatch(s))
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenLITERAL)
+		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false

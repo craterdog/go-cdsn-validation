@@ -90,6 +90,8 @@ func (v *compiler) initializeScanner() {
 	}
 	template = byt.ReplaceAll(template, []byte("#package#"), []byte(v.packageName))
 	v.scannerBuffer.Write(template)
+	v.appendScanToken("INTRINSIC")
+	v.appendScanToken("LITERAL")
 }
 
 // This private method creates the byte buffer for the generated parser code.
