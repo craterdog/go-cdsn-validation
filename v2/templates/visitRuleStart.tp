@@ -1,3 +1,0 @@
-
-// This private method visits the specified #rule# rule.
-func (v *visitor) visit#Rule#(#rule#_ #Rule#Like) {
