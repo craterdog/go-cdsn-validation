@@ -23,7 +23,12 @@ import (
 // This function compiles the specified document into its corresponding parser.
 func CompileDocument(directory, packageName string, document DocumentLike) {
 	var v = &compiler{directory: directory, packageName: packageName}
+	v.initializeConfiguration()
+	v.initializeScanner()
+	v.initializeParser()
 	v.compileDocument(document)
+	v.finalizeScanner()
+	v.finalizeParser()
 }
 
 // COMPILER IMPLEMENTATION
@@ -193,33 +198,33 @@ func (v *compiler) finalizeParser() {
 func (v *compiler) compileDefinition(definition DefinitionLike) {
 	var symbol = definition.GetSYMBOL()
 	var name = symbol.GetNAME()
-	switch {
-	case string(name) == "INTRINSIC":
+	if string(name) == "INTRINSIC" {
 		// Intrinsics are automatically part of every parser.
-	case isTokenName(name):
+		return
+	}
+	if isTokenName(name) {
 		v.appendScanToken(name)
 		v.appendParseToken(name)
-	default:
-		v.appendParseRuleStart(name)
+		return
 	}
-	if !isTokenName(name) {
-		v.appendParseRuleEnd(name)
-	}
+	v.appendParseRuleStart(name)
+	var expression = definition.GetExpression()
+	v.compileExpression(expression)
+	v.appendParseRuleEnd(name)
 }
 
 // This private method compiles the specified document.
 func (v *compiler) compileDocument(document DocumentLike) {
-	v.initializeConfiguration()
-	v.initializeScanner()
-	v.initializeParser()
 	var statements = document.GetStatements()
 	var iterator = col.Iterator(statements)
 	for iterator.HasNext() {
 		var statement = iterator.GetNext()
 		v.compileStatement(statement)
 	}
-	v.finalizeScanner()
-	v.finalizeParser()
+}
+
+// This private method compiles the specified expression.
+func (v *compiler) compileExpression(expression ExpressionLike) {
 }
 
 // This private method compiles the specified statement.
