@@ -1,3 +1,0 @@
-	#rule#_ = #Rule#(#arguments#)
-	return #rule#_, token, true
-}

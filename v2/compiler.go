@@ -36,21 +36,19 @@ func isTokenName(name NAME) bool {
 
 // This private function replaces all occurences of the target string with the
 // specified name.
-func replaceName(template []byte, target string, name string) []byte {
+func replaceName(template string, target string, name string) string {
 	var nameLower, nameUpper string
-	var nameRunes = []rune(name)
-	var targetRunes = []rune(target)
 	var targetLower = "#" + target + "#"
-	var targetUpper = "#" + string(uni.ToUpper(targetRunes[0])) + string(targetRunes[1:]) + "#"
+	var targetUpper = "#" + sts.ToUpper(target[0:1]) + target[1:] + "#"
 	if isTokenName(NAME(name)) {
 		nameLower = sts.ToLower(name)
 		nameUpper = name
 	} else {
 		nameLower = name
-		nameUpper = string(uni.ToUpper(nameRunes[0])) + string(nameRunes[1:])
+		nameUpper = sts.ToUpper(name[0:1]) + name[1:]
 	}
-	template = byt.ReplaceAll(template, []byte(targetLower), []byte(nameLower))
-	template = byt.ReplaceAll(template, []byte(targetUpper), []byte(nameUpper))
+	template = sts.ReplaceAll(template, targetLower, nameLower)
+	template = sts.ReplaceAll(template, targetUpper, nameUpper)
 	return template
 }
 
@@ -107,45 +105,73 @@ func (v *compiler) initializeParser() {
 // This private method appends the scan token template for the specified name to
 // the scanner byte buffer.
 func (v *compiler) appendScanToken(name NAME) {
-	var template, err = osx.ReadFile("./templates/scanToken.tp")
-	if err != nil {
-		panic(err)
+	const template = `
+
+// This method adds a new #token# token with the current scanner information
+// to the token channel. It returns true if a new #token# token was found.
+func (v *scanner) scan#Token#() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(#token#Scanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(Token#Token#)
+		v.line += sts.Count(matches[0], EOL)
+		return true
 	}
-	template = replaceName(template, "token", string(name))
-	v.scannerBuffer.Write(template)
+	return false
+}
+`
+	var snippet = replaceName(template, "token", string(name))
+	v.scannerBuffer.WriteString(snippet)
 }
 
 // This private method appends the parse token template for the specified name
 // to the parser byte buffer.
 func (v *compiler) appendParseToken(name NAME) {
-	var template, err = osx.ReadFile("./templates/parseToken.tp")
-	if err != nil {
-		panic(err)
+	const template = `
+
+// This method attempts to parse a new #token# token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parse#Token#() (#Token#, *Token, bool) {
+	var #token#_ #Token#
+	var token = v.nextToken()
+	if token.Type != Token#Token# {
+		v.backupOne(token)
+		return #token#_, token, false
 	}
-	template = replaceName(template, "token", string(name))
-	v.parserBuffer.Write(template)
+	#token#_ = #Token#(token.Value)
+	return #token#_, token, true
+}
+`
+	var snippet = replaceName(template, "token", string(name))
+	v.parserBuffer.WriteString(snippet)
 }
 
 // This private method appends the parse rule start template for the specified
 // name to the parser byte buffer.
 func (v *compiler) appendParseRuleStart(name NAME) {
-	var template, err = osx.ReadFile("./templates/parseRuleStart.tp")
-	if err != nil {
-		panic(err)
-	}
-	template = replaceName(template, "rule", string(name))
-	v.parserBuffer.Write(template)
+	const template = `
+
+// This method attempts to parse a new #rule#. It returns the #rule#
+// and whether or not the #rule# was successfully parsed.
+func (v *parser) parse#Rule#() (#Rule#Like, *Token, bool) {
+	var ok bool
+	var token *Token
+	var #rule#_ #Rule#Like`
+	var snippet = replaceName(template, "rule", string(name))
+	v.parserBuffer.WriteString(snippet)
 }
 
 // This private method appends the parse rule end template for the specified
 // name to the parser byte buffer.
 func (v *compiler) appendParseRuleEnd(name NAME) {
-	var template, err = osx.ReadFile("./templates/parseRuleEnd.tp")
-	if err != nil {
-		panic(err)
-	}
-	template = replaceName(template, "rule", string(name))
-	v.parserBuffer.Write(template)
+	const template = `
+	#rule#_ = #Rule#(#arguments#)
+	return #rule#_, token, true
+}
+`
+	var snippet = replaceName(template, "rule", string(name))
+	v.parserBuffer.WriteString(snippet)
 }
 
 // This private method writes the byte buffer for the generated scanner code into
