@@ -145,8 +145,8 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
-// This method attempts to parse the end-of-file token. It returns the token
-// and whether or not the end-of-file token was successfully parsed.
+// This method attempts to parse a new end-of-file token. It returns the token
+// and whether or not the token was successfully parsed.
 func (v *parser) parseEOF() (*Token, *Token, bool) {
 	var token = v.nextToken()
 	if token.Type != TokenEOF {
@@ -156,8 +156,19 @@ func (v *parser) parseEOF() (*Token, *Token, bool) {
 	return token, token, true
 }
 
-// This method attempts to parse the intrinsic token. It returns the token
-// and whether or not the intrinsic token was successfully parsed.
+// This method attempts to parse the specified literal token. It returns the
+// token and whether or not the token was successfully parsed.
+func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
+	var token = v.nextToken()
+	if token.Type != TokenLITERAL || token.Value != literal {
+		v.backupOne(token)
+		return literal, token, false
+	}
+	return literal, token, true
+}
+
+// This method attempts to parse a new intrinsic token. It returns the token
+// and whether or not the token was successfully parsed.
 func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
 	var intrinsic INTRINSIC
 	var token = v.nextToken()
@@ -169,19 +180,8 @@ func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
 	return intrinsic, token, true
 }
 
-// This method attempts to parse the specified literal token. It returns the token
-// and whether or not the specified literal token was successfully parsed.
-func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
-	var token = v.nextToken()
-	if token.Type != TokenLITERAL || token.Value != literal {
-		v.backupOne(token)
-		return literal, token, false
-	}
-	return literal, token, true
-}
-
-// This method attempts to parse the note token. It returns the token
-// and whether or not the note token was successfully parsed.
+// This method attempts to parse a new note token. It returns the token
+// and whether or not the token was successfully parsed.
 func (v *parser) parseNOTE() (NOTE, *Token, bool) {
 	var note NOTE
 	var token = v.nextToken()
@@ -193,8 +193,8 @@ func (v *parser) parseNOTE() (NOTE, *Token, bool) {
 	return note, token, true
 }
 
-// This method attempts to parse the comment token. It returns the token
-// and whether or not the comment token was successfully parsed.
+// This method attempts to parse a new comment token. It returns the token
+// and whether or not the token was successfully parsed.
 func (v *parser) parseCOMMENT() (COMMENT, *Token, bool) {
 	var comment COMMENT
 	var token = v.nextToken()
@@ -206,8 +206,8 @@ func (v *parser) parseCOMMENT() (COMMENT, *Token, bool) {
 	return comment, token, true
 }
 
-// This method attempts to parse the character token. It returns the token
-// and whether or not the character token was successfully parsed.
+// This method attempts to parse a new character token. It returns the token
+// and whether or not the token was successfully parsed.
 func (v *parser) parseCHARACTER() (CHARACTER, *Token, bool) {
 	var character CHARACTER
 	var token = v.nextToken()
@@ -219,8 +219,8 @@ func (v *parser) parseCHARACTER() (CHARACTER, *Token, bool) {
 	return character, token, true
 }
 
-// This method attempts to parse the string token. It returns the token
-// and whether or not the string token was successfully parsed.
+// This method attempts to parse a new string token. It returns the token
+// and whether or not the token was successfully parsed.
 func (v *parser) parseSTRING() (STRING, *Token, bool) {
 	var string_ STRING
 	var token = v.nextToken()
@@ -232,8 +232,8 @@ func (v *parser) parseSTRING() (STRING, *Token, bool) {
 	return string_, token, true
 }
 
-// This method attempts to parse the name token. It returns the token
-// and whether or not the name token was successfully parsed.
+// This method attempts to parse a new name token. It returns the token
+// and whether or not the token was successfully parsed.
 func (v *parser) parseNAME() (NAME, *Token, bool) {
 	var name NAME
 	var token = v.nextToken()
@@ -251,8 +251,8 @@ func (v *parser) parseNAME() (NAME, *Token, bool) {
 	return name, token, true
 }
 
-// This method attempts to parse the symbol token. It returns the token
-// and whether or not the symbol token was successfully parsed.
+// This method attempts to parse a new symbol token. It returns the token
+// and whether or not the token was successfully parsed.
 func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
 	var symbol SYMBOL
 	var token = v.nextToken()
@@ -264,8 +264,8 @@ func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
 	return symbol, token, true
 }
 
-// This method attempts to parse the constraint token. It returns the token
-// and whether or not the constraint token was successfully parsed.
+// This method attempts to parse a new constraint token. It returns the token
+// and whether or not the token was successfully parsed.
 func (v *parser) parseCONSTRAINT() (CONSTRAINT, *Token, bool) {
 	var constraint CONSTRAINT
 	var token = v.nextToken()
@@ -277,8 +277,8 @@ func (v *parser) parseCONSTRAINT() (CONSTRAINT, *Token, bool) {
 	return constraint, token, true
 }
 
-// This method attempts to parse a document. It returns the document and whether
-// or not the document was successfully parsed.
+// This method attempts to parse a new document. It returns the document
+// and whether or not the document was successfully parsed.
 func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -313,8 +313,8 @@ func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
 	return document, token, true
 }
 
-// This method attempts to parse a statement. It returns the statement and
-// whether or not the statement was successfully parsed.
+// This method attempts to parse a new statement. It returns the statement
+// and whether or not the statement was successfully parsed.
 func (v *parser) parseStatement() (Statement, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -330,8 +330,8 @@ func (v *parser) parseStatement() (Statement, *Token, bool) {
 	return statement, token, true
 }
 
-// This method attempts to parse a definition. It returns the definition and
-// whether or not the definition was successfully parsed.
+// This method attempts to parse a new definition. It returns the definition
+// and whether or not the definition was successfully parsed.
 func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -367,8 +367,8 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 	return definition, token, true
 }
 
-// This method attempts to parse an expression. It returns the expression and
-// whether or not the expression was successfully parsed.
+// This method attempts to parse a new expression. It returns the expression
+// and whether or not the expression was successfully parsed.
 func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -403,8 +403,8 @@ func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 	return expression, token, true
 }
 
-// This method attempts to parse an alternative. It returns the alternative and
-// whether or not the alternative was successfully parsed.
+// This method attempts to parse a new alternative. It returns the alternative
+// and whether or not the alternative was successfully parsed.
 func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -430,8 +430,8 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	return alternative, token, true
 }
 
-// This method attempts to parse a predicate. It returns the predicate and whether or
-// not the predicate was successfully parsed.
+// This method attempts to parse a new predicate. It returns the predicate
+// and whether or not the predicate was successfully parsed.
 func (v *parser) parsePredicate() (Predicate, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -446,8 +446,8 @@ func (v *parser) parsePredicate() (Predicate, *Token, bool) {
 	return predicate, token, ok
 }
 
-// This method attempts to parse a range. It returns the range and whether or
-// not the range was successfully parsed.
+// This method attempts to parse a new range. It returns the range
+// and whether or not the range was successfully parsed.
 func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -474,7 +474,7 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 	return range_, token, true
 }
 
-// This method attempts to parse a repetition. It returns the repetition
+// This method attempts to parse a new repetition. It returns the repetition
 // and whether or not the repetition was successfully parsed.
 func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 	var ok bool
@@ -500,8 +500,8 @@ func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 	return repetition, token, true
 }
 
-// This method attempts to parse a factor. It returns the factor and whether or
-// not the factor was successfully parsed.
+// This method attempts to parse a new factor. It returns the factor
+// and whether or not the factor was successfully parsed.
 func (v *parser) parseFactor() (Factor, *Token, bool) {
 	var ok bool
 	var token *Token
@@ -513,7 +513,7 @@ func (v *parser) parseFactor() (Factor, *Token, bool) {
 	return factor, token, ok
 }
 
-// This method attempts to parse a precedence. It returns the precedence
+// This method attempts to parse a new precedence. It returns the precedence
 // and whether or not the precedence was successfully parsed.
 func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 	var ok bool
@@ -546,8 +546,8 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 	return precedence, token, true
 }
 
-// This method attempts to parse an element. It returns the element and whether
-// or not the element was successfully parsed.
+// This method attempts to parse an element. It returns the element
+// and whether or not the element was successfully parsed.
 func (v *parser) parseElement() (Factor, *Token, bool) {
 	var ok bool
 	var token *Token

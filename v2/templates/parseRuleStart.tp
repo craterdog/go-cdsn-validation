@@ -1,7 +1,7 @@
 
-// This method attempts to parse the #rule# rule. It returns the rule
-// and whether or not the #rule# rule was successfully parsed.
-func parse#Rule#(v *parser) (#Rule#Like, *Token, bool) {
+// This method attempts to parse a new #rule#. It returns the #rule#
+// and whether or not the #rule# was successfully parsed.
+func (v *parser) parse#Rule#() (#Rule#Like, *Token, bool) {
 	var ok bool
 	var token *Token
 	var #rule#_ #Rule#Like
