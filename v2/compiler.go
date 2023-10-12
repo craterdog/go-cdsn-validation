@@ -12,6 +12,7 @@ package cdsn
 
 import (
 	byt "bytes"
+	fmt "fmt"
 	col "github.com/craterdog/go-collection-framework/v2"
 	osx "os"
 	sts "strings"
@@ -32,6 +33,10 @@ func CompileDocument(directory, packageName string, document DocumentLike) {
 }
 
 // COMPILER IMPLEMENTATION
+
+// This constant defines the maximum depth allowed to prevent overly complex
+// grammars and infinite recursion in rule definitions.
+const maximumDepth = 8
 
 // This private function determines whether or not the specified name is a token
 // name.
@@ -59,13 +64,14 @@ func replaceName(template string, target string, name string) string {
 
 // This type defines the structure and methods for a compiler agent.
 type compiler struct {
+	depth         int
 	directory     string
 	packageName   string
 	scannerBuffer byt.Buffer
 	parserBuffer  byt.Buffer
 }
 
-// This private method creates a new configuration (package.go) file if one
+// This method creates a new configuration (package.go) file if one
 // does not already exist.
 func (v *compiler) initializeConfiguration() {
 	var err error
@@ -85,7 +91,7 @@ func (v *compiler) initializeConfiguration() {
 	}
 }
 
-// This private method creates the byte buffer for the generated scanner code.
+// This method creates the byte buffer for the generated scanner code.
 func (v *compiler) initializeScanner() {
 	var template, err = osx.ReadFile("./templates/scanner.tp")
 	if err != nil {
@@ -95,7 +101,7 @@ func (v *compiler) initializeScanner() {
 	v.scannerBuffer.Write(template[0 : len(template)-1])
 }
 
-// This private method creates the byte buffer for the generated parser code.
+// This method creates the byte buffer for the generated parser code.
 func (v *compiler) initializeParser() {
 	var template, err = osx.ReadFile("./templates/parser.tp")
 	if err != nil {
@@ -105,10 +111,15 @@ func (v *compiler) initializeParser() {
 	v.parserBuffer.Write(template[0 : len(template)-1])
 }
 
-// This private method appends the scan token template for the specified name to
+// This method appends the scan token template for the specified name to
 // the scanner byte buffer.
-func (v *compiler) appendScanToken(name NAME) {
+func (v *compiler) appendScanToken(name NAME, re string) {
 	const template = `
+
+type #Token# string
+const Token#Token# TokenType = "#Token#"
+const #token# = #tokenRE#
+var #token#Scanner = reg.MustCompile(` + "`^(?:` + #token# + `)`)" + `
 
 // This method adds a new #token# token with the current scanner information
 // to the token channel. It returns true if a new #token# token was found.
@@ -124,10 +135,11 @@ func (v *scanner) scan#Token#() bool {
 	return false
 }`
 	var snippet = replaceName(template, "token", string(name))
+	snippet = replaceName(snippet, "tokenRE", re)
 	v.scannerBuffer.WriteString(snippet)
 }
 
-// This private method appends the parse token template for the specified name
+// This method appends the parse token template for the specified name
 // to the parser byte buffer.
 func (v *compiler) appendParseToken(name NAME) {
 	const template = `
@@ -148,7 +160,7 @@ func (v *parser) parse#Token#() (#Token#, *Token, bool) {
 	v.parserBuffer.WriteString(snippet)
 }
 
-// This private method appends the parse rule start template for the specified
+// This method appends the parse rule start template for the specified
 // name to the parser byte buffer.
 func (v *compiler) appendParseRuleStart(name NAME) {
 	const template = `
@@ -163,18 +175,19 @@ func (v *parser) parse#Rule#() (#Rule#Like, *Token, bool) {
 	v.parserBuffer.WriteString(snippet)
 }
 
-// This private method appends the parse rule end template for the specified
-// name to the parser byte buffer.
-func (v *compiler) appendParseRuleEnd(name NAME) {
+// This method appends the parse rule end template for the specified
+// name and arguments to the parser byte buffer.
+func (v *compiler) appendParseRuleEnd(name NAME, arguments string) {
 	const template = `
 	#rule#_ = #Rule#(#arguments#)
 	return #rule#_, token, true
 }`
 	var snippet = replaceName(template, "rule", string(name))
+	snippet = replaceName(snippet, "arguments", arguments)
 	v.parserBuffer.WriteString(snippet)
 }
 
-// This private method writes the byte buffer for the generated scanner code into
+// This method writes the byte buffer for the generated scanner code into
 // a file.
 func (v *compiler) finalizeScanner() {
 	var filename = v.directory + "scanner.go"
@@ -184,7 +197,7 @@ func (v *compiler) finalizeScanner() {
 	}
 }
 
-// This private method writes the byte buffer for the generated parser code into
+// This method writes the byte buffer for the generated parser code into
 // a file.
 func (v *compiler) finalizeParser() {
 	var filename = v.directory + "parser.go"
@@ -194,26 +207,44 @@ func (v *compiler) finalizeParser() {
 	}
 }
 
-// This private method compiles the specified definition.
-func (v *compiler) compileDefinition(definition DefinitionLike) {
-	var symbol = definition.GetSYMBOL()
-	var name = symbol.GetNAME()
-	if string(name) == "INTRINSIC" {
-		// Intrinsics are automatically part of every parser.
-		return
+// This method increments the depth of the compilation by one and checks
+// for run-away recursion.
+func (v *compiler) incrementDepth() {
+	v.depth++
+	if v.depth > maximumDepth {
+		var message = fmt.Sprintf("Exceeded the maximum depth:\n%s\n", v.parserBuffer.String())
+		panic(message)
 	}
-	if isTokenName(name) {
-		v.appendScanToken(name)
-		v.appendParseToken(name)
-		return
-	}
-	v.appendParseRuleStart(name)
-	var expression = definition.GetExpression()
-	v.compileExpression(expression)
-	v.appendParseRuleEnd(name)
 }
 
-// This private method compiles the specified document.
+// This method decrements the depth of the compilation by one and checks
+// for run-away recursion.
+func (v *compiler) decrementDepth() {
+	v.depth--
+}
+
+// This method compiles the specified definition.
+func (v *compiler) compileDefinition(definition DefinitionLike) {
+	var symbol = definition.GetSYMBOL()
+	var expression = definition.GetExpression()
+	var name = symbol.GetNAME()
+	switch {
+	case string(name) == "INTRINSIC":
+		// Intrinsics are automatically part of every parser.
+	case isTokenName(name):
+		var re sts.Builder
+		v.compileTokenExpression(expression, &re)
+		v.appendScanToken(name, re.String())
+		v.appendParseToken(name)
+	default:
+		var arguments sts.Builder
+		v.appendParseRuleStart(name)
+		v.compileRuleExpression(expression, &arguments)
+		v.appendParseRuleEnd(name, arguments.String())
+	}
+}
+
+// This method compiles the specified document.
 func (v *compiler) compileDocument(document DocumentLike) {
 	var statements = document.GetStatements()
 	var iterator = col.Iterator(statements)
@@ -223,15 +254,161 @@ func (v *compiler) compileDocument(document DocumentLike) {
 	}
 }
 
-// This private method compiles the specified expression.
-func (v *compiler) compileExpression(expression ExpressionLike) {
-}
-
-// This private method compiles the specified statement.
+// This method compiles the specified statement.
 func (v *compiler) compileStatement(statement Statement) {
 	switch actual := statement.(type) {
 	case *definition:
 		v.compileDefinition(actual)
 	case COMMENT:
 	}
+}
+
+// This method compiles the specified token alternative.
+func (v *compiler) compileTokenAlternative(alternative AlternativeLike, re *sts.Builder) {
+	var predicates = alternative.GetPredicates()
+	var iterator = col.Iterator(predicates)
+	var predicate = iterator.GetNext()
+	v.compileTokenPredicate(predicate, re)
+	for iterator.HasNext() {
+		re.WriteString("|")
+		predicate = iterator.GetNext()
+		v.compileTokenPredicate(predicate, re)
+	}
+}
+
+// This method compiles the specified token constraint.
+func (v *compiler) compileTokenCONSTRAINT(constraint CONSTRAINT, re *sts.Builder) {
+	re.WriteString(string(constraint))
+}
+
+// This method compiles the specified token element.
+func (v *compiler) compileTokenElement(element ElementLike, re *sts.Builder) {
+	var intrinsic = element.GetINTRINSIC()
+	var name = element.GetNAME()
+	var string_ = element.GetSTRING()
+	switch {
+	case len(intrinsic) > 0:
+		v.compileTokenINTRINSIC(intrinsic, re)
+	case len(name) > 0:
+		v.compileTokenNAME(name, re)
+	case len(string_) > 0:
+		v.compileTokenSTRING(string_, re)
+	}
+}
+
+// This method compiles the specified rule expression.
+func (v *compiler) compileRuleExpression(expression ExpressionLike, arguments *sts.Builder) {
+	v.incrementDepth()
+	arguments.WriteString("foo")
+	v.decrementDepth()
+}
+
+// This method compiles the specified token expression.
+func (v *compiler) compileTokenExpression(expression ExpressionLike, re *sts.Builder) {
+	var alternatives = expression.GetAlternatives()
+	var iterator = col.Iterator(alternatives)
+	var alternative = iterator.GetNext()
+	v.compileTokenAlternative(alternative, re)
+	for iterator.HasNext() {
+		re.WriteString("|")
+		alternative = iterator.GetNext()
+		v.compileTokenAlternative(alternative, re)
+	}
+}
+
+// This method compiles the specified token factor.
+func (v *compiler) compileTokenFactor(factor FactorLike, re *sts.Builder) {
+	var precedence = factor.GetPrecedence()
+	var element = factor.GetElement()
+	switch {
+	case precedence != nil:
+		v.compileTokenPrecedence(precedence, re)
+	case element != nil:
+		v.compileTokenElement(element, re)
+	}
+}
+
+// This method compiles the specified token intrinsic.
+func (v *compiler) compileTokenINTRINSIC(intrinsic INTRINSIC, re *sts.Builder) {
+	switch string(intrinsic) {
+	case "ANY":
+		re.WriteString(any_)
+	case "LOWER_CASE":
+		re.WriteString(lowerCase)
+	case "UPPER_CASE":
+		re.WriteString(upperCase)
+	case "DIGIT":
+		re.WriteString(digit)
+	case "SEPARATOR":
+		re.WriteString(separator)
+	case "ESCAPE":
+		re.WriteString(escape)
+	case "EOL":
+		re.WriteString(eol)
+	}
+}
+
+// This method compiles the specified token name.
+func (v *compiler) compileTokenNAME(name NAME, re *sts.Builder) {
+	re.WriteString(string(name))
+}
+
+// This method compiles the specified token precedence.
+func (v *compiler) compileTokenPrecedence(precedence PrecedenceLike, re *sts.Builder) {
+	var expression = precedence.GetExpression()
+	re.WriteString("(?:")
+	v.compileTokenExpression(expression, re)
+	re.WriteString(")")
+}
+
+// This method compiles the specified token predicate.
+func (v *compiler) compileTokenPredicate(predicate PredicateLike, re *sts.Builder) {
+	var range_ = predicate.GetRange()
+	var repetition = predicate.GetRepetition()
+	var factor = predicate.GetFactor()
+	switch {
+	case range_ != nil:
+		v.compileTokenRange(range_, re)
+	case repetition != nil:
+		v.compileTokenRepetition(repetition, re)
+	case factor != nil:
+		v.compileTokenFactor(factor, re)
+	}
+}
+
+// This method compiles the specified token range.
+func (v *compiler) compileTokenRange(range_ RangeLike, re *sts.Builder) {
+	var first = range_.GetFirstCHARACTER()
+	re.WriteString(string(first))
+	var last = range_.GetLastCHARACTER()
+	if len(last) > 0 {
+		re.WriteString("-")
+		re.WriteString(string(last))
+	}
+}
+
+// This method compiles the specified token repetition.
+func (v *compiler) compileTokenRepetition(repetition RepetitionLike, re *sts.Builder) {
+	var constraint = repetition.GetCONSTRAINT()
+	var factor = repetition.GetFactor()
+	switch string(constraint) {
+	case "~":
+		re.WriteString("[^")
+		v.compileTokenFactor(factor, re)
+		re.WriteString("]")
+	case "?", "*", "+":
+		v.compileTokenFactor(factor, re)
+		v.compileTokenCONSTRAINT(constraint, re)
+	default:
+		v.compileTokenFactor(factor, re)
+		re.WriteString("{")
+		v.compileTokenCONSTRAINT(constraint, re)
+		re.WriteString("}")
+	}
+}
+
+// This method compiles the specified token string.
+func (v *compiler) compileTokenSTRING(string_ STRING, re *sts.Builder) {
+	var s = string(string_)
+	re.WriteString(s[1 : len(s)-1])
 }

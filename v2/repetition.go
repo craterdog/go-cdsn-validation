@@ -17,12 +17,12 @@ package cdsn
 type RepetitionLike interface {
 	GetCONSTRAINT() CONSTRAINT
 	SetCONSTRAINT(constraint CONSTRAINT)
-	GetFactor() Factor
-	SetFactor(factor Factor)
+	GetFactor() FactorLike
+	SetFactor(factor FactorLike)
 }
 
 // This constructor creates a new repetition.
-func Repetition(constraint CONSTRAINT, factor Factor) RepetitionLike {
+func Repetition(constraint CONSTRAINT, factor FactorLike) RepetitionLike {
 	var v = &repetition{}
 	v.SetCONSTRAINT(constraint)
 	v.SetFactor(factor)
@@ -34,7 +34,7 @@ func Repetition(constraint CONSTRAINT, factor Factor) RepetitionLike {
 // This type defines the structure and methods associated with a repetition.
 type repetition struct {
 	constraint CONSTRAINT
-	factor     Factor
+	factor     FactorLike
 }
 
 // This method returns the number for this repetition.
@@ -51,12 +51,12 @@ func (v *repetition) SetCONSTRAINT(constraint CONSTRAINT) {
 }
 
 // This method returns the factor for this repetition.
-func (v *repetition) GetFactor() Factor {
+func (v *repetition) GetFactor() FactorLike {
 	return v.factor
 }
 
 // This method sets the factor for this repetition.
-func (v *repetition) SetFactor(factor Factor) {
+func (v *repetition) SetFactor(factor FactorLike) {
 	if factor == nil {
 		panic("A repetition requires a factor.")
 	}

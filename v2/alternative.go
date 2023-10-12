@@ -19,14 +19,14 @@ import (
 // This interface defines the methods supported by all alternative-like
 // components.
 type AlternativeLike interface {
-	GetPredicates() col.Sequential[Predicate]
-	SetPredicates(predicates col.Sequential[Predicate])
+	GetPredicates() col.Sequential[PredicateLike]
+	SetPredicates(predicates col.Sequential[PredicateLike])
 	GetNOTE() NOTE
 	SetNOTE(note NOTE)
 }
 
 // This constructor creates a new alternative.
-func Alternative(predicates col.Sequential[Predicate], note NOTE) AlternativeLike {
+func Alternative(predicates col.Sequential[PredicateLike], note NOTE) AlternativeLike {
 	var v = &alternative{}
 	v.SetPredicates(predicates)
 	v.SetNOTE(note)
@@ -37,17 +37,17 @@ func Alternative(predicates col.Sequential[Predicate], note NOTE) AlternativeLik
 
 // This type defines the structure and methods associated with an alternative.
 type alternative struct {
-	predicates col.Sequential[Predicate]
+	predicates col.Sequential[PredicateLike]
 	note       NOTE
 }
 
 // This method returns the predicates for this alternative.
-func (v *alternative) GetPredicates() col.Sequential[Predicate] {
+func (v *alternative) GetPredicates() col.Sequential[PredicateLike] {
 	return v.predicates
 }
 
 // This method sets the predicates for this alternative.
-func (v *alternative) SetPredicates(predicates col.Sequential[Predicate]) {
+func (v *alternative) SetPredicates(predicates col.Sequential[PredicateLike]) {
 	if predicates == nil || predicates.IsEmpty() {
 		panic("An alternative requires at least one predicate.")
 	}

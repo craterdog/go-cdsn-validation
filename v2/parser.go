@@ -408,8 +408,8 @@ func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var predicate Predicate
-	var predicates = col.List[Predicate]()
+	var predicate PredicateLike
+	var predicates = col.List[PredicateLike]()
 	var note NOTE
 	var alternative AlternativeLike
 	predicate, token, ok = v.parsePredicate()
@@ -432,17 +432,21 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 
 // This method attempts to parse a new predicate. It returns the predicate
 // and whether or not the predicate was successfully parsed.
-func (v *parser) parsePredicate() (Predicate, *Token, bool) {
+func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var predicate Predicate
-	predicate, token, ok = v.parseRange()
+	var range_ RangeLike
+	var repetition RepetitionLike
+	var factor FactorLike
+	var predicate PredicateLike
+	range_, token, ok = v.parseRange()
 	if !ok {
-		predicate, token, ok = v.parseRepetition()
+		repetition, token, ok = v.parseRepetition()
 	}
 	if !ok {
-		predicate, token, ok = v.parseFactor()
+		factor, token, ok = v.parseFactor()
 	}
+	predicate = Predicate(range_, repetition, factor)
 	return predicate, token, ok
 }
 
@@ -480,7 +484,7 @@ func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var constraint CONSTRAINT
-	var factor Factor
+	var factor FactorLike
 	var repetition RepetitionLike
 	constraint, token, ok = v.parseCONSTRAINT()
 	if !ok {
@@ -502,14 +506,17 @@ func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 
 // This method attempts to parse a new factor. It returns the factor
 // and whether or not the factor was successfully parsed.
-func (v *parser) parseFactor() (Factor, *Token, bool) {
+func (v *parser) parseFactor() (FactorLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var factor Factor
-	factor, token, ok = v.parsePrecedence()
+	var precedence PrecedenceLike
+	var element ElementLike
+	var factor FactorLike
+	precedence, token, ok = v.parsePrecedence()
 	if !ok {
-		factor, token, ok = v.parseElement()
+		element, token, ok = v.parseElement()
 	}
+	factor = Factor(precedence, element)
 	return factor, token, ok
 }
 
@@ -548,16 +555,20 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 
 // This method attempts to parse an element. It returns the element
 // and whether or not the element was successfully parsed.
-func (v *parser) parseElement() (Factor, *Token, bool) {
+func (v *parser) parseElement() (ElementLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var factor Factor
-	factor, token, ok = v.parseINTRINSIC()
+	var intrinsic INTRINSIC
+	var name NAME
+	var string_ STRING
+	var element ElementLike
+	intrinsic, token, ok = v.parseINTRINSIC()
 	if !ok {
-		factor, token, ok = v.parseNAME()
+		name, token, ok = v.parseNAME()
 	}
 	if !ok {
-		factor, token, ok = v.parseSTRING()
+		string_, token, ok = v.parseSTRING()
 	}
-	return factor, token, ok
+	element = Element(intrinsic, name, string_)
+	return element, token, ok
 }

@@ -88,8 +88,18 @@ func (v *formatter) formatDocument(document DocumentLike) {
 }
 
 // This private method formats the specified element.
-func (v *formatter) formatElement(element Element) {
-	v.appendString(string(element))
+func (v *formatter) formatElement(element ElementLike) {
+	var intrinsic = element.GetINTRINSIC()
+	var name = element.GetNAME()
+	var string_ = element.GetSTRING()
+	switch {
+	case len(intrinsic) > 0:
+		v.appendString(string(intrinsic))
+	case len(name) > 0:
+		v.appendString(string(name))
+	case len(string_) > 0:
+		v.appendString(string(string_))
+	}
 }
 
 // This private method formats the specified expression.
@@ -117,16 +127,14 @@ func (v *formatter) formatExpression(expression ExpressionLike) {
 }
 
 // This private method formats the specified factor.
-func (v *formatter) formatFactor(factor Factor) {
-	switch actual := factor.(type) {
-	case *precedence:
-		v.formatPrecedence(actual)
-	case INTRINSIC:
-		v.formatElement(Element(actual))
-	case NAME:
-		v.formatElement(Element(actual))
-	case STRING:
-		v.formatElement(Element(actual))
+func (v *formatter) formatFactor(factor FactorLike) {
+	var precedence = factor.GetPrecedence()
+	var element = factor.GetElement()
+	switch {
+	case precedence != nil:
+		v.formatPrecedence(precedence)
+	case element != nil:
+		v.formatElement(element)
 	}
 }
 
@@ -139,14 +147,17 @@ func (v *formatter) formatPrecedence(definition PrecedenceLike) {
 }
 
 // This private method formats the specified predicate.
-func (v *formatter) formatPredicate(predicate Predicate) {
-	switch actual := predicate.(type) {
-	case *range_:
-		v.formatRange(actual)
-	case *repetition:
-		v.formatRepetition(actual)
-	case Factor:
-		v.formatFactor(actual)
+func (v *formatter) formatPredicate(predicate PredicateLike) {
+	var range_ = predicate.GetRange()
+	var repetition = predicate.GetRepetition()
+	var factor = predicate.GetFactor()
+	switch {
+	case range_ != nil:
+		v.formatRange(range_)
+	case repetition != nil:
+		v.formatRepetition(repetition)
+	case factor != nil:
+		v.formatFactor(factor)
 	}
 }
 
