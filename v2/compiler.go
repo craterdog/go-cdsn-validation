@@ -69,6 +69,7 @@ type compiler struct {
 	packageName   string
 	scannerBuffer byt.Buffer
 	parserBuffer  byt.Buffer
+	isInverted    bool
 }
 
 // This method creates a new configuration (package.go) file if one
@@ -287,9 +288,7 @@ func (v *compiler) compileTokenElement(element ElementLike, re *sts.Builder) {
 	var string_ = element.GetSTRING()
 	switch {
 	case len(intrinsic) > 0:
-		re.WriteString("(?:")
 		v.compileTokenINTRINSIC(intrinsic, re)
-		re.WriteString(")")
 	case len(name) > 0:
 		v.compileTokenNAME(name, re)
 	case len(string_) > 0:
@@ -311,7 +310,9 @@ func (v *compiler) compileTokenExpression(expression ExpressionLike, re *sts.Bui
 	var alternative = iterator.GetNext()
 	v.compileTokenAlternative(alternative, re)
 	for iterator.HasNext() {
-		re.WriteString("|")
+		if !v.isInverted {
+			re.WriteString("|")
+		}
 		alternative = iterator.GetNext()
 		v.compileTokenAlternative(alternative, re)
 	}
@@ -357,9 +358,13 @@ func (v *compiler) compileTokenNAME(name NAME, re *sts.Builder) {
 // This method compiles the specified token precedence.
 func (v *compiler) compileTokenPrecedence(precedence PrecedenceLike, re *sts.Builder) {
 	var expression = precedence.GetExpression()
-	re.WriteString("(?:")
+	if !v.isInverted {
+		re.WriteString("(?:")
+	}
 	v.compileTokenExpression(expression, re)
-	re.WriteString(")")
+	if !v.isInverted {
+		re.WriteString(")")
+	}
 }
 
 // This method compiles the specified token predicate.
@@ -399,7 +404,9 @@ func (v *compiler) compileTokenRepetition(repetition RepetitionLike, re *sts.Bui
 	switch string(constraint) {
 	case "~":
 		re.WriteString("[^")
+		v.isInverted = true
 		v.compileTokenFactor(factor, re)
+		v.isInverted = false
 		re.WriteString("]")
 	case "?", "*", "+":
 		v.compileTokenFactor(factor, re)
