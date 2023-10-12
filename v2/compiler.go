@@ -118,7 +118,7 @@ func (v *compiler) appendScanToken(name NAME, re string) {
 
 type #Token# string
 const Token#Token# TokenType = "#Token#"
-const #token# = #tokenRE#
+const #token# = ` + "`#tokenRE#`" + `
 var #token#Scanner = reg.MustCompile(` + "`^(?:` + #token# + `)`)" + `
 
 // This method adds a new #token# token with the current scanner information
@@ -270,7 +270,6 @@ func (v *compiler) compileTokenAlternative(alternative AlternativeLike, re *sts.
 	var predicate = iterator.GetNext()
 	v.compileTokenPredicate(predicate, re)
 	for iterator.HasNext() {
-		re.WriteString("|")
 		predicate = iterator.GetNext()
 		v.compileTokenPredicate(predicate, re)
 	}
@@ -288,7 +287,9 @@ func (v *compiler) compileTokenElement(element ElementLike, re *sts.Builder) {
 	var string_ = element.GetSTRING()
 	switch {
 	case len(intrinsic) > 0:
+		re.WriteString("(?:")
 		v.compileTokenINTRINSIC(intrinsic, re)
+		re.WriteString(")")
 	case len(name) > 0:
 		v.compileTokenNAME(name, re)
 	case len(string_) > 0:
@@ -378,12 +379,16 @@ func (v *compiler) compileTokenPredicate(predicate PredicateLike, re *sts.Builde
 
 // This method compiles the specified token range.
 func (v *compiler) compileTokenRange(range_ RangeLike, re *sts.Builder) {
-	var first = range_.GetFirstCHARACTER()
-	re.WriteString(string(first))
-	var last = range_.GetLastCHARACTER()
+	var first = string(range_.GetFirstCHARACTER())
+	var last = string(range_.GetLastCHARACTER())
 	if len(last) > 0 {
+		re.WriteString("[")
+		re.WriteString(first[1 : len(first)-1])
 		re.WriteString("-")
-		re.WriteString(string(last))
+		re.WriteString(last[1 : len(last)-1])
+		re.WriteString("]")
+	} else {
+		re.WriteString(first[1 : len(first)-1])
 	}
 }
 

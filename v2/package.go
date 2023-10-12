@@ -45,6 +45,6 @@ const (
 
 // These characters are treated as whitespace by the scanner and ignored.
 const (
-	whitespace = `(?:` + space + `|` + eol + `)+`
+	whitespace = `[` + space + eol + `]+`
 	space      = ` `
 )
