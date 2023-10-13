@@ -69,7 +69,6 @@ type compiler struct {
 	packageName   string
 	scannerBuffer byt.Buffer
 	parserBuffer  byt.Buffer
-	isInverted    bool
 }
 
 // This method creates a new configuration (package.go) file if one
@@ -224,6 +223,23 @@ func (v *compiler) decrementDepth() {
 	v.depth--
 }
 
+// This method compiles the specified token alternative.
+func (v *compiler) compileAlternativeToken(alternative AlternativeLike, re *sts.Builder) {
+	var predicates = alternative.GetPredicates()
+	var iterator = col.Iterator(predicates)
+	var predicate = iterator.GetNext()
+	v.compilePredicateToken(predicate, re)
+	for iterator.HasNext() {
+		predicate = iterator.GetNext()
+		v.compilePredicateToken(predicate, re)
+	}
+}
+
+// This method compiles the specified token constraint.
+func (v *compiler) compileCONSTRAINTToken(constraint CONSTRAINT, re *sts.Builder) {
+	re.WriteString(string(constraint))
+}
+
 // This method compiles the specified definition.
 func (v *compiler) compileDefinition(definition DefinitionLike) {
 	var symbol = definition.GetSYMBOL()
@@ -234,7 +250,7 @@ func (v *compiler) compileDefinition(definition DefinitionLike) {
 		// Intrinsics are automatically part of every parser.
 	case isTokenName(name):
 		var re sts.Builder
-		v.compileTokenExpression(expression, &re)
+		v.compileExpressionToken(expression, &re)
 		v.appendScanToken(name, re.String())
 		v.appendParseToken(name)
 	default:
@@ -255,83 +271,112 @@ func (v *compiler) compileDocument(document DocumentLike) {
 	}
 }
 
-// This method compiles the specified statement.
-func (v *compiler) compileStatement(statement Statement) {
-	switch actual := statement.(type) {
-	case *definition:
-		v.compileDefinition(actual)
-	case COMMENT:
-	}
-}
-
-// This method compiles the specified token alternative.
-func (v *compiler) compileTokenAlternative(alternative AlternativeLike, re *sts.Builder) {
-	var predicates = alternative.GetPredicates()
-	var iterator = col.Iterator(predicates)
-	var predicate = iterator.GetNext()
-	v.compileTokenPredicate(predicate, re)
-	for iterator.HasNext() {
-		predicate = iterator.GetNext()
-		v.compileTokenPredicate(predicate, re)
-	}
-}
-
-// This method compiles the specified token constraint.
-func (v *compiler) compileTokenCONSTRAINT(constraint CONSTRAINT, re *sts.Builder) {
-	re.WriteString(string(constraint))
-}
-
 // This method compiles the specified token element.
-func (v *compiler) compileTokenElement(element ElementLike, re *sts.Builder) {
+func (v *compiler) compileElementToken(element ElementLike, re *sts.Builder) {
 	var intrinsic = element.GetINTRINSIC()
 	var name = element.GetNAME()
 	var string_ = element.GetSTRING()
 	switch {
 	case len(intrinsic) > 0:
-		v.compileTokenINTRINSIC(intrinsic, re)
+		v.compileINTRINSICToken(intrinsic, re)
 	case len(name) > 0:
-		v.compileTokenNAME(name, re)
+		v.compileNAMEToken(name, re)
 	case len(string_) > 0:
-		v.compileTokenSTRING(string_, re)
+		v.compileSTRINGToken(string_, re)
 	}
 }
 
-// This method compiles the specified rule expression.
-func (v *compiler) compileRuleExpression(expression ExpressionLike, arguments *sts.Builder) {
-	v.incrementDepth()
-	arguments.WriteString("foo")
-	v.decrementDepth()
-}
-
-// This method compiles the specified token expression.
-func (v *compiler) compileTokenExpression(expression ExpressionLike, re *sts.Builder) {
+// This method compiles the specified expression token.
+func (v *compiler) compileExpressionToken(expression ExpressionLike, re *sts.Builder) {
 	var alternatives = expression.GetAlternatives()
 	var iterator = col.Iterator(alternatives)
 	var alternative = iterator.GetNext()
-	v.compileTokenAlternative(alternative, re)
+	v.compileAlternativeToken(alternative, re)
 	for iterator.HasNext() {
-		if !v.isInverted {
-			re.WriteString("|")
-		}
+		re.WriteString("|")
 		alternative = iterator.GetNext()
-		v.compileTokenAlternative(alternative, re)
+		v.compileAlternativeToken(alternative, re)
 	}
 }
 
 // This method compiles the specified token factor.
-func (v *compiler) compileTokenFactor(factor FactorLike, re *sts.Builder) {
+func (v *compiler) compileFactorToken(factor FactorLike, re *sts.Builder) {
 	var precedence = factor.GetPrecedence()
 	var element = factor.GetElement()
 	switch {
 	case precedence != nil:
-		v.compileTokenPrecedence(precedence, re)
+		v.compilePrecedenceToken(precedence, re)
 	case element != nil:
-		v.compileTokenElement(element, re)
+		v.compileElementToken(element, re)
+	}
+}
+
+// This method compiles the specified token alternative.
+func (v *compiler) compileInvertedAlternativeToken(alternative AlternativeLike, re *sts.Builder) {
+	var predicates = alternative.GetPredicates()
+	var iterator = col.Iterator(predicates)
+	var predicate = iterator.GetNext()
+	v.compileInvertedPredicateToken(predicate, re)
+	for iterator.HasNext() {
+		predicate = iterator.GetNext()
+		v.compileInvertedPredicateToken(predicate, re)
+	}
+}
+
+// This method compiles the specified expression token.
+func (v *compiler) compileInvertedExpressionToken(expression ExpressionLike, re *sts.Builder) {
+	var alternatives = expression.GetAlternatives()
+	var iterator = col.Iterator(alternatives)
+	var alternative = iterator.GetNext()
+	v.compileInvertedAlternativeToken(alternative, re)
+	for iterator.HasNext() {
+		alternative = iterator.GetNext()
+		v.compileInvertedAlternativeToken(alternative, re)
+	}
+}
+
+// This method compiles the specified inverted token factor.
+func (v *compiler) compileInvertedFactorToken(factor FactorLike, re *sts.Builder) {
+	var precedence = factor.GetPrecedence()
+	var element = factor.GetElement()
+	switch {
+	case precedence != nil:
+		v.compileInvertedPrecedenceToken(precedence, re)
+	case element != nil:
+		v.compileElementToken(element, re)
+	}
+}
+
+// This method compiles the specified token precedence.
+func (v *compiler) compileInvertedPrecedenceToken(precedence PrecedenceLike, re *sts.Builder) {
+	var expression = precedence.GetExpression()
+	v.compileInvertedExpressionToken(expression, re)
+}
+
+// This method compiles the specified token predicate.
+func (v *compiler) compileInvertedPredicateToken(predicate PredicateLike, re *sts.Builder) {
+	var range_ = predicate.GetRange()
+	var repetition = predicate.GetRepetition()
+	var factor = predicate.GetFactor()
+	switch {
+	case range_ != nil:
+		v.compileRangeToken(range_, re)
+	case repetition != nil:
+		panic("A repetition is not allowed in an inverted predicate.")
+	case factor != nil:
+		var precedence = factor.GetPrecedence()
+		var element = factor.GetElement()
+		switch {
+		case precedence != nil:
+			panic("A precedence factor is not allowed in an inverted predicate.")
+		case element != nil:
+			v.compileElementToken(element, re)
+		}
 	}
 }
 
 // This method compiles the specified token intrinsic.
-func (v *compiler) compileTokenINTRINSIC(intrinsic INTRINSIC, re *sts.Builder) {
+func (v *compiler) compileINTRINSICToken(intrinsic INTRINSIC, re *sts.Builder) {
 	switch string(intrinsic) {
 	case "ANY":
 		re.WriteString(any_)
@@ -351,76 +396,84 @@ func (v *compiler) compileTokenINTRINSIC(intrinsic INTRINSIC, re *sts.Builder) {
 }
 
 // This method compiles the specified token name.
-func (v *compiler) compileTokenNAME(name NAME, re *sts.Builder) {
+func (v *compiler) compileNAMEToken(name NAME, re *sts.Builder) {
 	re.WriteString(string(name))
 }
 
 // This method compiles the specified token precedence.
-func (v *compiler) compileTokenPrecedence(precedence PrecedenceLike, re *sts.Builder) {
+func (v *compiler) compilePrecedenceToken(precedence PrecedenceLike, re *sts.Builder) {
 	var expression = precedence.GetExpression()
-	if !v.isInverted {
-		re.WriteString("(?:")
-	}
-	v.compileTokenExpression(expression, re)
-	if !v.isInverted {
-		re.WriteString(")")
-	}
+	re.WriteString("(?:")
+	v.compileExpressionToken(expression, re)
+	re.WriteString(")")
 }
 
 // This method compiles the specified token predicate.
-func (v *compiler) compileTokenPredicate(predicate PredicateLike, re *sts.Builder) {
+func (v *compiler) compilePredicateToken(predicate PredicateLike, re *sts.Builder) {
 	var range_ = predicate.GetRange()
 	var repetition = predicate.GetRepetition()
 	var factor = predicate.GetFactor()
 	switch {
 	case range_ != nil:
-		v.compileTokenRange(range_, re)
+		v.compileRangeToken(range_, re)
 	case repetition != nil:
-		v.compileTokenRepetition(repetition, re)
+		v.compileRepetitionToken(repetition, re)
 	case factor != nil:
-		v.compileTokenFactor(factor, re)
+		v.compileFactorToken(factor, re)
 	}
 }
 
 // This method compiles the specified token range.
-func (v *compiler) compileTokenRange(range_ RangeLike, re *sts.Builder) {
+func (v *compiler) compileRangeToken(range_ RangeLike, re *sts.Builder) {
 	var first = string(range_.GetFirstCHARACTER())
 	var last = string(range_.GetLastCHARACTER())
 	if len(last) > 0 {
-		re.WriteString("[")
 		re.WriteString(first[1 : len(first)-1])
 		re.WriteString("-")
 		re.WriteString(last[1 : len(last)-1])
-		re.WriteString("]")
 	} else {
 		re.WriteString(first[1 : len(first)-1])
 	}
 }
 
 // This method compiles the specified token repetition.
-func (v *compiler) compileTokenRepetition(repetition RepetitionLike, re *sts.Builder) {
+func (v *compiler) compileRepetitionToken(repetition RepetitionLike, re *sts.Builder) {
 	var constraint = repetition.GetCONSTRAINT()
 	var factor = repetition.GetFactor()
 	switch string(constraint) {
 	case "~":
 		re.WriteString("[^")
-		v.isInverted = true
-		v.compileTokenFactor(factor, re)
-		v.isInverted = false
+		v.compileInvertedFactorToken(factor, re)
 		re.WriteString("]")
 	case "?", "*", "+":
-		v.compileTokenFactor(factor, re)
-		v.compileTokenCONSTRAINT(constraint, re)
+		v.compileFactorToken(factor, re)
+		v.compileCONSTRAINTToken(constraint, re)
 	default:
-		v.compileTokenFactor(factor, re)
+		v.compileFactorToken(factor, re)
 		re.WriteString("{")
-		v.compileTokenCONSTRAINT(constraint, re)
+		v.compileCONSTRAINTToken(constraint, re)
 		re.WriteString("}")
 	}
 }
 
+// This method compiles the specified rule expression.
+func (v *compiler) compileRuleExpression(expression ExpressionLike, arguments *sts.Builder) {
+	v.incrementDepth()
+	arguments.WriteString("foo")
+	v.decrementDepth()
+}
+
+// This method compiles the specified statement.
+func (v *compiler) compileStatement(statement Statement) {
+	switch actual := statement.(type) {
+	case *definition:
+		v.compileDefinition(actual)
+	case COMMENT:
+	}
+}
+
 // This method compiles the specified token string.
-func (v *compiler) compileTokenSTRING(string_ STRING, re *sts.Builder) {
+func (v *compiler) compileSTRINGToken(string_ STRING, re *sts.Builder) {
 	var s = string(string_)
 	re.WriteString(s[1 : len(s)-1])
 }
