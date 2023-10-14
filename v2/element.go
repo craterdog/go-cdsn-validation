@@ -16,18 +16,18 @@ package cdsn
 // components.
 type ElementLike interface {
 	GetINTRINSIC() INTRINSIC
-	SetINTRINSIC(intrinsic_ INTRINSIC)
+	SetINTRINSIC(intrinsic INTRINSIC)
 	GetNAME() NAME
-	SetNAME(name_ NAME)
+	SetNAME(name NAME)
 	GetSTRING() STRING
 	SetSTRING(string_ STRING)
 }
 
 // This constructor creates a new element.
-func Element(intrinsic_ INTRINSIC, name_ NAME, string_ STRING) ElementLike {
-	var v = &element_{}
-	v.SetINTRINSIC(intrinsic_)
-	v.SetNAME(name_)
+func Element(intrinsic INTRINSIC, name NAME, string_ STRING) ElementLike {
+	var v = &element{}
+	v.SetINTRINSIC(intrinsic)
+	v.SetNAME(name)
 	v.SetSTRING(string_)
 	return v
 }
@@ -35,50 +35,50 @@ func Element(intrinsic_ INTRINSIC, name_ NAME, string_ STRING) ElementLike {
 // ELEMENT IMPLEMENTATION
 
 // This type defines the structure and methods associated with a element.
-type element_ struct {
-	intrinsic_ INTRINSIC
-	name_      NAME
-	string_    STRING
+type element struct {
+	intrinsic INTRINSIC
+	name      NAME
+	string_   STRING
 }
 
 // This method returns the intrinsic for this element.
-func (v *element_) GetINTRINSIC() INTRINSIC {
-	return v.intrinsic_
+func (v *element) GetINTRINSIC() INTRINSIC {
+	return v.intrinsic
 }
 
 // This method sets the intrinsic for this element.
-func (v *element_) SetINTRINSIC(intrinsic_ INTRINSIC) {
-	if len(intrinsic_) > 0 {
-		v.intrinsic_ = intrinsic_
-		v.name_ = ""
+func (v *element) SetINTRINSIC(intrinsic INTRINSIC) {
+	if len(intrinsic) > 0 {
+		v.intrinsic = intrinsic
+		v.name = ""
 		v.string_ = ""
 	}
 }
 
 // This method returns the name for this element.
-func (v *element_) GetNAME() NAME {
-	return v.name_
+func (v *element) GetNAME() NAME {
+	return v.name
 }
 
 // This method sets the name for this element.
-func (v *element_) SetNAME(name_ NAME) {
-	if len(name_) > 0 {
-		v.intrinsic_ = ""
-		v.name_ = name_
+func (v *element) SetNAME(name NAME) {
+	if len(name) > 0 {
+		v.intrinsic = ""
+		v.name = name
 		v.string_ = ""
 	}
 }
 
 // This method returns the string for this element.
-func (v *element_) GetSTRING() STRING {
+func (v *element) GetSTRING() STRING {
 	return v.string_
 }
 
 // This method sets the string for this element.
-func (v *element_) SetSTRING(string_ STRING) {
+func (v *element) SetSTRING(string_ STRING) {
 	if len(string_) > 0 {
-		v.intrinsic_ = ""
-		v.name_ = ""
+		v.intrinsic = ""
+		v.name = ""
 		v.string_ = string_
 	}
 }

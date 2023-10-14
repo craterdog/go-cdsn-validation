@@ -69,9 +69,9 @@ $expression: alternative *("|" alternative)
 
 $alternative: +predicate ?NOTE
 
-$predicate: range | repetition | factor
+$predicate: glyph | repetition | factor
 
-$range: CHARACTER ?(".." CHARACTER)  ! A range of CHARACTERs is inclusive.
+$glyph: CHARACTER ?(".." CHARACTER)  ! The range of CHARACTERs in a glyph is inclusive.
 
 $repetition: CONSTRAINT factor
 

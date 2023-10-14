@@ -15,70 +15,70 @@ package cdsn
 // This interface defines the methods supported by all predicate-like
 // components.
 type PredicateLike interface {
-	GetRange() RangeLike
-	SetRange(range_ RangeLike)
+	GetGlyph() GlyphLike
+	SetGlyph(glyph GlyphLike)
 	GetRepetition() RepetitionLike
-	SetRepetition(repetition_ RepetitionLike)
+	SetRepetition(repetition RepetitionLike)
 	GetFactor() FactorLike
-	SetFactor(factor_ FactorLike)
+	SetFactor(factor FactorLike)
 }
 
 // This constructor creates a new predicate.
-func Predicate(range_ RangeLike, repetition_ RepetitionLike, factor_ FactorLike) PredicateLike {
-	var v = &predicate_{}
-	v.SetRange(range_)
-	v.SetRepetition(repetition_)
-	v.SetFactor(factor_)
+func Predicate(glyph GlyphLike, repetition RepetitionLike, factor FactorLike) PredicateLike {
+	var v = &predicate{}
+	v.SetGlyph(glyph)
+	v.SetRepetition(repetition)
+	v.SetFactor(factor)
 	return v
 }
 
 // PREDICATE IMPLEMENTATION
 
 // This type defines the structure and methods associated with a predicate.
-type predicate_ struct {
-	range_      RangeLike
-	repetition_ RepetitionLike
-	factor_     FactorLike
+type predicate struct {
+	glyph      GlyphLike
+	repetition RepetitionLike
+	factor     FactorLike
 }
 
-// This method returns the range for this predicate.
-func (v *predicate_) GetRange() RangeLike {
-	return v.range_
+// This method returns the glyph for this predicate.
+func (v *predicate) GetGlyph() GlyphLike {
+	return v.glyph
 }
 
-// This method sets the range for this predicate.
-func (v *predicate_) SetRange(range_ RangeLike) {
-	if range_ != nil {
-		v.range_ = range_
-		v.repetition_ = nil
-		v.factor_ = nil
+// This method sets the glyph for this predicate.
+func (v *predicate) SetGlyph(glyph GlyphLike) {
+	if glyph != nil {
+		v.glyph = glyph
+		v.repetition = nil
+		v.factor = nil
 	}
 }
 
 // This method returns the repetition for this predicate.
-func (v *predicate_) GetRepetition() RepetitionLike {
-	return v.repetition_
+func (v *predicate) GetRepetition() RepetitionLike {
+	return v.repetition
 }
 
 // This method sets the repetition for this predicate.
-func (v *predicate_) SetRepetition(repetition_ RepetitionLike) {
-	if repetition_ != nil {
-		v.range_ = nil
-		v.repetition_ = repetition_
-		v.factor_ = nil
+func (v *predicate) SetRepetition(repetition RepetitionLike) {
+	if repetition != nil {
+		v.glyph = nil
+		v.repetition = repetition
+		v.factor = nil
 	}
 }
 
 // This method returns the factor for this predicate.
-func (v *predicate_) GetFactor() FactorLike {
-	return v.factor_
+func (v *predicate) GetFactor() FactorLike {
+	return v.factor
 }
 
 // This method sets the factor for this predicate.
-func (v *predicate_) SetFactor(factor_ FactorLike) {
-	if factor_ != nil {
-		v.range_ = nil
-		v.repetition_ = nil
-		v.factor_ = factor_
+func (v *predicate) SetFactor(factor FactorLike) {
+	if factor != nil {
+		v.glyph = nil
+		v.repetition = nil
+		v.factor = factor
 	}
 }

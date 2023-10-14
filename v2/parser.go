@@ -59,14 +59,14 @@ func ParseDocument(source []byte) DocumentLike {
 
 // This map captures the syntax expressions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
-var grammar_ = map[string]string{
+var grammar = map[string]string{
 	"$document":    `+statement EOF  ! Terminated with an end-of-file marker.`,
 	"$statement":   `definition | COMMENT`,
 	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
 	"$expression":  `alternative *("|" alternative)`,
 	"$alternative": `+predicate ?NOTE`,
-	"$predicate":   `range | repetition | factor`,
-	"$range":       `CHARACTER ?(".." CHARACTER)  ! A range of CHARACTERs is inclusive.`,
+	"$predicate":   `glyph | repetition | factor`,
+	"$glyph":       `CHARACTER ?(".." CHARACTER)  ! The range of CHARACTERs in a glyph is inclusive.`,
 	"$repetition":  `CONSTRAINT factor`,
 	"$factor":      `precedence | element`,
 	"$precedence":  `"(" expression ")"`,
@@ -76,7 +76,7 @@ var grammar_ = map[string]string{
 func generateGrammar(expected string, symbols ...string) string {
 	var message = "Was expecting '" + expected + "' from:\n"
 	for _, symbol := range symbols {
-		message += fmt.Sprintf("  \033[32m%v: \033[33m%v\033[0m\n\n", symbol, grammar_[symbol])
+		message += fmt.Sprintf("  \033[32m%v: \033[33m%v\033[0m\n\n", symbol, grammar[symbol])
 	}
 	return message
 }
@@ -435,33 +435,33 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var range_ RangeLike
+	var glyph GlyphLike
 	var repetition RepetitionLike
 	var factor FactorLike
 	var predicate PredicateLike
-	range_, token, ok = v.parseRange()
+	glyph, token, ok = v.parseGlyph()
 	if !ok {
 		repetition, token, ok = v.parseRepetition()
 	}
 	if !ok {
 		factor, token, ok = v.parseFactor()
 	}
-	predicate = Predicate(range_, repetition, factor)
+	predicate = Predicate(glyph, repetition, factor)
 	return predicate, token, ok
 }
 
-// This method attempts to parse a new range. It returns the range
-// and whether or not the range was successfully parsed.
-func (v *parser) parseRange() (RangeLike, *Token, bool) {
+// This method attempts to parse a new glyph. It returns the glyph
+// and whether or not the glyph was successfully parsed.
+func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var first CHARACTER
 	var last CHARACTER
-	var range_ RangeLike
+	var glyph GlyphLike
 	first, token, ok = v.parseCHARACTER()
 	if !ok {
-		// This is not a range.
-		return range_, token, false
+		// This is not a glyph.
+		return glyph, token, false
 	}
 	_, _, ok = v.parseLITERAL("..")
 	if ok {
@@ -469,13 +469,13 @@ func (v *parser) parseRange() (RangeLike, *Token, bool) {
 		if !ok {
 			var message = v.formatError(token)
 			message += generateGrammar("CHARACTER",
-				"$range",
+				"$glyph",
 				"$CHARACTER")
 			panic(message)
 		}
 	}
-	range_ = Range(first, last)
-	return range_, token, true
+	glyph = Glyph(first, last)
+	return glyph, token, true
 }
 
 // This method attempts to parse a new repetition. It returns the repetition

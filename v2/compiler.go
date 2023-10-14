@@ -227,10 +227,8 @@ func (v *compiler) decrementDepth() {
 func (v *compiler) compileAlternativeToken(alternative AlternativeLike, re *sts.Builder) {
 	var predicates = alternative.GetPredicates()
 	var iterator = col.Iterator(predicates)
-	var predicate = iterator.GetNext()
-	v.compilePredicateToken(predicate, re)
 	for iterator.HasNext() {
-		predicate = iterator.GetNext()
+		var predicate = iterator.GetNext()
 		v.compilePredicateToken(predicate, re)
 	}
 }
@@ -315,10 +313,8 @@ func (v *compiler) compileFactorToken(factor FactorLike, re *sts.Builder) {
 func (v *compiler) compileInvertedAlternativeToken(alternative AlternativeLike, re *sts.Builder) {
 	var predicates = alternative.GetPredicates()
 	var iterator = col.Iterator(predicates)
-	var predicate = iterator.GetNext()
-	v.compileInvertedPredicateToken(predicate, re)
 	for iterator.HasNext() {
-		predicate = iterator.GetNext()
+		var predicate = iterator.GetNext()
 		v.compileInvertedPredicateToken(predicate, re)
 	}
 }
@@ -327,10 +323,8 @@ func (v *compiler) compileInvertedAlternativeToken(alternative AlternativeLike, 
 func (v *compiler) compileInvertedExpressionToken(expression ExpressionLike, re *sts.Builder) {
 	var alternatives = expression.GetAlternatives()
 	var iterator = col.Iterator(alternatives)
-	var alternative = iterator.GetNext()
-	v.compileInvertedAlternativeToken(alternative, re)
 	for iterator.HasNext() {
-		alternative = iterator.GetNext()
+		var alternative = iterator.GetNext()
 		v.compileInvertedAlternativeToken(alternative, re)
 	}
 }
@@ -355,12 +349,12 @@ func (v *compiler) compileInvertedPrecedenceToken(precedence PrecedenceLike, re 
 
 // This method compiles the specified token predicate.
 func (v *compiler) compileInvertedPredicateToken(predicate PredicateLike, re *sts.Builder) {
-	var range_ = predicate.GetRange()
+	var glyph = predicate.GetGlyph()
 	var repetition = predicate.GetRepetition()
 	var factor = predicate.GetFactor()
 	switch {
-	case range_ != nil:
-		v.compileRangeToken(range_, re)
+	case glyph != nil:
+		v.compileGlyphToken(glyph, re)
 	case repetition != nil:
 		panic("A repetition is not allowed in an inverted predicate.")
 	case factor != nil:
@@ -410,12 +404,12 @@ func (v *compiler) compilePrecedenceToken(precedence PrecedenceLike, re *sts.Bui
 
 // This method compiles the specified token predicate.
 func (v *compiler) compilePredicateToken(predicate PredicateLike, re *sts.Builder) {
-	var range_ = predicate.GetRange()
+	var glyph = predicate.GetGlyph()
 	var repetition = predicate.GetRepetition()
 	var factor = predicate.GetFactor()
 	switch {
-	case range_ != nil:
-		v.compileRangeToken(range_, re)
+	case glyph != nil:
+		v.compileGlyphToken(glyph, re)
 	case repetition != nil:
 		v.compileRepetitionToken(repetition, re)
 	case factor != nil:
@@ -423,10 +417,10 @@ func (v *compiler) compilePredicateToken(predicate PredicateLike, re *sts.Builde
 	}
 }
 
-// This method compiles the specified token range.
-func (v *compiler) compileRangeToken(range_ RangeLike, re *sts.Builder) {
-	var first = string(range_.GetFirstCHARACTER())
-	var last = string(range_.GetLastCHARACTER())
+// This method compiles the specified token glyph.
+func (v *compiler) compileGlyphToken(glyph GlyphLike, re *sts.Builder) {
+	var first = string(glyph.GetFirstCHARACTER())
+	var last = string(glyph.GetLastCHARACTER())
 	if len(last) > 0 {
 		re.WriteString(first[1 : len(first)-1])
 		re.WriteString("-")

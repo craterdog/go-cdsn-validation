@@ -148,12 +148,12 @@ func (v *formatter) formatPrecedence(definition PrecedenceLike) {
 
 // This private method formats the specified predicate.
 func (v *formatter) formatPredicate(predicate PredicateLike) {
-	var range_ = predicate.GetRange()
+	var glyph = predicate.GetGlyph()
 	var repetition = predicate.GetRepetition()
 	var factor = predicate.GetFactor()
 	switch {
-	case range_ != nil:
-		v.formatRange(range_)
+	case glyph != nil:
+		v.formatGlyph(glyph)
 	case repetition != nil:
 		v.formatRepetition(repetition)
 	case factor != nil:
@@ -161,11 +161,11 @@ func (v *formatter) formatPredicate(predicate PredicateLike) {
 	}
 }
 
-// This private method formats the specified range.
-func (v *formatter) formatRange(range_ RangeLike) {
-	var first = range_.GetFirstCHARACTER()
+// This private method formats the specified glyph.
+func (v *formatter) formatGlyph(glyph GlyphLike) {
+	var first = glyph.GetFirstCHARACTER()
 	v.appendString(string(first))
-	var last = range_.GetLastCHARACTER()
+	var last = glyph.GetLastCHARACTER()
 	if len(last) > 0 {
 		v.appendString("..")
 		v.appendString(string(last))

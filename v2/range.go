@@ -12,17 +12,17 @@ package cdsn
 
 // RANGE INTERFACE
 
-// This interface defines the methods supported by all range-like components.
-type RangeLike interface {
+// This interface defines the methods supported by all glyph-like components.
+type GlyphLike interface {
 	GetFirstCHARACTER() CHARACTER
 	SetFirstCHARACTER(first CHARACTER)
 	GetLastCHARACTER() CHARACTER
 	SetLastCHARACTER(last CHARACTER)
 }
 
-// This constructor creates a new range.
-func Range(first CHARACTER, last CHARACTER) RangeLike {
-	var v = &range_{}
+// This constructor creates a new glyph.
+func Glyph(first CHARACTER, last CHARACTER) GlyphLike {
+	var v = &glyph{}
 	v.SetFirstCHARACTER(first)
 	v.SetLastCHARACTER(last)
 	return v
@@ -30,31 +30,31 @@ func Range(first CHARACTER, last CHARACTER) RangeLike {
 
 // RANGE IMPLEMENTATION
 
-// This type defines the structure and methods associated with a range.
-type range_ struct {
+// This type defines the structure and methods associated with a glyph.
+type glyph struct {
 	first CHARACTER
 	last  CHARACTER
 }
 
-// This method returns the first character for this range.
-func (v *range_) GetFirstCHARACTER() CHARACTER {
+// This method returns the first character in the range for this glyph.
+func (v *glyph) GetFirstCHARACTER() CHARACTER {
 	return v.first
 }
 
-// This method sets the first character for this range.
-func (v *range_) SetFirstCHARACTER(first CHARACTER) {
+// This method sets the first character in the range for this glyph.
+func (v *glyph) SetFirstCHARACTER(first CHARACTER) {
 	if len(first) == 0 {
-		panic("A range requires at least one character.")
+		panic("A glyph requires at least one character.")
 	}
 	v.first = first
 }
 
-// This method returns the last character for this range.
-func (v *range_) GetLastCHARACTER() CHARACTER {
+// This method returns the last character in the range for this glyph.
+func (v *glyph) GetLastCHARACTER() CHARACTER {
 	return v.last
 }
 
-// This method sets the last character for this range.
-func (v *range_) SetLastCHARACTER(last CHARACTER) {
+// This method sets the last character in the range for this glyph.
+func (v *glyph) SetLastCHARACTER(last CHARACTER) {
 	v.last = last
 }
