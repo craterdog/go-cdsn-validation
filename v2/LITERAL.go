@@ -14,10 +14,10 @@ import (
 	reg "regexp"
 )
 
-type DELIMITER string
+type LITERAL string
 
-const TokenDELIMITER TokenType = "DELIMITER"
-const delimiter = `[:|()]|\.\.`
+const TokenLITERAL TokenType = "LITERAL"
+const literal = `["](?:` + escape + `|[^"` + eol + `])+["]`
 
-// This scanner is used for matching delimiter tokens.
-var delimiterScanner = reg.MustCompile(`^(?:` + delimiter + `)`)
+// This scanner is used for matching literal tokens.
+var literalScanner = reg.MustCompile(`^(?:` + literal + `)`)

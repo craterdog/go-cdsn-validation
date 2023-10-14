@@ -20,14 +20,13 @@
      * UPPER_CASE - any language specific upper case character
      * DIGIT - any language specific digit
      * SEPARATOR - any language specific character separator
-     * DELIMITER - any language specific delimiter (derived from the literals in the grammar)
      * ESCAPE - any environment specific escape sequence
      * EOL - the environment specific end-of-line sequence
      * EOF - the environment specific end-of-file marker
     The following token types are scanned for in the order listed below.
 <!
 
-$INTRINSIC: "ANY" | "LOWER_CASE" | "UPPER_CASE" | "DIGIT" | "SEPARATOR" | "DELIMITER" | "ESCAPE" | "EOL" | "EOF"
+$INTRINSIC: "ANY" | "LOWER_CASE" | "UPPER_CASE" | "DIGIT" | "SEPARATOR" | "ESCAPE" | "EOL" | "EOF"
 
 $NOTE: "! " *(~EOL)
 
@@ -76,7 +75,7 @@ $repetition: CONSTRAINT factor
 
 $factor: element | glyph | precedence
 
-$element: INTRINSIC | NAME | LITERAL | DELIMITER
+$element: INTRINSIC | NAME | LITERAL
 
 $glyph: CHARACTER ?(".." CHARACTER)  ! The range of CHARACTERs in a glyph is inclusive.
 

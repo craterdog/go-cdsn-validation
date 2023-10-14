@@ -10,7 +10,7 @@
 
 package cdsn
 
-// RANGE INTERFACE
+// GLYPH INTERFACE
 
 // This interface defines the methods supported by all glyph-like components.
 type GlyphLike interface {
@@ -28,7 +28,7 @@ func Glyph(first CHARACTER, last CHARACTER) GlyphLike {
 	return v
 }
 
-// RANGE IMPLEMENTATION
+// GLYPH IMPLEMENTATION
 
 // This type defines the structure and methods associated with a glyph.
 type glyph struct {

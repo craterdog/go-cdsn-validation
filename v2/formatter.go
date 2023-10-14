@@ -128,13 +128,16 @@ func (v *formatter) formatExpression(expression ExpressionLike) {
 
 // This private method formats the specified factor.
 func (v *formatter) formatFactor(factor FactorLike) {
-	var precedence = factor.GetPrecedence()
 	var element = factor.GetElement()
+	var glyph = factor.GetGlyph()
+	var precedence = factor.GetPrecedence()
 	switch {
-	case precedence != nil:
-		v.formatPrecedence(precedence)
 	case element != nil:
 		v.formatElement(element)
+	case glyph != nil:
+		v.formatGlyph(glyph)
+	case precedence != nil:
+		v.formatPrecedence(precedence)
 	}
 }
 
@@ -148,12 +151,9 @@ func (v *formatter) formatPrecedence(definition PrecedenceLike) {
 
 // This private method formats the specified predicate.
 func (v *formatter) formatPredicate(predicate PredicateLike) {
-	var glyph = predicate.GetGlyph()
 	var repetition = predicate.GetRepetition()
 	var factor = predicate.GetFactor()
 	switch {
-	case glyph != nil:
-		v.formatGlyph(glyph)
 	case repetition != nil:
 		v.formatRepetition(repetition)
 	case factor != nil:

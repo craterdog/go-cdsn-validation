@@ -143,6 +143,7 @@ func (v *scanner) processToken() bool {
 		// We are at the end of the source bytes.
 		return false
 	case v.scanWHITESPACE():
+	case v.scanDELIMITER():
 	case v.scanINTRINSIC():
 	case v.scanNOTE():
 	case v.scanCOMMENT():
@@ -151,7 +152,6 @@ func (v *scanner) processToken() bool {
 	case v.scanNAME():
 	case v.scanSYMBOL():
 	case v.scanCONSTRAINT():
-	case v.scanDELIMITER():
 	default:
 		// No valid token was found.
 		v.atError()
@@ -183,20 +183,6 @@ func (v *scanner) scanWHITESPACE() bool {
 	return false
 }
 
-// This method adds a new intrinsic token with the current scanner information
-// to the token channel. It returns true if a new intrinsic token was found.
-func (v *scanner) scanINTRINSIC() bool {
-	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(intrinsicScanner.FindSubmatch(s))
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenINTRINSIC)
-		v.line += sts.Count(matches[0], EOL)
-		return true
-	}
-	return false
-}
-
 // This method adds a new delimiter token with the current scanner information
 // to the token channel. It returns true if a new delimiter token was found.
 func (v *scanner) scanDELIMITER() bool {
@@ -205,6 +191,20 @@ func (v *scanner) scanDELIMITER() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenDELIMITER)
+		v.line += sts.Count(matches[0], EOL)
+		return true
+	}
+	return false
+}
+
+// This method adds a new intrinsic token with the current scanner information
+// to the token channel. It returns true if a new intrinsic token was found.
+func (v *scanner) scanINTRINSIC() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(intrinsicScanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenINTRINSIC)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}

@@ -15,8 +15,6 @@ package cdsn
 // This interface defines the methods supported by all predicate-like
 // components.
 type PredicateLike interface {
-	GetGlyph() GlyphLike
-	SetGlyph(glyph GlyphLike)
 	GetRepetition() RepetitionLike
 	SetRepetition(repetition RepetitionLike)
 	GetFactor() FactorLike
@@ -24,9 +22,8 @@ type PredicateLike interface {
 }
 
 // This constructor creates a new predicate.
-func Predicate(glyph GlyphLike, repetition RepetitionLike, factor FactorLike) PredicateLike {
+func Predicate(repetition RepetitionLike, factor FactorLike) PredicateLike {
 	var v = &predicate{}
-	v.SetGlyph(glyph)
 	v.SetRepetition(repetition)
 	v.SetFactor(factor)
 	return v
@@ -36,23 +33,8 @@ func Predicate(glyph GlyphLike, repetition RepetitionLike, factor FactorLike) Pr
 
 // This type defines the structure and methods associated with a predicate.
 type predicate struct {
-	glyph      GlyphLike
 	repetition RepetitionLike
 	factor     FactorLike
-}
-
-// This method returns the glyph for this predicate.
-func (v *predicate) GetGlyph() GlyphLike {
-	return v.glyph
-}
-
-// This method sets the glyph for this predicate.
-func (v *predicate) SetGlyph(glyph GlyphLike) {
-	if glyph != nil {
-		v.glyph = glyph
-		v.repetition = nil
-		v.factor = nil
-	}
 }
 
 // This method returns the repetition for this predicate.
@@ -63,7 +45,6 @@ func (v *predicate) GetRepetition() RepetitionLike {
 // This method sets the repetition for this predicate.
 func (v *predicate) SetRepetition(repetition RepetitionLike) {
 	if repetition != nil {
-		v.glyph = nil
 		v.repetition = repetition
 		v.factor = nil
 	}
@@ -77,7 +58,6 @@ func (v *predicate) GetFactor() FactorLike {
 // This method sets the factor for this predicate.
 func (v *predicate) SetFactor(factor FactorLike) {
 	if factor != nil {
-		v.glyph = nil
 		v.repetition = nil
 		v.factor = factor
 	}

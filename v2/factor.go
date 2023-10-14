@@ -15,17 +15,20 @@ package cdsn
 // This interface defines the methods supported by all factor-like
 // components.
 type FactorLike interface {
-	GetPrecedence() PrecedenceLike
-	SetPrecedence(precedence PrecedenceLike)
 	GetElement() ElementLike
 	SetElement(element ElementLike)
+	GetGlyph() GlyphLike
+	SetGlyph(glyph GlyphLike)
+	GetPrecedence() PrecedenceLike
+	SetPrecedence(precedence PrecedenceLike)
 }
 
 // This constructor creates a new factor.
-func Factor(precedence PrecedenceLike, element ElementLike) FactorLike {
+func Factor(element ElementLike, glyph GlyphLike, precedence PrecedenceLike) FactorLike {
 	var v = &factor{}
-	v.SetPrecedence(precedence)
 	v.SetElement(element)
+	v.SetGlyph(glyph)
+	v.SetPrecedence(precedence)
 	return v
 }
 
@@ -33,21 +36,9 @@ func Factor(precedence PrecedenceLike, element ElementLike) FactorLike {
 
 // This type defines the structure and methods associated with a factor.
 type factor struct {
-	precedence PrecedenceLike
 	element    ElementLike
-}
-
-// This method returns the precedence for this factor.
-func (v *factor) GetPrecedence() PrecedenceLike {
-	return v.precedence
-}
-
-// This method sets the precedence for this factor.
-func (v *factor) SetPrecedence(precedence PrecedenceLike) {
-	if precedence != nil {
-		v.precedence = precedence
-		v.element = nil
-	}
+	glyph      GlyphLike
+	precedence PrecedenceLike
 }
 
 // This method returns the element for this factor.
@@ -58,7 +49,36 @@ func (v *factor) GetElement() ElementLike {
 // This method sets the element for this factor.
 func (v *factor) SetElement(element ElementLike) {
 	if element != nil {
-		v.precedence = nil
 		v.element = element
+		v.glyph = nil
+		v.precedence = nil
+	}
+}
+
+// This method returns the glyph for this factor.
+func (v *factor) GetGlyph() GlyphLike {
+	return v.glyph
+}
+
+// This method sets the glyph for this factor.
+func (v *factor) SetGlyph(glyph GlyphLike) {
+	if glyph != nil {
+		v.element = nil
+		v.glyph = glyph
+		v.precedence = nil
+	}
+}
+
+// This method returns the precedence for this factor.
+func (v *factor) GetPrecedence() PrecedenceLike {
+	return v.precedence
+}
+
+// This method sets the precedence for this factor.
+func (v *factor) SetPrecedence(precedence PrecedenceLike) {
+	if precedence != nil {
+		v.element = nil
+		v.glyph = nil
+		v.precedence = precedence
 	}
 }

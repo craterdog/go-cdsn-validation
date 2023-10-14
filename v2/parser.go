@@ -435,47 +435,15 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var glyph GlyphLike
 	var repetition RepetitionLike
 	var factor FactorLike
 	var predicate PredicateLike
-	glyph, token, ok = v.parseGlyph()
-	if !ok {
-		repetition, token, ok = v.parseRepetition()
-	}
+	repetition, token, ok = v.parseRepetition()
 	if !ok {
 		factor, token, ok = v.parseFactor()
 	}
-	predicate = Predicate(glyph, repetition, factor)
+	predicate = Predicate(repetition, factor)
 	return predicate, token, ok
-}
-
-// This method attempts to parse a new glyph. It returns the glyph
-// and whether or not the glyph was successfully parsed.
-func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var first CHARACTER
-	var last CHARACTER
-	var glyph GlyphLike
-	first, token, ok = v.parseCHARACTER()
-	if !ok {
-		// This is not a glyph.
-		return glyph, token, false
-	}
-	_, _, ok = v.parseDELIMITER("..")
-	if ok {
-		last, token, ok = v.parseCHARACTER()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("CHARACTER",
-				"$glyph",
-				"$CHARACTER")
-			panic(message)
-		}
-	}
-	glyph = Glyph(first, last)
-	return glyph, token, true
 }
 
 // This method attempts to parse a new repetition. It returns the repetition
@@ -509,15 +477,67 @@ func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 func (v *parser) parseFactor() (FactorLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var precedence PrecedenceLike
 	var element ElementLike
+	var glyph GlyphLike
+	var precedence PrecedenceLike
 	var factor FactorLike
-	precedence, token, ok = v.parsePrecedence()
+	element, token, ok = v.parseElement()
 	if !ok {
-		element, token, ok = v.parseElement()
+		glyph, token, ok = v.parseGlyph()
 	}
-	factor = Factor(precedence, element)
+	if !ok {
+		precedence, token, ok = v.parsePrecedence()
+	}
+	factor = Factor(element, glyph, precedence)
 	return factor, token, ok
+}
+
+// This method attempts to parse an element. It returns the element
+// and whether or not the element was successfully parsed.
+func (v *parser) parseElement() (ElementLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var intrinsic INTRINSIC
+	var name NAME
+	var literal LITERAL
+	var element ElementLike
+	intrinsic, token, ok = v.parseINTRINSIC()
+	if !ok {
+		name, token, ok = v.parseNAME()
+	}
+	if !ok {
+		literal, token, ok = v.parseLITERAL()
+	}
+	element = Element(intrinsic, name, literal)
+	return element, token, ok
+}
+
+// This method attempts to parse a new glyph. It returns the glyph
+// and whether or not the glyph was successfully parsed.
+func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var first CHARACTER
+	var last CHARACTER
+	var glyph GlyphLike
+	first, token, ok = v.parseCHARACTER()
+	if !ok {
+		// This is not a glyph.
+		return glyph, token, false
+	}
+	_, _, ok = v.parseDELIMITER("..")
+	if ok {
+		last, token, ok = v.parseCHARACTER()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("CHARACTER",
+				"$glyph",
+				"$CHARACTER")
+			panic(message)
+		}
+	}
+	glyph = Glyph(first, last)
+	return glyph, token, true
 }
 
 // This method attempts to parse a new precedence. It returns the precedence
@@ -551,24 +571,4 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 	}
 	precedence = Precedence(expression)
 	return precedence, token, true
-}
-
-// This method attempts to parse an element. It returns the element
-// and whether or not the element was successfully parsed.
-func (v *parser) parseElement() (ElementLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var intrinsic INTRINSIC
-	var name NAME
-	var literal LITERAL
-	var element ElementLike
-	intrinsic, token, ok = v.parseINTRINSIC()
-	if !ok {
-		name, token, ok = v.parseNAME()
-	}
-	if !ok {
-		literal, token, ok = v.parseLITERAL()
-	}
-	element = Element(intrinsic, name, literal)
-	return element, token, ok
 }

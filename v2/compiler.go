@@ -299,13 +299,16 @@ func (v *compiler) compileExpressionToken(expression ExpressionLike, re *sts.Bui
 
 // This method compiles the specified token factor.
 func (v *compiler) compileFactorToken(factor FactorLike, re *sts.Builder) {
-	var precedence = factor.GetPrecedence()
 	var element = factor.GetElement()
+	var glyph = factor.GetGlyph()
+	var precedence = factor.GetPrecedence()
 	switch {
-	case precedence != nil:
-		v.compilePrecedenceToken(precedence, re)
 	case element != nil:
 		v.compileElementToken(element, re)
+	case glyph != nil:
+		v.compileGlyphToken(glyph, re)
+	case precedence != nil:
+		v.compilePrecedenceToken(precedence, re)
 	}
 }
 
@@ -331,13 +334,16 @@ func (v *compiler) compileInvertedExpressionToken(expression ExpressionLike, re 
 
 // This method compiles the specified inverted token factor.
 func (v *compiler) compileInvertedFactorToken(factor FactorLike, re *sts.Builder) {
-	var precedence = factor.GetPrecedence()
 	var element = factor.GetElement()
+	var glyph = factor.GetGlyph()
+	var precedence = factor.GetPrecedence()
 	switch {
-	case precedence != nil:
-		v.compileInvertedPrecedenceToken(precedence, re)
 	case element != nil:
 		v.compileElementToken(element, re)
+	case glyph != nil:
+		v.compileGlyphToken(glyph, re)
+	case precedence != nil:
+		v.compileInvertedPrecedenceToken(precedence, re)
 	}
 }
 
@@ -349,12 +355,9 @@ func (v *compiler) compileInvertedPrecedenceToken(precedence PrecedenceLike, re 
 
 // This method compiles the specified token predicate.
 func (v *compiler) compileInvertedPredicateToken(predicate PredicateLike, re *sts.Builder) {
-	var glyph = predicate.GetGlyph()
 	var repetition = predicate.GetRepetition()
 	var factor = predicate.GetFactor()
 	switch {
-	case glyph != nil:
-		v.compileGlyphToken(glyph, re)
 	case repetition != nil:
 		panic("A repetition is not allowed in an inverted predicate.")
 	case factor != nil:
@@ -406,12 +409,9 @@ func (v *compiler) compilePrecedenceToken(precedence PrecedenceLike, re *sts.Bui
 
 // This method compiles the specified token predicate.
 func (v *compiler) compilePredicateToken(predicate PredicateLike, re *sts.Builder) {
-	var glyph = predicate.GetGlyph()
 	var repetition = predicate.GetRepetition()
 	var factor = predicate.GetFactor()
 	switch {
-	case glyph != nil:
-		v.compileGlyphToken(glyph, re)
 	case repetition != nil:
 		v.compileRepetitionToken(repetition, re)
 	case factor != nil:
