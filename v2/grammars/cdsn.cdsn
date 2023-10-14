@@ -38,9 +38,9 @@ $LITERAL: '"' *(ESCAPE | ~('"' | EOL)) '"'
 
 $NAME: (LOWER_CASE | UPPER_CASE) *(?SEPARATOR (LOWER_CASE | UPPER_CASE | DIGIT))
 
-$SYMBOL: "$" NAME
+$SYMBOL: '$' NAME
 
-$CONSTRAINT: "~" | "?" | "*" | "+" | +DIGIT
+$CONSTRAINT: '~' | '?' | '*' | '+' | +DIGIT
 
 
 !>

@@ -20,7 +20,7 @@
 
 $TEXT: '"' +(ESCAPE | ~('"' | EOL)) '"'
 
-$INTEGER: "0" | ?"-" '1'..'9' *DIGIT
+$INTEGER: '0' | ?'-' '1'..'9' *DIGIT
 
 
 !>
