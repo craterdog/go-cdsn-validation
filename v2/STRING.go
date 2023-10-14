@@ -14,10 +14,10 @@ import (
 	reg "regexp"
 )
 
-type STRING string
+type LITERAL string
 
-const TokenSTRING TokenType = "STRING"
-const string_ = `["](?:` + escape + `|[^"` + eol + `])+["]`
+const TokenLITERAL TokenType = "LITERAL"
+const literal = `["](?:` + escape + `|[^"` + eol + `])+["]`
 
-// This scanner is used for matching string tokens.
-var stringScanner = reg.MustCompile(`^(?:` + string_ + `)`)
+// This scanner is used for matching literal tokens.
+var literalScanner = reg.MustCompile(`^(?:` + literal + `)`)

@@ -65,12 +65,12 @@ var grammar = map[string]string{
 	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
 	"$expression":  `alternative *("|" alternative)`,
 	"$alternative": `+predicate ?NOTE`,
-	"$predicate":   `glyph | repetition | factor`,
-	"$glyph":       `CHARACTER ?(".." CHARACTER)  ! The range of CHARACTERs in a glyph is inclusive.`,
+	"$predicate":   `repetition | factor`,
 	"$repetition":  `CONSTRAINT factor`,
-	"$factor":      `precedence | element`,
+	"$factor":      `element | glyph | precedence`,
+	"$element":     `INTRINSIC | NAME | LITERAL | DELIMITER`,
+	"$glyph":       `CHARACTER ?(".." CHARACTER)  ! The range of CHARACTERs in a glyph is inclusive.`,
 	"$precedence":  `"(" expression ")"`,
-	"$element":     `INTRINSIC | NAME | STRING`,
 }
 
 func generateGrammar(expected string, symbols ...string) string {
@@ -156,15 +156,15 @@ func (v *parser) parseEOF() (*Token, *Token, bool) {
 	return token, token, true
 }
 
-// This method attempts to parse the specified literal token. It returns the
+// This method attempts to parse the specified delimiter token. It returns the
 // token and whether or not the token was successfully parsed.
-func (v *parser) parseLITERAL(literal string) (string, *Token, bool) {
+func (v *parser) parseDELIMITER(delimiter string) (string, *Token, bool) {
 	var token = v.nextToken()
-	if token.Type != TokenLITERAL || token.Value != literal {
+	if token.Type != TokenDELIMITER || token.Value != delimiter {
 		v.backupOne(token)
-		return literal, token, false
+		return delimiter, token, false
 	}
-	return literal, token, true
+	return delimiter, token, true
 }
 
 // This method attempts to parse a new intrinsic token. It returns the token
@@ -219,17 +219,17 @@ func (v *parser) parseCHARACTER() (CHARACTER, *Token, bool) {
 	return character, token, true
 }
 
-// This method attempts to parse a new string token. It returns the token
+// This method attempts to parse a new literal token. It returns the token
 // and whether or not the token was successfully parsed.
-func (v *parser) parseSTRING() (STRING, *Token, bool) {
-	var string_ STRING
+func (v *parser) parseLITERAL() (LITERAL, *Token, bool) {
+	var literal LITERAL
 	var token = v.nextToken()
-	if token.Type != TokenSTRING {
+	if token.Type != TokenLITERAL {
 		v.backupOne(token)
-		return string_, token, false
+		return literal, token, false
 	}
-	string_ = STRING(token.Value)
-	return string_, token, true
+	literal = LITERAL(token.Value)
+	return literal, token, true
 }
 
 // This method attempts to parse a new name token. It returns the token
@@ -344,7 +344,7 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 		return definition, token, false
 	}
 	v.isToken = uni.IsUpper(rune(symbol[1]))
-	_, token, ok = v.parseLITERAL(":")
+	_, token, ok = v.parseDELIMITER(":")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(":",
@@ -385,7 +385,7 @@ func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 	}
 	for {
 		alternatives.AddValue(alternative)
-		_, _, ok = v.parseLITERAL("|")
+		_, _, ok = v.parseDELIMITER("|")
 		if !ok {
 			// No more alternatives.
 			break
@@ -463,7 +463,7 @@ func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
 		// This is not a glyph.
 		return glyph, token, false
 	}
-	_, _, ok = v.parseLITERAL("..")
+	_, _, ok = v.parseDELIMITER("..")
 	if ok {
 		last, token, ok = v.parseCHARACTER()
 		if !ok {
@@ -527,7 +527,7 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 	var token *Token
 	var expression ExpressionLike
 	var precedence PrecedenceLike
-	_, token, ok = v.parseLITERAL("(")
+	_, token, ok = v.parseDELIMITER("(")
 	if !ok {
 		// This is not a precedence.
 		return precedence, token, false
@@ -541,7 +541,7 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 		panic(message)
 	}
 	expression.SetAnnotated(false)
-	_, token, ok = v.parseLITERAL(")")
+	_, token, ok = v.parseDELIMITER(")")
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar(")",
@@ -560,15 +560,15 @@ func (v *parser) parseElement() (ElementLike, *Token, bool) {
 	var token *Token
 	var intrinsic INTRINSIC
 	var name NAME
-	var string_ STRING
+	var literal LITERAL
 	var element ElementLike
 	intrinsic, token, ok = v.parseINTRINSIC()
 	if !ok {
 		name, token, ok = v.parseNAME()
 	}
 	if !ok {
-		string_, token, ok = v.parseSTRING()
+		literal, token, ok = v.parseLITERAL()
 	}
-	element = Element(intrinsic, name, string_)
+	element = Element(intrinsic, name, literal)
 	return element, token, ok
 }

@@ -273,14 +273,14 @@ func (v *compiler) compileDocument(document DocumentLike) {
 func (v *compiler) compileElementToken(element ElementLike, re *sts.Builder) {
 	var intrinsic = element.GetINTRINSIC()
 	var name = element.GetNAME()
-	var string_ = element.GetSTRING()
+	var literal = element.GetLITERAL()
 	switch {
 	case len(intrinsic) > 0:
 		v.compileINTRINSICToken(intrinsic, re)
 	case len(name) > 0:
 		v.compileNAMEToken(name, re)
-	case len(string_) > 0:
-		v.compileSTRINGToken(string_, re)
+	case len(literal) > 0:
+		v.compileLITERALToken(literal, re)
 	}
 }
 
@@ -382,6 +382,8 @@ func (v *compiler) compileINTRINSICToken(intrinsic INTRINSIC, re *sts.Builder) {
 		re.WriteString(digit)
 	case "SEPARATOR":
 		re.WriteString(separator)
+	case "DELIMITER":
+		re.WriteString(delimiter)
 	case "ESCAPE":
 		re.WriteString(escape)
 	case "EOL":
@@ -466,8 +468,8 @@ func (v *compiler) compileStatement(statement Statement) {
 	}
 }
 
-// This method compiles the specified token string.
-func (v *compiler) compileSTRINGToken(string_ STRING, re *sts.Builder) {
-	var s = string(string_)
+// This method compiles the specified token literal.
+func (v *compiler) compileLITERALToken(literal LITERAL, re *sts.Builder) {
+	var s = string(literal)
 	re.WriteString(s[1 : len(s)-1])
 }

@@ -19,16 +19,16 @@ type ElementLike interface {
 	SetINTRINSIC(intrinsic INTRINSIC)
 	GetNAME() NAME
 	SetNAME(name NAME)
-	GetSTRING() STRING
-	SetSTRING(string_ STRING)
+	GetLITERAL() LITERAL
+	SetLITERAL(literal LITERAL)
 }
 
 // This constructor creates a new element.
-func Element(intrinsic INTRINSIC, name NAME, string_ STRING) ElementLike {
+func Element(intrinsic INTRINSIC, name NAME, literal LITERAL) ElementLike {
 	var v = &element{}
 	v.SetINTRINSIC(intrinsic)
 	v.SetNAME(name)
-	v.SetSTRING(string_)
+	v.SetLITERAL(literal)
 	return v
 }
 
@@ -38,7 +38,7 @@ func Element(intrinsic INTRINSIC, name NAME, string_ STRING) ElementLike {
 type element struct {
 	intrinsic INTRINSIC
 	name      NAME
-	string_   STRING
+	literal   LITERAL
 }
 
 // This method returns the intrinsic for this element.
@@ -51,7 +51,7 @@ func (v *element) SetINTRINSIC(intrinsic INTRINSIC) {
 	if len(intrinsic) > 0 {
 		v.intrinsic = intrinsic
 		v.name = ""
-		v.string_ = ""
+		v.literal = ""
 	}
 }
 
@@ -65,20 +65,20 @@ func (v *element) SetNAME(name NAME) {
 	if len(name) > 0 {
 		v.intrinsic = ""
 		v.name = name
-		v.string_ = ""
+		v.literal = ""
 	}
 }
 
-// This method returns the string for this element.
-func (v *element) GetSTRING() STRING {
-	return v.string_
+// This method returns the literal for this element.
+func (v *element) GetLITERAL() LITERAL {
+	return v.literal
 }
 
-// This method sets the string for this element.
-func (v *element) SetSTRING(string_ STRING) {
-	if len(string_) > 0 {
+// This method sets the literal for this element.
+func (v *element) SetLITERAL(literal LITERAL) {
+	if len(literal) > 0 {
 		v.intrinsic = ""
 		v.name = ""
-		v.string_ = string_
+		v.literal = literal
 	}
 }

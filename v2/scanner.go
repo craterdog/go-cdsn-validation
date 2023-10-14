@@ -147,11 +147,11 @@ func (v *scanner) processToken() bool {
 	case v.scanNOTE():
 	case v.scanCOMMENT():
 	case v.scanCHARACTER():
-	case v.scanSTRING():
+	case v.scanLITERAL():
 	case v.scanNAME():
 	case v.scanSYMBOL():
 	case v.scanCONSTRAINT():
-	case v.scanLITERAL():
+	case v.scanDELIMITER():
 	default:
 		// No valid token was found.
 		v.atError()
@@ -197,14 +197,14 @@ func (v *scanner) scanINTRINSIC() bool {
 	return false
 }
 
-// This method adds a new literal token with the current scanner information
-// to the token channel. It returns true if a new literal token was found.
-func (v *scanner) scanLITERAL() bool {
+// This method adds a new delimiter token with the current scanner information
+// to the token channel. It returns true if a new delimiter token was found.
+func (v *scanner) scanDELIMITER() bool {
 	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(literalScanner.FindSubmatch(s))
+	var matches = bytesToStrings(delimiterScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenLITERAL)
+		v.emitToken(TokenDELIMITER)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -255,12 +255,12 @@ func (v *scanner) scanCHARACTER() bool {
 
 // This method adds a new string token with the current scanner information
 // to the token channel. It returns true if a new string token was found.
-func (v *scanner) scanSTRING() bool {
+func (v *scanner) scanLITERAL() bool {
 	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(stringScanner.FindSubmatch(s))
+	var matches = bytesToStrings(literalScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenSTRING)
+		v.emitToken(TokenLITERAL)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}

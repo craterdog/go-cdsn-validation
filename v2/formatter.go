@@ -91,14 +91,14 @@ func (v *formatter) formatDocument(document DocumentLike) {
 func (v *formatter) formatElement(element ElementLike) {
 	var intrinsic = element.GetINTRINSIC()
 	var name = element.GetNAME()
-	var string_ = element.GetSTRING()
+	var literal = element.GetLITERAL()
 	switch {
 	case len(intrinsic) > 0:
 		v.appendString(string(intrinsic))
 	case len(name) > 0:
 		v.appendString(string(name))
-	case len(string_) > 0:
-		v.appendString(string(string_))
+	case len(literal) > 0:
+		v.appendString(string(literal))
 	}
 }
 
