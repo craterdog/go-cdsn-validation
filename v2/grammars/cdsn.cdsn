@@ -42,6 +42,8 @@ $NAME: (LOWER_CASE | UPPER_CASE) (SEPARATOR? (LOWER_CASE | UPPER_CASE | DIGIT))*
 
 $SYMBOL: '$' NAME
 
+$CONSTRAINT: "?" | "*" | "+"
+
 
 !>
     RULE DEFINITIONS
@@ -73,7 +75,7 @@ $predicate: inversion | repetition | factor
 
 $inversion: "~" factor
 
-$repetition: factor constraint
+$repetition: factor extent
 
 $factor: element | glyph | precedence
 
@@ -83,5 +85,5 @@ $glyph: CHARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inc
 
 $precedence: "(" expression ")"
 
-$constraint: "?" | "*" | "+" | "{" NUMBER (".." NUMBER)? "}"
+$extent: CONSTRAINT | "{" NUMBER (".." NUMBER)? "}"  ! The range of NUMBERs in an extent is inclusive.
 
