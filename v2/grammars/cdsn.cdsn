@@ -36,7 +36,7 @@ $NUMBER: DIGIT+
 
 $CHARACTER: "'" ~EOL "'"
 
-$LITERAL: '"' (ESCAPE | ~('"' | EOL))* '"'
+$LITERAL: '"' (ESCAPE | ~('"' | EOL))+ '"'
 
 $NAME: (LOWER_CASE | UPPER_CASE) (SEPARATOR? (LOWER_CASE | UPPER_CASE | DIGIT))*
 

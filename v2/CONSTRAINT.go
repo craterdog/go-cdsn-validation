@@ -18,8 +18,7 @@ type CONSTRAINT string
 
 const TokenCONSTRAINT TokenType = "CONSTRAINT"
 const (
-	number     = digit + `+`
-	constraint = `[~?*+]|` + number
+	constraint = `[?*+]`
 )
 
 // This scanner is used for matching constraint tokens.
