@@ -13,7 +13,7 @@
     rule definitions, a token definition cannot specify the name of a rule but can specify the
     name of another token.  Token definitions cannot be recursive and the scanning of tokens is
     not greedy.  Whitespace within a token definition is not ignored.  The following intrinsic
-    token types are environment/language specific and therefore not defined in this specification:
+    token types are environment/language specific:
      * ANY - any character
      * LOWER_CASE - any language specific lower case character
      * UPPER_CASE - any language specific upper case character
@@ -25,17 +25,17 @@
     The following token types are scanned for in the order listed below.
 <!
 
-$LABEL: +(NUMBER ".") NAME
+$LABEL: (NUMBER ".")+ NAME
 
-$NUMBER: '1'..'9' *('0'..'9')
+$NUMBER: '1'..'9' ('0'..'9')*
 
-$LITERAL: "`" *ANY "`"
+$LITERAL: "`" ANY* "`"
 
-$SYMBOL: "$" NAME ?("-" NUMBER)
+$SYMBOL: "$" NAME ("-" NUMBER)?
 
-$NOTE: "! " *(~EOL)
+$NOTE: "! " (~EOL)*
 
-$NAME: (LOWER_CASE | UPPER_CASE) *(LOWER_CASE | UPPER_CASE | DIGIT)
+$NAME: (LOWER_CASE | UPPER_CASE) (LOWER_CASE | UPPER_CASE | DIGIT)*
 
 
 !>
@@ -46,19 +46,19 @@ $NAME: (LOWER_CASE | UPPER_CASE) *(LOWER_CASE | UPPER_CASE | DIGIT)
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
     separated by whitespace which is ignored by the parser.  The factors within the predicates may
     be limited by one of the following constraints:
-     * ~factor - Any factor EXCEPT the specified factor
-     * ?factor - Zero or one instances of the specified factor
-     * *factor - Zero or more instances of the specified factor
-     * +factor - One or more instances of the specified factor
-     * Nfactor - Exactly N instances of the specified factor
+     * factor? - Zero or one instances of the specified factor
+     * factor* - Zero or more instances of the specified factor
+     * factor+ - One or more instances of the specified factor
+     * factor{N} - Exactly N instances of the specified factor
+     * factor{M..N} - M to N instances of the specified factor
     The following rules are attempted in the order listed below.
 <!
 
 $document: instructions EOF
 
-$instructions: *instruction
+$instructions: instruction*
 
-$instruction: ?label action
+$instruction: label? action
 
 $label: LABEL ":"
 
@@ -78,7 +78,7 @@ $note: "NOTE" NOTE
     there is no condition then jump unconditionally.
 <!
 
-$jump: "JUMP" "TO" ("NEXT" "INSTRUCTION" | LABEL ?("ON" ("EMPTY" | "NONE" | "FALSE")))
+$jump: "JUMP" "TO" ("NEXT" "INSTRUCTION" | LABEL ("ON" ("EMPTY" | "NONE" | "FALSE"))?)
 
 
 !>
@@ -127,7 +127,7 @@ $drop: "DROP" ("VARIABLE" | "DOCUMENT" | "CONTRACT" | "MESSAGE") SYMBOL
     replaces the arguments that were on the top of the component stack.
 <!
 
-$call: "CALL" SYMBOL ?("WITH" ("1" "ARGUMENT" | NUMBER "ARGUMENTS"))
+$call: "CALL" SYMBOL ("WITH" ("1" "ARGUMENT" | NUMBER "ARGUMENTS"))?
 
 
 !>
@@ -144,5 +144,5 @@ $call: "CALL" SYMBOL ?("WITH" ("1" "ARGUMENT" | NUMBER "ARGUMENTS"))
     stack.
 <!
 
-$send: "SEND" SYMBOL "TO" ("COMPONENT" | "DOCUMENT") ?("WITH" "ARGUMENTS")
+$send: "SEND" SYMBOL "TO" ("COMPONENT" | "DOCUMENT") ("WITH" "ARGUMENTS")?
 
