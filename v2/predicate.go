@@ -15,6 +15,8 @@ package cdsn
 // This interface defines the methods supported by all predicate-like
 // components.
 type PredicateLike interface {
+	GetInversion() InversionLike
+	SetInversion(inversion InversionLike)
 	GetRepetition() RepetitionLike
 	SetRepetition(repetition RepetitionLike)
 	GetFactor() FactorLike
@@ -22,8 +24,12 @@ type PredicateLike interface {
 }
 
 // This constructor creates a new predicate.
-func Predicate(repetition RepetitionLike, factor FactorLike) PredicateLike {
+func Predicate(inversion InversionLike, repetition RepetitionLike, factor FactorLike) PredicateLike {
+	if inversion == nil && repetition == nil && factor == nil {
+		panic("A predicate requires at least one of its attributes to be set.")
+	}
 	var v = &predicate{}
+	v.SetInversion(inversion)
 	v.SetRepetition(repetition)
 	v.SetFactor(factor)
 	return v
@@ -33,8 +39,23 @@ func Predicate(repetition RepetitionLike, factor FactorLike) PredicateLike {
 
 // This type defines the structure and methods associated with a predicate.
 type predicate struct {
+	inversion  InversionLike
 	repetition RepetitionLike
 	factor     FactorLike
+}
+
+// This method returns the inversion for this predicate.
+func (v *predicate) GetInversion() InversionLike {
+	return v.inversion
+}
+
+// This method sets the inversion for this predicate.
+func (v *predicate) SetInversion(inversion InversionLike) {
+	if inversion != nil {
+		v.inversion = inversion
+		v.repetition = nil
+		v.factor = nil
+	}
 }
 
 // This method returns the repetition for this predicate.
@@ -45,6 +66,7 @@ func (v *predicate) GetRepetition() RepetitionLike {
 // This method sets the repetition for this predicate.
 func (v *predicate) SetRepetition(repetition RepetitionLike) {
 	if repetition != nil {
+		v.inversion = nil
 		v.repetition = repetition
 		v.factor = nil
 	}
@@ -58,6 +80,7 @@ func (v *predicate) GetFactor() FactorLike {
 // This method sets the factor for this predicate.
 func (v *predicate) SetFactor(factor FactorLike) {
 	if factor != nil {
+		v.inversion = nil
 		v.repetition = nil
 		v.factor = factor
 	}

@@ -460,11 +460,14 @@ func (v *compiler) compileRuleExpression(expression ExpressionLike, arguments *s
 }
 
 // This method compiles the specified statement.
-func (v *compiler) compileStatement(statement Statement) {
-	switch actual := statement.(type) {
-	case *definition:
-		v.compileDefinition(actual)
-	case COMMENT:
+func (v *compiler) compileStatement(statement StatementLike) {
+	var definition = statement.GetDefinition()
+	var comment = statement.GetCOMMENT()
+	switch {
+	case definition != nil:
+		v.compileDefinition(definition)
+	case len(comment) > 0:
+		// Nothing to compile.
 	}
 }
 

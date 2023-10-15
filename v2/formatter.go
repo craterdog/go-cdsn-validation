@@ -181,13 +181,15 @@ func (v *formatter) formatRepetition(repetition RepetitionLike) {
 }
 
 // This private method formats the specified statement.
-func (v *formatter) formatStatement(statement Statement) {
-	switch actual := statement.(type) {
-	case *definition:
-		v.formatDefinition(actual)
-	case COMMENT:
+func (v *formatter) formatStatement(statement StatementLike) {
+	var definition = statement.GetDefinition()
+	var comment = statement.GetCOMMENT()
+	switch {
+	case definition != nil:
+		v.formatDefinition(definition)
+	case len(comment) > 0:
 		v.appendNewline()
-		v.appendString(string(actual))
+		v.appendString(string(comment))
 	}
 	v.appendNewline()
 	v.appendNewline()

@@ -25,6 +25,9 @@ type FactorLike interface {
 
 // This constructor creates a new factor.
 func Factor(element ElementLike, glyph GlyphLike, precedence PrecedenceLike) FactorLike {
+	if element == nil && glyph == nil && precedence == nil {
+		panic("A factor requires at least one of its attributes to be set.")
+	}
 	var v = &factor{}
 	v.SetElement(element)
 	v.SetGlyph(glyph)

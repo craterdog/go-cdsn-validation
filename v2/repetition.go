@@ -15,17 +15,17 @@ package cdsn
 // This interface defines the methods supported by all repetition-like
 // components.
 type RepetitionLike interface {
-	GetCONSTRAINT() CONSTRAINT
-	SetCONSTRAINT(constraint CONSTRAINT)
 	GetFactor() FactorLike
 	SetFactor(factor FactorLike)
+	GetCONSTRAINT() CONSTRAINT
+	SetCONSTRAINT(constraint CONSTRAINT)
 }
 
 // This constructor creates a new repetition.
-func Repetition(constraint CONSTRAINT, factor FactorLike) RepetitionLike {
+func Repetition(factor FactorLike, constraint CONSTRAINT) RepetitionLike {
 	var v = &repetition{}
-	v.SetCONSTRAINT(constraint)
 	v.SetFactor(factor)
+	v.SetCONSTRAINT(constraint)
 	return v
 }
 
@@ -33,21 +33,8 @@ func Repetition(constraint CONSTRAINT, factor FactorLike) RepetitionLike {
 
 // This type defines the structure and methods associated with a repetition.
 type repetition struct {
-	constraint CONSTRAINT
 	factor     FactorLike
-}
-
-// This method returns the number for this repetition.
-func (v *repetition) GetCONSTRAINT() CONSTRAINT {
-	return v.constraint
-}
-
-// This method sets the number for this repetition.
-func (v *repetition) SetCONSTRAINT(constraint CONSTRAINT) {
-	if len(constraint) == 0 {
-		panic("A repetition requires a constraint.")
-	}
-	v.constraint = constraint
+	constraint CONSTRAINT
 }
 
 // This method returns the factor for this repetition.
@@ -61,4 +48,17 @@ func (v *repetition) SetFactor(factor FactorLike) {
 		panic("A repetition requires a factor.")
 	}
 	v.factor = factor
+}
+
+// This method returns the number for this repetition.
+func (v *repetition) GetCONSTRAINT() CONSTRAINT {
+	return v.constraint
+}
+
+// This method sets the number for this repetition.
+func (v *repetition) SetCONSTRAINT(constraint CONSTRAINT) {
+	if len(constraint) == 0 {
+		panic("A repetition requires a constraint.")
+	}
+	v.constraint = constraint
 }

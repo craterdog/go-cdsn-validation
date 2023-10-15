@@ -25,6 +25,9 @@ type ElementLike interface {
 
 // This constructor creates a new element.
 func Element(intrinsic INTRINSIC, name NAME, literal LITERAL) ElementLike {
+	if len(intrinsic) == 0 && len(name) == 0 && len(literal) == 0 {
+		panic("An element requires at least one of its attributes to be set.")
+	}
 	var v = &element{}
 	v.SetINTRINSIC(intrinsic)
 	v.SetNAME(name)

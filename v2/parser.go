@@ -282,8 +282,8 @@ func (v *parser) parseCONSTRAINT() (CONSTRAINT, *Token, bool) {
 func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var statement Statement
-	var statements = col.List[Statement]()
+	var statement StatementLike
+	var statements = col.List[StatementLike]()
 	var document DocumentLike
 	statement, token, ok = v.parseStatement()
 	if !ok {
@@ -315,19 +315,18 @@ func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
 
 // This method attempts to parse a new statement. It returns the statement
 // and whether or not the statement was successfully parsed.
-func (v *parser) parseStatement() (Statement, *Token, bool) {
+func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var statement Statement
-	statement, _, ok = v.parseCOMMENT()
+	var definition DefinitionLike
+	var comment COMMENT
+	var statement StatementLike
+	definition, token, ok = v.parseDefinition()
 	if !ok {
-		statement, token, ok = v.parseDefinition()
-		if !ok {
-			// This is not a statement.
-			return statement, token, false
-		}
+		comment, token, ok = v.parseCOMMENT()
 	}
-	return statement, token, true
+	statement = Statement(definition, comment)
+	return statement, token, ok
 }
 
 // This method attempts to parse a new definition. It returns the definition
@@ -377,11 +376,8 @@ func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 	var expression ExpressionLike
 	alternative, token, ok = v.parseAlternative()
 	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("alternative",
-			"$expression",
-			"$alternative")
-		panic(message)
+		// An expression must have at least one alternative.
+		return expression, token, false
 	}
 	for {
 		alternatives.AddValue(alternative)
@@ -435,15 +431,52 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
 	var ok bool
 	var token *Token
+	var inversion InversionLike
 	var repetition RepetitionLike
 	var factor FactorLike
 	var predicate PredicateLike
-	repetition, token, ok = v.parseRepetition()
+	inversion, token, ok = v.parseInversion()
+	if !ok {
+		repetition, token, ok = v.parseRepetition()
+	}
 	if !ok {
 		factor, token, ok = v.parseFactor()
 	}
-	predicate = Predicate(repetition, factor)
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("predicate",
+			"$predicate",
+			"$inversion",
+			"$repetition",
+			"$factor")
+		panic(message)
+	}
+	predicate = Predicate(inversion, repetition, factor)
 	return predicate, token, ok
+}
+
+// This method attempts to parse a new inversion. It returns the inversion
+// and whether or not the inversion was successfully parsed.
+func (v *parser) parseInversion() (InversionLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var factor FactorLike
+	var inversion InversionLike
+	_, token, ok = v.parseDELIMITER("~")
+	if !ok {
+		// This is not a inversion.
+		return inversion, token, false
+	}
+	factor, token, ok = v.parseFactor()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("factor",
+			"$inversion",
+			"$factor")
+		panic(message)
+	}
+	inversion = Inversion(factor)
+	return inversion, token, true
 }
 
 // This method attempts to parse a new repetition. It returns the repetition
@@ -451,24 +484,24 @@ func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
 func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var constraint CONSTRAINT
 	var factor FactorLike
+	var constraint CONSTRAINT
 	var repetition RepetitionLike
-	constraint, token, ok = v.parseCONSTRAINT()
+	factor, token, ok = v.parseFactor()
 	if !ok {
 		// This is not a repetition.
 		return repetition, token, false
 	}
-	factor, token, ok = v.parseFactor()
+	constraint, token, ok = v.parseCONSTRAINT()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("factor",
+		message += generateGrammar("CONSTRAINT",
 			"$repetition",
-			"$CONSTRAINT",
-			"$factor")
+			"$factor",
+			"$CONSTRAINT")
 		panic(message)
 	}
-	repetition = Repetition(constraint, factor)
+	repetition = Repetition(factor, constraint)
 	return repetition, token, true
 }
 

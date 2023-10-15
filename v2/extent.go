@@ -1,31 +1,4 @@
 /*******************************************************************************
- *   Copyright (c) 2009-2022 Crater Dog Technologies™.  All Rights Reserved.   *
- *******************************************************************************
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.               *
- *                                                                             *
- * This code is free software; you can redistribute it and/or modify it under  *
- * the terms of The MIT License (MIT), as published by the Open Source         *
- * Initiative. (See http://opensource.org/licenses/MIT)                        *
- *******************************************************************************/
-
-package cdsn
-
-import (
-	reg "regexp"
-)
-
-type CONSTRAINT string
-
-const TokenCONSTRAINT TokenType = "CONSTRAINT"
-const (
-	number     = digit + `+`
-	constraint = `[~?*+]|` + number
-)
-
-// This scanner is used for matching constraint tokens.
-var constraintScanner = reg.MustCompile(`^(?:` + constraint + `)`)
-
-/*******************************************************************************
  *   Copyright (c) 2009-2023 Crater Dog Technologies™.  All Rights Reserved.   *
  *******************************************************************************
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.               *
@@ -37,55 +10,81 @@ var constraintScanner = reg.MustCompile(`^(?:` + constraint + `)`)
 
 package cdsn
 
-// CONSTRAINT INTERFACE
+// EXTENT INTERFACE
 
 // This interface defines the methods supported by all constraint-like
 // components.
-type ConstraintLike interface {
+type ExtentLike interface {
 	GetCONSTRAINT() CONSTRAINT
 	SetCONSTRAINT(constraint CONSTRAINT)
-	GetFactor() FactorLike
-	SetFactor(factor FactorLike)
+	GetFirstNUMBER() NUMBER
+	SetFirstNUMBER(first NUMBER)
+	GetLastNUMBER() NUMBER
+	SetLastNUMBER(last NUMBER)
 }
 
 // This constructor creates a new constraint.
-func Constraint(constraint CONSTRAINT, factor FactorLike) ConstraintLike {
-	var v = &constraint{}
+func Extent(constraint CONSTRAINT, first, last NUMBER) ExtentLike {
+	if len(constraint) == 0 && len(first) == 0 && len(last) == 0 {
+		panic("An extent requires at least one of its attributes to be set.")
+	}
+	var v = &extent{}
 	v.SetCONSTRAINT(constraint)
-	v.SetFactor(factor)
+	v.SetFirstNUMBER(first)
+	v.SetLastNUMBER(last)
 	return v
 }
 
-// CONSTRAINT IMPLEMENTATION
+// EXTENT IMPLEMENTATION
 
-// This type defines the structure and methods associated with a constraint.
-type constraint struct {
+// This type defines the structure and methods associated with a extent.
+type extent struct {
 	constraint CONSTRAINT
-	factor     FactorLike
+	first      NUMBER
+	last       NUMBER
 }
 
-// This method returns the number for this constraint.
-func (v *constraint) GetCONSTRAINT() CONSTRAINT {
+// This method returns the constraint for this extent.
+func (v *extent) GetCONSTRAINT() CONSTRAINT {
 	return v.constraint
 }
 
-// This method sets the number for this constraint.
-func (v *constraint) SetCONSTRAINT(constraint CONSTRAINT) {
-	if len(constraint) == 0 {
-		panic("A constraint requires a constraint.")
+// This method sets the constraint for this extent.
+func (v *extent) SetCONSTRAINT(constraint CONSTRAINT) {
+	if len(constraint) > 0 {
+		v.constraint = constraint
+		v.first = ""
+		v.last = ""
 	}
 	v.constraint = constraint
 }
 
-// This method returns the factor for this constraint.
-func (v *constraint) GetFactor() FactorLike {
-	return v.factor
+// This method returns the first number in the range for this extent.
+func (v *extent) GetFirstNUMBER() NUMBER {
+	return v.first
 }
 
-// This method sets the factor for this constraint.
-func (v *constraint) SetFactor(factor FactorLike) {
-	if factor == nil {
-		panic("A constraint requires a factor.")
+// This method sets the first number in the range for this extent.
+func (v *extent) SetFirstNUMBER(first NUMBER) {
+	if len(first) > 0 {
+		v.constraint = ""
+		v.first = first
+		v.last = ""
 	}
-	v.factor = factor
+}
+
+// This method returns the last number in the range for this extent.
+func (v *extent) GetLastNUMBER() NUMBER {
+	return v.last
+}
+
+// This method sets the last number in the range for this extent.
+func (v *extent) SetLastNUMBER(last NUMBER) {
+	if len(last) > 0 {
+		v.constraint = ""
+		if len(v.first) == 0 {
+			panic("An extent requires that the first number be set if the second number is set.")
+		}
+		v.last = last
+	}
 }
