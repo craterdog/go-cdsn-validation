@@ -60,17 +60,18 @@ func ParseDocument(source []byte) DocumentLike {
 // This map captures the syntax expressions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar = map[string]string{
-	"$document":    `+statement EOF  ! Terminated with an end-of-file marker.`,
-	"$statement":   `definition | COMMENT`,
-	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
-	"$expression":  `alternative *("|" alternative)`,
-	"$alternative": `+predicate ?NOTE`,
-	"$predicate":   `repetition | factor`,
-	"$repetition":  `CONSTRAINT factor`,
-	"$factor":      `element | glyph | precedence`,
-	"$element":     `INTRINSIC | NAME | LITERAL | DELIMITER`,
-	"$glyph":       `CHARACTER ?(".." CHARACTER)  ! The range of CHARACTERs in a glyph is inclusive.`,
-	"$precedence":  `"(" expression ")"`,
+	"$document":    `(statement)+ EOF  ! Terminated with an end-of-file marker.`,
+	"$statement":   ` definition | COMMENT`,
+	"$definition":  ` SYMBOL ":" expression  ! This works for both tokens and rules.`,
+	"$expression":  `alternative ("|" alternative)*`,
+	"$alternative": `(predicate)+ (NOTE)?`,
+	"$predicate":   `factor | inversion | precedence`,
+	"$factor":      `element | glyph`,
+	"$element":     `INTRINSIC | NAME | LITERAL`,
+	"$glyph":       `CHARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inclusive.`,
+	"$inversion":   `"~" predicate`,
+	"$precedence":  `"(" expression ")" (repetition)?`,
+	"$repetition":  `CONSTRAINT | NUMBER (".." NUMBER)?  ! The range of NUMBERs in a repetition is inclusive.`,
 }
 
 func generateGrammar(expected string, symbols ...string) string {
@@ -206,6 +207,19 @@ func (v *parser) parseCOMMENT() (COMMENT, *Token, bool) {
 	return comment, token, true
 }
 
+// This method attempts to parse a new number token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parseNUMBER() (NUMBER, *Token, bool) {
+	var number NUMBER
+	var token = v.nextToken()
+	if token.Type != TokenNUMBER {
+		v.backupOne(token)
+		return number, token, false
+	}
+	number = NUMBER(token.Value)
+	return number, token, true
+}
+
 // This method attempts to parse a new character token. It returns the token
 // and whether or not the token was successfully parsed.
 func (v *parser) parseCHARACTER() (CHARACTER, *Token, bool) {
@@ -287,11 +301,8 @@ func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
 	var document DocumentLike
 	statement, token, ok = v.parseStatement()
 	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("statement",
-			"$document",
-			"$statement")
-		panic(message)
+		// This is not a document.
+		return document, token, false
 	}
 	for {
 		statements.AddValue(statement)
@@ -324,6 +335,14 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 	definition, token, ok = v.parseDefinition()
 	if !ok {
 		comment, token, ok = v.parseCOMMENT()
+	}
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("statement",
+			"$statement",
+			"$definition",
+			"$COMMENT")
+		panic(message)
 	}
 	statement = Statement(definition, comment)
 	return statement, token, ok
@@ -431,78 +450,28 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var inversion InversionLike
-	var repetition RepetitionLike
 	var factor FactorLike
+	var inversion InversionLike
+	var precedence PrecedenceLike
 	var predicate PredicateLike
-	inversion, token, ok = v.parseInversion()
+	factor, token, ok = v.parseFactor()
 	if !ok {
-		repetition, token, ok = v.parseRepetition()
+		inversion, token, ok = v.parseInversion()
 	}
 	if !ok {
-		factor, token, ok = v.parseFactor()
+		precedence, token, ok = v.parsePrecedence()
 	}
 	if !ok {
 		var message = v.formatError(token)
 		message += generateGrammar("predicate",
 			"$predicate",
-			"$inversion",
-			"$repetition",
-			"$factor")
-		panic(message)
-	}
-	predicate = Predicate(inversion, repetition, factor)
-	return predicate, token, ok
-}
-
-// This method attempts to parse a new inversion. It returns the inversion
-// and whether or not the inversion was successfully parsed.
-func (v *parser) parseInversion() (InversionLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor FactorLike
-	var inversion InversionLike
-	_, token, ok = v.parseDELIMITER("~")
-	if !ok {
-		// This is not a inversion.
-		return inversion, token, false
-	}
-	factor, token, ok = v.parseFactor()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("factor",
-			"$inversion",
-			"$factor")
-		panic(message)
-	}
-	inversion = Inversion(factor)
-	return inversion, token, true
-}
-
-// This method attempts to parse a new repetition. It returns the repetition
-// and whether or not the repetition was successfully parsed.
-func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor FactorLike
-	var constraint CONSTRAINT
-	var repetition RepetitionLike
-	factor, token, ok = v.parseFactor()
-	if !ok {
-		// This is not a repetition.
-		return repetition, token, false
-	}
-	constraint, token, ok = v.parseCONSTRAINT()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("CONSTRAINT",
-			"$repetition",
 			"$factor",
-			"$CONSTRAINT")
+			"$inversion",
+			"$precedence")
 		panic(message)
 	}
-	repetition = Repetition(factor, constraint)
-	return repetition, token, true
+	predicate = Predicate(factor, inversion, precedence)
+	return predicate, token, ok
 }
 
 // This method attempts to parse a new factor. It returns the factor
@@ -512,16 +481,20 @@ func (v *parser) parseFactor() (FactorLike, *Token, bool) {
 	var token *Token
 	var element ElementLike
 	var glyph GlyphLike
-	var precedence PrecedenceLike
 	var factor FactorLike
 	element, token, ok = v.parseElement()
 	if !ok {
 		glyph, token, ok = v.parseGlyph()
 	}
 	if !ok {
-		precedence, token, ok = v.parsePrecedence()
+		var message = v.formatError(token)
+		message += generateGrammar("factor",
+			"$factor",
+			"$element",
+			"$glyph")
+		panic(message)
 	}
-	factor = Factor(element, glyph, precedence)
+	factor = Factor(element, glyph)
 	return factor, token, ok
 }
 
@@ -540,6 +513,15 @@ func (v *parser) parseElement() (ElementLike, *Token, bool) {
 	}
 	if !ok {
 		literal, token, ok = v.parseLITERAL()
+	}
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("element",
+			"$element",
+			"$INTRINSIC",
+			"$NAME",
+			"$LITERAL")
+		panic(message)
 	}
 	element = Element(intrinsic, name, literal)
 	return element, token, ok
@@ -573,12 +555,37 @@ func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
 	return glyph, token, true
 }
 
+// This method attempts to parse a new inversion. It returns the inversion
+// and whether or not the inversion was successfully parsed.
+func (v *parser) parseInversion() (InversionLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var predicate PredicateLike
+	var inversion InversionLike
+	_, token, ok = v.parseDELIMITER("~")
+	if !ok {
+		// This is not a inversion.
+		return inversion, token, false
+	}
+	predicate, token, ok = v.parsePredicate()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("predicate",
+			"$inversion",
+			"$predicate")
+		panic(message)
+	}
+	inversion = Inversion(predicate)
+	return inversion, token, true
+}
+
 // This method attempts to parse a new precedence. It returns the precedence
 // and whether or not the precedence was successfully parsed.
 func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var expression ExpressionLike
+	var repetition RepetitionLike
 	var precedence PrecedenceLike
 	_, token, ok = v.parseDELIMITER("(")
 	if !ok {
@@ -590,7 +597,8 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 		var message = v.formatError(token)
 		message += generateGrammar("expression",
 			"$precedence",
-			"$expression")
+			"$expression",
+			"$repetition")
 		panic(message)
 	}
 	expression.SetAnnotated(false)
@@ -599,9 +607,44 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 		var message = v.formatError(token)
 		message += generateGrammar(")",
 			"$precedence",
-			"$expression")
+			"$expression",
+			"$repetition")
 		panic(message)
 	}
-	precedence = Precedence(expression)
+	repetition, token, ok = v.parseRepetition()
+	precedence = Precedence(expression, repetition)
 	return precedence, token, true
+}
+
+// This method attempts to parse a new repetition. It returns the repetition
+// and whether or not the repetition was successfully parsed.
+func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var constraint CONSTRAINT
+	var first NUMBER
+	var last NUMBER
+	var repetition RepetitionLike
+	constraint, token, ok = v.parseCONSTRAINT()
+	if !ok {
+		first, token, ok = v.parseNUMBER()
+		if !ok {
+			// This is not a repetition.
+			return repetition, token, false
+		}
+		_, _, ok = v.parseDELIMITER("..")
+		if ok {
+			last, token, ok = v.parseNUMBER()
+			if !ok {
+				var message = v.formatError(token)
+				message += generateGrammar("NUMBER",
+					"$repetition",
+					"$CONSTRAINT",
+					"$NUMBER")
+				panic(message)
+			}
+		}
+	}
+	repetition = Repetition(constraint, first, last)
+	return repetition, token, true
 }

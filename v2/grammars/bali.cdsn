@@ -39,7 +39,7 @@ $BASE32: '0'..'9' | 'A'..'D' | 'F'..'H' | 'J'..'N' | 'P'..'T' | 'V'..'Z'
 
 $BASE64: '0'..'9' | 'a'..'z' | 'A'..'Z' | '+' | '/'
 
-$BINARY: "'>" EOL (SPACE* BASE64+ EOL*) SPACE* "<'"
+$BINARY: "'>" EOL (SPACE)* (BASE64)+ (EOL)*) (SPACE)* "<'"
 
 $BOOLEAN: "false" | "true"
 
@@ -47,7 +47,7 @@ $BYTECODE: "'" (INSTRUCTION (SPACE INSTRUCTION)*)* "'"
 
 $CHARACTER: ESCAPE | ~('"' | EOL)
 
-$COMMENT: "!>" EOL (COMMENT | ~"<!")* EOL SPACE* "<!"  ! Allows recursion.
+$COMMENT: "!>" EOL (COMMENT | ~"<!")* EOL (SPACE)* "<!"  ! Allows recursion.
 
 $COMPLEX: "(" (RECTANGULAR | POLAR) ")"
 
@@ -57,15 +57,15 @@ $DAYS: TIMESPAN "D"
 
 $DELIMITER: "~" | "}" | "|" | "{" | "^" | "]" | "[" | "@" | "?=" | ">" | "=" | "≠" | "<-" | "<" | ";" | ":=" | ":" | "/=" | "//" | "/" | ".." | "." | "-=" | "-" | "," | "+=" | "+" | "*=" | "*" | ")" | "(" | "&" | "NOT" | "AND" | "SANS" | "OR" | "XOR" | "IS" | "MATCHES"
 
-$DURATION: "~" SIGN? "P" (WEEKS | YEARS? MONTHS? DAYS? ("T" HOURS? MINUTES? SECONDS?)?)
+$DURATION: "~" (SIGN)? "P" (WEEKS | (YEARS)? (MONTHS)? (DAYS)? ("T" (HOURS)? (MINUTES)? (SECONDS)?)?)
 
 $E: "e"
 
-$EXPONENT: "E" SIGN? ORDINAL
+$EXPONENT: "E" (SIGN)? ORDINAL
 
-$FLOAT: SIGN? MAGNITUDE
+$FLOAT: (SIGN)? MAGNITUDE
 
-$FRACTION: "." BASE10+
+$FRACTION: "." (BASE10)+
 
 $FRAGMENT: (~(">" | EOL))*
 
@@ -75,9 +75,9 @@ $HOURS: TIMESPAN "H"
 
 $IDENTIFIER: LETTER (LETTER | DIGIT)*
 
-$IMAGINARY: SIGN? MAGNITUDE? "i"
+$IMAGINARY: (SIGN)? (MAGNITUDE)? "i"
 
-$INFINITY: SIGN? ("infinity" | "∞")
+$INFINITY: (SIGN)? ("infinity" | "∞")
 
 $INSTRUCTION: 4(BASE16)
 
@@ -91,7 +91,7 @@ $MINUTE: '0'..'5' '0'..'9'
 
 $MINUTES: TIMESPAN "M"
 
-$MOMENT: "<" SIGN? YEAR ("-" MONTH ("-" DAY ("T" HOUR (":" MINUTE (":" SECOND FRACTION?)?)?)?)?)? ">"
+$MOMENT: "<" (SIGN)? YEAR ("-" MONTH ("-" DAY ("T" HOUR (":" MINUTE (":" SECOND (FRACTION)?)?)?)?)?)? ">"
 
 $MONIKER: ("/" NAME)+
 
@@ -99,9 +99,9 @@ $MONTH: '0' '1'..'9' | '1' '0'..'2'
 
 $MONTHS: TIMESPAN "M"
 
-$NAME: LETTER (SEPARATOR? (LETTER | DIGIT))*
+$NAME: LETTER ((SEPARATOR)? (LETTER | DIGIT))*
 
-$NARRATIVE: '"' '>' EOL (NARRATIVE | ~('<' '"'))* EOL SPACE* '<' '"'
+$NARRATIVE: '"' '>' EOL (NARRATIVE | ~('<' '"'))* EOL (SPACE)* '<' '"'
 
 $NONE: "none"
 
@@ -129,17 +129,17 @@ $PROBABILITY: FRACTION | ONE
 
 $QUERY: (~("#" | ">" | EOL))*
 
-$QUOTE: '"' CHARACTER* '"'
+$QUOTE: '"' (CHARACTER)* '"'
 
 $REAL: ZERO | FLOAT | INFINITY | UNDEFINED
 
 $RECTANGULAR: FLOAT ", " FLOAT "i"
 
-$REGEX: '"' CHARACTER+ '"' '?'
+$REGEX: '"' (CHARACTER)+ '"' '?'
 
 $RESOURCE: "<" SCHEME ":" ("//" AUTHORITY)? "/" PATH ("?" QUERY)? ("#" FRAGMENT)? ">"
 
-$SCALAR: (ZERO FRACTION | ORDINAL FRACTION?) EXPONENT?
+$SCALAR: (ZERO FRACTION | ORDINAL (FRACTION)?) (EXPONENT)?
 
 $SCHEME: ('a'..'z' | 'A'..'Z') ('0'..'9' | 'a'..'z' | 'A'..'Z' | '+' | '-' | '.')*
 
@@ -153,15 +153,15 @@ $SPACE: " "
 
 $SYMBOL: "$" IDENTIFIER
 
-$TAG: "#" BASE32+
+$TAG: "#" (BASE32)+
 
 $TAU: "tau" | "τ"
 
-$TIMESPAN: ZERO | ORDINAL FRACTION?
+$TIMESPAN: ZERO | ORDINAL (FRACTION)?
 
 $UNDEFINED: "undefined"
 
-$UNICODE: "u" BASE16{4} | "U" BASE16{8}
+$UNICODE: "u" (BASE16)4 | "U" (BASE16)8
 
 $VERSION: "v" ORDINAL ("." ORDINAL)*
 
@@ -180,13 +180,13 @@ $ZERO: "0"
     scanner.  Each rule name begins with a lower case letter.  The rule definitions may specify the
     names of tokens or other rules and are matched by the parser in the order listed.  Rule
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
-    separated by whitespace which is ignored by the parser.  The factors within the predicates may
-    be limited by one of the following constraints:
-     * factor? - Zero or one instances of the specified factor
-     * factor* - Zero or more instances of the specified factor
-     * factor+ - One or more instances of the specified factor
-     * factor{N} - Exactly N instances of the specified factor
-     * factor{M..N} - M to N instances of the specified factor
+    separated by whitespace which is ignored by the parser.  The expressions within a precedence
+    may be limited by one of the following constraints:
+     * (expression)? - Zero or one instances of the specified expression.
+     * (expression)* - Zero or more instances of the specified expression.
+     * (expression)+ - One or more instances of the specified expression.
+     * (expression)N - Exactly N instances of the specified expression.
+     * (expression)M..N - M to N instances of the specified expression.
     The following rules are attempted in the order listed below.
 <!
 

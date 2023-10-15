@@ -39,13 +39,13 @@ $DELIMITER: "]" | "[" | ")" | "(" | ":" | ","
 
 $EXPONENT: ("e" | "E") SIGN ORDINAL
 
-$FLOAT: SIGN? SCALAR EXPONENT?
+$FLOAT: (SIGN)? SCALAR (EXPONENT)?
 
-$FRACTION: "." BASE10+
+$FRACTION: "." (BASE10)+
 
 $IGNORED: " "
 
-$INTEGER: ZERO | SIGN? ORDINAL
+$INTEGER: ZERO | (SIGN)? ORDINAL
 
 $LETTER: LOWER_CASE | UPPER_CASE
 
@@ -63,7 +63,7 @@ $STRING: '"' (ESCAPE | ~('"' | EOL))* '"'
 
 $UNICODE: "u" 4(BASE16) | "U" 8(BASE16)
 
-$UNSIGNED: "0x" BASE16+
+$UNSIGNED: "0x" (BASE16)+
 
 $ZERO: "0"
 
@@ -74,13 +74,13 @@ $ZERO: "0"
     scanner.  Each rule name begins with a lower case letter.  The rule definitions may specify the
     names of tokens or other rules and are matched by the parser in the order listed.  Rule
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
-    separated by whitespace which is ignored by the parser.  The factors within the predicates may
-    be limited by one of the following constraints:
-     * factor? - Zero or one instances of the specified factor
-     * factor* - Zero or more instances of the specified factor
-     * factor+ - One or more instances of the specified factor
-     * factor{N} - Exactly N instances of the specified factor
-     * factor{M..N} - M to N instances of the specified factor
+    separated by whitespace which is ignored by the parser.  The expressions within a precedence
+    may be limited by one of the following constraints:
+     * (expression)? - Zero or one instances of the specified expression.
+     * (expression)* - Zero or more instances of the specified expression.
+     * (expression)+ - One or more instances of the specified expression.
+     * (expression)N - Exactly N instances of the specified expression.
+     * (expression)M..N - M to N instances of the specified expression.
     The following rules are attempted in the order listed below.
 <!
 

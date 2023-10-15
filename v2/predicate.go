@@ -15,23 +15,23 @@ package cdsn
 // This interface defines the methods supported by all predicate-like
 // components.
 type PredicateLike interface {
-	GetInversion() InversionLike
-	SetInversion(inversion InversionLike)
-	GetRepetition() RepetitionLike
-	SetRepetition(repetition RepetitionLike)
 	GetFactor() FactorLike
 	SetFactor(factor FactorLike)
+	GetInversion() InversionLike
+	SetInversion(inversion InversionLike)
+	GetPrecedence() PrecedenceLike
+	SetPrecedence(precedence PrecedenceLike)
 }
 
 // This constructor creates a new predicate.
-func Predicate(inversion InversionLike, repetition RepetitionLike, factor FactorLike) PredicateLike {
-	if inversion == nil && repetition == nil && factor == nil {
+func Predicate(factor FactorLike, inversion InversionLike, precedence PrecedenceLike) PredicateLike {
+	if factor == nil && inversion == nil && precedence == nil {
 		panic("A predicate requires at least one of its attributes to be set.")
 	}
 	var v = &predicate{}
-	v.SetInversion(inversion)
-	v.SetRepetition(repetition)
 	v.SetFactor(factor)
+	v.SetInversion(inversion)
+	v.SetPrecedence(precedence)
 	return v
 }
 
@@ -39,37 +39,9 @@ func Predicate(inversion InversionLike, repetition RepetitionLike, factor Factor
 
 // This type defines the structure and methods associated with a predicate.
 type predicate struct {
-	inversion  InversionLike
-	repetition RepetitionLike
 	factor     FactorLike
-}
-
-// This method returns the inversion for this predicate.
-func (v *predicate) GetInversion() InversionLike {
-	return v.inversion
-}
-
-// This method sets the inversion for this predicate.
-func (v *predicate) SetInversion(inversion InversionLike) {
-	if inversion != nil {
-		v.inversion = inversion
-		v.repetition = nil
-		v.factor = nil
-	}
-}
-
-// This method returns the repetition for this predicate.
-func (v *predicate) GetRepetition() RepetitionLike {
-	return v.repetition
-}
-
-// This method sets the repetition for this predicate.
-func (v *predicate) SetRepetition(repetition RepetitionLike) {
-	if repetition != nil {
-		v.inversion = nil
-		v.repetition = repetition
-		v.factor = nil
-	}
+	inversion  InversionLike
+	precedence PrecedenceLike
 }
 
 // This method returns the factor for this predicate.
@@ -80,8 +52,36 @@ func (v *predicate) GetFactor() FactorLike {
 // This method sets the factor for this predicate.
 func (v *predicate) SetFactor(factor FactorLike) {
 	if factor != nil {
-		v.inversion = nil
-		v.repetition = nil
 		v.factor = factor
+		v.inversion = nil
+		v.precedence = nil
+	}
+}
+
+// This method returns the inversion for this predicate.
+func (v *predicate) GetInversion() InversionLike {
+	return v.inversion
+}
+
+// This method sets the inversion for this predicate.
+func (v *predicate) SetInversion(inversion InversionLike) {
+	if inversion != nil {
+		v.factor = nil
+		v.inversion = inversion
+		v.precedence = nil
+	}
+}
+
+// This method returns the precedence for this predicate.
+func (v *predicate) GetPrecedence() PrecedenceLike {
+	return v.precedence
+}
+
+// This method sets the precedence for this predicate.
+func (v *predicate) SetPrecedence(precedence PrecedenceLike) {
+	if precedence != nil {
+		v.factor = nil
+		v.inversion = nil
+		v.precedence = precedence
 	}
 }

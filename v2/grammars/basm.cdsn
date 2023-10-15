@@ -29,7 +29,7 @@ $LABEL: (NUMBER ".")+ NAME
 
 $NUMBER: '1'..'9' ('0'..'9')*
 
-$LITERAL: "`" ANY* "`"
+$LITERAL: "`" (ANY)* "`"
 
 $SYMBOL: "$" NAME ("-" NUMBER)?
 
@@ -44,21 +44,21 @@ $NAME: (LOWER_CASE | UPPER_CASE) (LOWER_CASE | UPPER_CASE | DIGIT)*
     scanner.  Each rule name begins with a lower case letter.  The rule definitions may specify the
     names of tokens or other rules and are matched by the parser in the order listed.  Rule
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
-    separated by whitespace which is ignored by the parser.  The factors within the predicates may
-    be limited by one of the following constraints:
-     * factor? - Zero or one instances of the specified factor
-     * factor* - Zero or more instances of the specified factor
-     * factor+ - One or more instances of the specified factor
-     * factor{N} - Exactly N instances of the specified factor
-     * factor{M..N} - M to N instances of the specified factor
+    separated by whitespace which is ignored by the parser.  The expressions within a precedence
+    may be limited by one of the following constraints:
+     * (expression)? - Zero or one instances of the specified expression.
+     * (expression)* - Zero or more instances of the specified expression.
+     * (expression)+ - One or more instances of the specified expression.
+     * (expression)N - Exactly N instances of the specified expression.
+     * (expression)M..N - M to N instances of the specified expression.
     The following rules are attempted in the order listed below.
 <!
 
 $document: instructions EOF
 
-$instructions: instruction*
+$instructions: (instruction)*
 
-$instruction: label? action
+$instruction: (label)? action
 
 $label: LABEL ":"
 

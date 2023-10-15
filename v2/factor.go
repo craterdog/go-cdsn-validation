@@ -19,19 +19,16 @@ type FactorLike interface {
 	SetElement(element ElementLike)
 	GetGlyph() GlyphLike
 	SetGlyph(glyph GlyphLike)
-	GetPrecedence() PrecedenceLike
-	SetPrecedence(precedence PrecedenceLike)
 }
 
 // This constructor creates a new factor.
-func Factor(element ElementLike, glyph GlyphLike, precedence PrecedenceLike) FactorLike {
-	if element == nil && glyph == nil && precedence == nil {
+func Factor(element ElementLike, glyph GlyphLike) FactorLike {
+	if element == nil && glyph == nil {
 		panic("A factor requires at least one of its attributes to be set.")
 	}
 	var v = &factor{}
 	v.SetElement(element)
 	v.SetGlyph(glyph)
-	v.SetPrecedence(precedence)
 	return v
 }
 
@@ -39,9 +36,8 @@ func Factor(element ElementLike, glyph GlyphLike, precedence PrecedenceLike) Fac
 
 // This type defines the structure and methods associated with a factor.
 type factor struct {
-	element    ElementLike
-	glyph      GlyphLike
-	precedence PrecedenceLike
+	element ElementLike
+	glyph   GlyphLike
 }
 
 // This method returns the element for this factor.
@@ -54,7 +50,6 @@ func (v *factor) SetElement(element ElementLike) {
 	if element != nil {
 		v.element = element
 		v.glyph = nil
-		v.precedence = nil
 	}
 }
 
@@ -68,20 +63,5 @@ func (v *factor) SetGlyph(glyph GlyphLike) {
 	if glyph != nil {
 		v.element = nil
 		v.glyph = glyph
-		v.precedence = nil
-	}
-}
-
-// This method returns the precedence for this factor.
-func (v *factor) GetPrecedence() PrecedenceLike {
-	return v.precedence
-}
-
-// This method sets the precedence for this factor.
-func (v *factor) SetPrecedence(precedence PrecedenceLike) {
-	if precedence != nil {
-		v.element = nil
-		v.glyph = nil
-		v.precedence = precedence
 	}
 }

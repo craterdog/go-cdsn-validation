@@ -130,34 +130,38 @@ func (v *formatter) formatExpression(expression ExpressionLike) {
 func (v *formatter) formatFactor(factor FactorLike) {
 	var element = factor.GetElement()
 	var glyph = factor.GetGlyph()
-	var precedence = factor.GetPrecedence()
 	switch {
 	case element != nil:
 		v.formatElement(element)
 	case glyph != nil:
 		v.formatGlyph(glyph)
-	case precedence != nil:
-		v.formatPrecedence(precedence)
 	}
 }
 
 // This private method formats the specified precedence.
-func (v *formatter) formatPrecedence(definition PrecedenceLike) {
+func (v *formatter) formatPrecedence(precedence PrecedenceLike) {
 	v.appendString("(")
-	var expression = definition.GetExpression()
+	var expression = precedence.GetExpression()
 	v.formatExpression(expression)
 	v.appendString(")")
+	var repetition = precedence.GetRepetition()
+	if repetition != nil {
+		v.formatRepetition(repetition)
+	}
 }
 
 // This private method formats the specified predicate.
 func (v *formatter) formatPredicate(predicate PredicateLike) {
-	var repetition = predicate.GetRepetition()
 	var factor = predicate.GetFactor()
+	var inversion = predicate.GetInversion()
+	var precedence = predicate.GetPrecedence()
 	switch {
-	case repetition != nil:
-		v.formatRepetition(repetition)
 	case factor != nil:
 		v.formatFactor(factor)
+	case inversion != nil:
+		v.formatInversion(inversion)
+	case precedence != nil:
+		v.formatPrecedence(precedence)
 	}
 }
 
@@ -172,12 +176,28 @@ func (v *formatter) formatGlyph(glyph GlyphLike) {
 	}
 }
 
+// This private method formats the specified inversion.
+func (v *formatter) formatInversion(inversion InversionLike) {
+	v.appendString("~")
+	var predicate = inversion.GetPredicate()
+	v.formatPredicate(predicate)
+}
+
 // This private method formats the specified repetition.
 func (v *formatter) formatRepetition(repetition RepetitionLike) {
 	var constraint = repetition.GetCONSTRAINT()
-	v.appendString(string(constraint))
-	var factor = repetition.GetFactor()
-	v.formatFactor(factor)
+	var first = repetition.GetFirstNUMBER()
+	var last = repetition.GetLastNUMBER()
+	switch {
+	case len(constraint) > 0:
+		v.appendString(string(constraint))
+	case len(first) > 0:
+		v.appendString(string(first))
+		if len(last) > 0 {
+			v.appendString("..")
+			v.appendString(string(last))
+		}
+	}
 }
 
 // This private method formats the specified statement.
