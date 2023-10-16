@@ -42,8 +42,6 @@ $NAME: (LOWER_CASE | UPPER_CASE) (SEPARATOR? (LOWER_CASE | UPPER_CASE | DIGIT))*
 
 $SYMBOL: '$' NAME
 
-$CONSTRAINT: "?" | "*" | "+"
-
 
 !>
     RULE DEFINITIONS
@@ -84,6 +82,8 @@ $inversion: "~" factor
 $precedence: "(" expression ")"
 
 $repetition:
-      CONSTRAINT
-    | NUMBER (".." NUMBER)?  ! The range of NUMBERs in a repetition is inclusive.
+      "?"  ! There may be zero or one instances.
+    | "*"  ! There may be zero or more instances.
+    | "+"  ! There may be one or more instances.
+    | "{" NUMBER (".." NUMBER)? "}"  ! The number of instances must be in a range.
 

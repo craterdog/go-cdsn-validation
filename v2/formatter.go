@@ -148,24 +148,6 @@ func (v *formatter) formatFactor(factor FactorLike) {
 	}
 }
 
-// This private method formats the specified precedence.
-func (v *formatter) formatPrecedence(precedence PrecedenceLike) {
-	v.appendString("(")
-	var expression = precedence.GetExpression()
-	v.formatExpression(expression)
-	v.appendString(")")
-}
-
-// This private method formats the specified predicate.
-func (v *formatter) formatPredicate(predicate PredicateLike) {
-	var factor = predicate.GetFactor()
-	v.formatFactor(factor)
-	var repetition = predicate.GetRepetition()
-	if repetition != nil {
-		v.formatRepetition(repetition)
-	}
-}
-
 // This private method formats the specified glyph.
 func (v *formatter) formatGlyph(glyph GlyphLike) {
 	var first = glyph.GetFirstCHARACTER()
@@ -182,6 +164,24 @@ func (v *formatter) formatInversion(inversion InversionLike) {
 	v.appendString("~")
 	var factor = inversion.GetFactor()
 	v.formatFactor(factor)
+}
+
+// This private method formats the specified precedence.
+func (v *formatter) formatPrecedence(precedence PrecedenceLike) {
+	v.appendString("(")
+	var expression = precedence.GetExpression()
+	v.formatExpression(expression)
+	v.appendString(")")
+}
+
+// This private method formats the specified predicate.
+func (v *formatter) formatPredicate(predicate PredicateLike) {
+	var factor = predicate.GetFactor()
+	v.formatFactor(factor)
+	var repetition = predicate.GetRepetition()
+	if repetition != nil {
+		v.formatRepetition(repetition)
+	}
 }
 
 // This private method formats the specified repetition.

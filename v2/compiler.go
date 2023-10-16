@@ -233,11 +233,6 @@ func (v *compiler) compileAlternativeToken(alternative AlternativeLike, re *sts.
 	}
 }
 
-// This method compiles the specified token constraint.
-func (v *compiler) compileCONSTRAINTToken(constraint CONSTRAINT, re *sts.Builder) {
-	re.WriteString(string(constraint))
-}
-
 // This method compiles the specified definition.
 func (v *compiler) compileDefinition(definition DefinitionLike) {
 	var symbol = definition.GetSYMBOL()
@@ -301,12 +296,15 @@ func (v *compiler) compileExpressionToken(expression ExpressionLike, re *sts.Bui
 func (v *compiler) compileFactorToken(factor FactorLike, re *sts.Builder) {
 	var element = factor.GetElement()
 	var glyph = factor.GetGlyph()
+	var inversion = factor.GetInversion()
 	var precedence = factor.GetPrecedence()
 	switch {
 	case element != nil:
 		v.compileElementToken(element, re)
 	case glyph != nil:
 		v.compileGlyphToken(glyph, re)
+	case inversion != nil:
+		v.compileInversionToken(inversion, re)
 	case precedence != nil:
 		v.compilePrecedenceToken(precedence, re)
 	}
@@ -385,8 +383,6 @@ func (v *compiler) compileINTRINSICToken(intrinsic INTRINSIC, re *sts.Builder) {
 		re.WriteString(digit)
 	case "SEPARATOR":
 		re.WriteString(separator)
-	case "DELIMITER":
-		re.WriteString(delimiter)
 	case "ESCAPE":
 		re.WriteString(escape)
 	case "EOL":
@@ -409,45 +405,48 @@ func (v *compiler) compilePrecedenceToken(precedence PrecedenceLike, re *sts.Bui
 
 // This method compiles the specified token predicate.
 func (v *compiler) compilePredicateToken(predicate PredicateLike, re *sts.Builder) {
-	var repetition = predicate.GetRepetition()
 	var factor = predicate.GetFactor()
-	switch {
-	case repetition != nil:
+	v.compileFactorToken(factor, re)
+	var repetition = predicate.GetRepetition()
+	if repetition != nil {
 		v.compileRepetitionToken(repetition, re)
-	case factor != nil:
-		v.compileFactorToken(factor, re)
 	}
 }
 
 // This method compiles the specified token glyph.
 func (v *compiler) compileGlyphToken(glyph GlyphLike, re *sts.Builder) {
 	var first = string(glyph.GetFirstCHARACTER())
+	re.WriteString(first[1 : len(first)-1])
 	var last = string(glyph.GetLastCHARACTER())
 	if len(last) > 0 {
-		re.WriteString(first[1 : len(first)-1])
 		re.WriteString("-")
 		re.WriteString(last[1 : len(last)-1])
-	} else {
-		re.WriteString(first[1 : len(first)-1])
 	}
+}
+
+// This method compiles the specified token inversion.
+func (v *compiler) compileInversionToken(inversion InversionLike, re *sts.Builder) {
+	re.WriteString("[^")
+	var factor = inversion.GetFactor()
+	v.compileInvertedFactorToken(factor, re)
+	re.WriteString("]")
 }
 
 // This method compiles the specified token repetition.
 func (v *compiler) compileRepetitionToken(repetition RepetitionLike, re *sts.Builder) {
 	var constraint = repetition.GetCONSTRAINT()
-	var factor = repetition.GetFactor()
-	switch string(constraint) {
-	case "~":
-		re.WriteString("[^")
-		v.compileInvertedFactorToken(factor, re)
-		re.WriteString("]")
-	case "?", "*", "+":
-		v.compileFactorToken(factor, re)
-		v.compileCONSTRAINTToken(constraint, re)
-	default:
-		v.compileFactorToken(factor, re)
+	var first = repetition.GetFirstNUMBER()
+	var last = repetition.GetLastNUMBER()
+	switch {
+	case len(constraint) > 0:
+		re.WriteString(string(constraint))
+	case len(first) > 0:
 		re.WriteString("{")
-		v.compileCONSTRAINTToken(constraint, re)
+		re.WriteString(string(first))
+		if len(last) > 0 {
+			re.WriteString("..")
+			re.WriteString(string(last))
+		}
 		re.WriteString("}")
 	}
 }
