@@ -65,6 +65,27 @@ func (v *formatter) formatAlternative(alternative AlternativeLike) {
 	}
 }
 
+// This private method formats the specified cardinality.
+func (v *formatter) formatCardinality(cardinality CardinalityLike) {
+	var limit = cardinality.GetLIMIT()
+	var first = cardinality.GetFirstNUMBER()
+	var last = cardinality.GetLastNUMBER()
+	switch {
+	case len(limit) > 0:
+		v.appendString(string(limit))
+	case len(first) > 0:
+		v.appendString("{")
+		v.appendString(string(first))
+		if len(last) > 0 {
+			v.appendString("..")
+			v.appendString(string(last))
+		}
+		v.appendString("}")
+	default:
+		panic("Attempted to format an empty cardinality.")
+	}
+}
+
 // This private method formats the specified definition.
 func (v *formatter) formatDefinition(definition DefinitionLike) {
 	var symbol = definition.GetSYMBOL()
@@ -181,27 +202,6 @@ func (v *formatter) formatPredicate(predicate PredicateLike) {
 	var cardinality = predicate.GetCardinality()
 	if cardinality != nil {
 		v.formatCardinality(cardinality)
-	}
-}
-
-// This private method formats the specified cardinality.
-func (v *formatter) formatCardinality(cardinality CardinalityLike) {
-	var limit = cardinality.GetLIMIT()
-	var first = cardinality.GetFirstNUMBER()
-	var last = cardinality.GetLastNUMBER()
-	switch {
-	case len(limit) > 0:
-		v.appendString(string(limit))
-	case len(first) > 0:
-		v.appendString("{")
-		v.appendString(string(first))
-		if len(last) > 0 {
-			v.appendString("..")
-			v.appendString(string(last))
-		}
-		v.appendString("}")
-	default:
-		panic("Attempted to format an empty cardinality.")
 	}
 }
 

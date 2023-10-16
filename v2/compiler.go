@@ -223,16 +223,6 @@ func (v *compiler) decrementDepth() {
 	v.depth--
 }
 
-// This method compiles the specified token alternative.
-func (v *compiler) compileAlternativeToken(alternative AlternativeLike, re *sts.Builder) {
-	var predicates = alternative.GetPredicates()
-	var iterator = col.Iterator(predicates)
-	for iterator.HasNext() {
-		var predicate = iterator.GetNext()
-		v.compilePredicateToken(predicate, re)
-	}
-}
-
 // This method compiles the specified definition.
 func (v *compiler) compileDefinition(definition DefinitionLike) {
 	var symbol = definition.GetSYMBOL()
@@ -243,7 +233,7 @@ func (v *compiler) compileDefinition(definition DefinitionLike) {
 		// Intrinsics are automatically part of every parser.
 	case isTokenName(name):
 		var re sts.Builder
-		v.compileExpressionToken(expression, &re)
+		v.compileTokenExpression(expression, &re)
 		v.appendScanToken(name, re.String())
 		v.appendParseToken(name)
 	default:
@@ -261,193 +251,6 @@ func (v *compiler) compileDocument(document DocumentLike) {
 	for iterator.HasNext() {
 		var statement = iterator.GetNext()
 		v.compileStatement(statement)
-	}
-}
-
-// This method compiles the specified token element.
-func (v *compiler) compileElementToken(element ElementLike, re *sts.Builder) {
-	var intrinsic = element.GetINTRINSIC()
-	var name = element.GetNAME()
-	var literal = element.GetLITERAL()
-	switch {
-	case len(intrinsic) > 0:
-		v.compileINTRINSICToken(intrinsic, re)
-	case len(name) > 0:
-		v.compileNAMEToken(name, re)
-	case len(literal) > 0:
-		v.compileLITERALToken(literal, re)
-	}
-}
-
-// This method compiles the specified expression token.
-func (v *compiler) compileExpressionToken(expression ExpressionLike, re *sts.Builder) {
-	var alternatives = expression.GetAlternatives()
-	var iterator = col.Iterator(alternatives)
-	var alternative = iterator.GetNext()
-	v.compileAlternativeToken(alternative, re)
-	for iterator.HasNext() {
-		re.WriteString("|")
-		alternative = iterator.GetNext()
-		v.compileAlternativeToken(alternative, re)
-	}
-}
-
-// This method compiles the specified token factor.
-func (v *compiler) compileFactorToken(factor FactorLike, re *sts.Builder) {
-	var element = factor.GetElement()
-	var glyph = factor.GetGlyph()
-	var inversion = factor.GetInversion()
-	var precedence = factor.GetPrecedence()
-	switch {
-	case element != nil:
-		v.compileElementToken(element, re)
-	case glyph != nil:
-		v.compileGlyphToken(glyph, re)
-	case inversion != nil:
-		v.compileInversionToken(inversion, re)
-	case precedence != nil:
-		v.compilePrecedenceToken(precedence, re)
-	}
-}
-
-// This method compiles the specified token alternative.
-func (v *compiler) compileInvertedAlternativeToken(alternative AlternativeLike, re *sts.Builder) {
-	var predicates = alternative.GetPredicates()
-	var iterator = col.Iterator(predicates)
-	for iterator.HasNext() {
-		var predicate = iterator.GetNext()
-		v.compileInvertedPredicateToken(predicate, re)
-	}
-}
-
-// This method compiles the specified expression token.
-func (v *compiler) compileInvertedExpressionToken(expression ExpressionLike, re *sts.Builder) {
-	var alternatives = expression.GetAlternatives()
-	var iterator = col.Iterator(alternatives)
-	for iterator.HasNext() {
-		var alternative = iterator.GetNext()
-		v.compileInvertedAlternativeToken(alternative, re)
-	}
-}
-
-// This method compiles the specified inverted token factor.
-func (v *compiler) compileInvertedFactorToken(factor FactorLike, re *sts.Builder) {
-	var element = factor.GetElement()
-	var glyph = factor.GetGlyph()
-	var precedence = factor.GetPrecedence()
-	switch {
-	case element != nil:
-		v.compileElementToken(element, re)
-	case glyph != nil:
-		v.compileGlyphToken(glyph, re)
-	case precedence != nil:
-		v.compileInvertedPrecedenceToken(precedence, re)
-	}
-}
-
-// This method compiles the specified token precedence.
-func (v *compiler) compileInvertedPrecedenceToken(precedence PrecedenceLike, re *sts.Builder) {
-	var expression = precedence.GetExpression()
-	v.compileInvertedExpressionToken(expression, re)
-}
-
-// This method compiles the specified token predicate.
-func (v *compiler) compileInvertedPredicateToken(predicate PredicateLike, re *sts.Builder) {
-	var cardinality = predicate.GetCardinality()
-	var factor = predicate.GetFactor()
-	switch {
-	case cardinality != nil:
-		panic("A cardinality is not allowed in an inverted predicate.")
-	case factor != nil:
-		var precedence = factor.GetPrecedence()
-		var element = factor.GetElement()
-		switch {
-		case precedence != nil:
-			panic("A precedence factor is not allowed in an inverted predicate.")
-		case element != nil:
-			v.compileElementToken(element, re)
-		}
-	}
-}
-
-// This method compiles the specified token intrinsic.
-func (v *compiler) compileINTRINSICToken(intrinsic INTRINSIC, re *sts.Builder) {
-	switch string(intrinsic) {
-	case "ANY":
-		re.WriteString(any_)
-	case "LOWER_CASE":
-		re.WriteString(lowerCase)
-	case "UPPER_CASE":
-		re.WriteString(upperCase)
-	case "DIGIT":
-		re.WriteString(digit)
-	case "SEPARATOR":
-		re.WriteString(separator)
-	case "ESCAPE":
-		re.WriteString(escape)
-	case "EOL":
-		re.WriteString(eol)
-	}
-}
-
-// This method compiles the specified token name.
-func (v *compiler) compileNAMEToken(name NAME, re *sts.Builder) {
-	re.WriteString(string(name))
-}
-
-// This method compiles the specified token precedence.
-func (v *compiler) compilePrecedenceToken(precedence PrecedenceLike, re *sts.Builder) {
-	var expression = precedence.GetExpression()
-	re.WriteString("(?:")
-	v.compileExpressionToken(expression, re)
-	re.WriteString(")")
-}
-
-// This method compiles the specified token predicate.
-func (v *compiler) compilePredicateToken(predicate PredicateLike, re *sts.Builder) {
-	var factor = predicate.GetFactor()
-	v.compileFactorToken(factor, re)
-	var cardinality = predicate.GetCardinality()
-	if cardinality != nil {
-		v.compileCardinalityToken(cardinality, re)
-	}
-}
-
-// This method compiles the specified token glyph.
-func (v *compiler) compileGlyphToken(glyph GlyphLike, re *sts.Builder) {
-	var first = string(glyph.GetFirstCHARACTER())
-	re.WriteString(first[1 : len(first)-1])
-	var last = string(glyph.GetLastCHARACTER())
-	if len(last) > 0 {
-		re.WriteString("-")
-		re.WriteString(last[1 : len(last)-1])
-	}
-}
-
-// This method compiles the specified token inversion.
-func (v *compiler) compileInversionToken(inversion InversionLike, re *sts.Builder) {
-	re.WriteString("[^")
-	var factor = inversion.GetFactor()
-	v.compileInvertedFactorToken(factor, re)
-	re.WriteString("]")
-}
-
-// This method compiles the specified token cardinality.
-func (v *compiler) compileCardinalityToken(cardinality CardinalityLike, re *sts.Builder) {
-	var limit = cardinality.GetLIMIT()
-	var first = cardinality.GetFirstNUMBER()
-	var last = cardinality.GetLastNUMBER()
-	switch {
-	case len(limit) > 0:
-		re.WriteString(string(limit))
-	case len(first) > 0:
-		re.WriteString("{")
-		re.WriteString(string(first))
-		if len(last) > 0 {
-			re.WriteString("..")
-			re.WriteString(string(last))
-		}
-		re.WriteString("}")
 	}
 }
 
@@ -470,8 +273,205 @@ func (v *compiler) compileStatement(statement StatementLike) {
 	}
 }
 
+// This method compiles the specified token alternative.
+func (v *compiler) compileTokenAlternative(alternative AlternativeLike, re *sts.Builder) {
+	var predicates = alternative.GetPredicates()
+	var iterator = col.Iterator(predicates)
+	for iterator.HasNext() {
+		var predicate = iterator.GetNext()
+		v.compileTokenPredicate(predicate, re)
+	}
+}
+
+// This method compiles the specified token cardinality.
+func (v *compiler) compileTokenCardinality(cardinality CardinalityLike, re *sts.Builder) {
+	var limit = cardinality.GetLIMIT()
+	var first = cardinality.GetFirstNUMBER()
+	var last = cardinality.GetLastNUMBER()
+	switch {
+	case len(limit) > 0:
+		re.WriteString(string(limit))
+	case len(first) > 0:
+		re.WriteString("{")
+		re.WriteString(string(first))
+		if len(last) > 0 {
+			re.WriteString("..")
+			re.WriteString(string(last))
+		}
+		re.WriteString("}")
+	}
+}
+
+// This method compiles the specified token element.
+func (v *compiler) compileTokenElement(element ElementLike, re *sts.Builder) {
+	var intrinsic = element.GetINTRINSIC()
+	var name = element.GetNAME()
+	var literal = element.GetLITERAL()
+	switch {
+	case len(intrinsic) > 0:
+		v.compileTokenINTRINSIC(intrinsic, re)
+	case len(name) > 0:
+		v.compileTokenNAME(name, re)
+	case len(literal) > 0:
+		v.compileTokenLITERAL(literal, re)
+	}
+}
+
+// This method compiles the specified token expression.
+func (v *compiler) compileTokenExpression(expression ExpressionLike, re *sts.Builder) {
+	var alternatives = expression.GetAlternatives()
+	var iterator = col.Iterator(alternatives)
+	var alternative = iterator.GetNext()
+	v.compileTokenAlternative(alternative, re)
+	for iterator.HasNext() {
+		re.WriteString("|")
+		alternative = iterator.GetNext()
+		v.compileTokenAlternative(alternative, re)
+	}
+}
+
+// This method compiles the specified token factor.
+func (v *compiler) compileTokenFactor(factor FactorLike, re *sts.Builder) {
+	var element = factor.GetElement()
+	var glyph = factor.GetGlyph()
+	var inversion = factor.GetInversion()
+	var precedence = factor.GetPrecedence()
+	switch {
+	case element != nil:
+		v.compileTokenElement(element, re)
+	case glyph != nil:
+		v.compileTokenGlyph(glyph, re)
+	case inversion != nil:
+		v.compileTokenInversion(inversion, re)
+	case precedence != nil:
+		v.compileTokenPrecedence(precedence, re)
+	}
+}
+
+// This method compiles the specified token glyph.
+func (v *compiler) compileTokenGlyph(glyph GlyphLike, re *sts.Builder) {
+	var first = string(glyph.GetFirstCHARACTER())
+	re.WriteString(first[1 : len(first)-1])
+	var last = string(glyph.GetLastCHARACTER())
+	if len(last) > 0 {
+		re.WriteString("-")
+		re.WriteString(last[1 : len(last)-1])
+	}
+}
+
+// This method compiles the specified token inversion.
+func (v *compiler) compileTokenInversion(inversion InversionLike, re *sts.Builder) {
+	re.WriteString("[^")
+	var factor = inversion.GetFactor()
+	v.compileTokenInvertedFactor(factor, re)
+	re.WriteString("]")
+}
+
+// This method compiles the specified token alternative.
+func (v *compiler) compileTokenInvertedAlternative(alternative AlternativeLike, re *sts.Builder) {
+	var predicates = alternative.GetPredicates()
+	var iterator = col.Iterator(predicates)
+	for iterator.HasNext() {
+		var predicate = iterator.GetNext()
+		v.compileTokenInvertedPredicate(predicate, re)
+	}
+}
+
+// This method compiles the specified expression token.
+func (v *compiler) compileTokenInvertedExpression(expression ExpressionLike, re *sts.Builder) {
+	var alternatives = expression.GetAlternatives()
+	var iterator = col.Iterator(alternatives)
+	for iterator.HasNext() {
+		var alternative = iterator.GetNext()
+		v.compileTokenInvertedAlternative(alternative, re)
+	}
+}
+
+// This method compiles the specified inverted token factor.
+func (v *compiler) compileTokenInvertedFactor(factor FactorLike, re *sts.Builder) {
+	var element = factor.GetElement()
+	var glyph = factor.GetGlyph()
+	var precedence = factor.GetPrecedence()
+	switch {
+	case element != nil:
+		v.compileTokenElement(element, re)
+	case glyph != nil:
+		v.compileTokenGlyph(glyph, re)
+	case precedence != nil:
+		v.compileTokenInvertedPrecedence(precedence, re)
+	}
+}
+
+// This method compiles the specified token precedence.
+func (v *compiler) compileTokenInvertedPrecedence(precedence PrecedenceLike, re *sts.Builder) {
+	var expression = precedence.GetExpression()
+	v.compileTokenInvertedExpression(expression, re)
+}
+
+// This method compiles the specified token predicate.
+func (v *compiler) compileTokenInvertedPredicate(predicate PredicateLike, re *sts.Builder) {
+	var cardinality = predicate.GetCardinality()
+	var factor = predicate.GetFactor()
+	switch {
+	case cardinality != nil:
+		panic("A cardinality is not allowed in an inverted predicate.")
+	case factor != nil:
+		var precedence = factor.GetPrecedence()
+		var element = factor.GetElement()
+		switch {
+		case precedence != nil:
+			panic("A precedence factor is not allowed in an inverted predicate.")
+		case element != nil:
+			v.compileTokenElement(element, re)
+		}
+	}
+}
+
+// This method compiles the specified token intrinsic.
+func (v *compiler) compileTokenINTRINSIC(intrinsic INTRINSIC, re *sts.Builder) {
+	switch string(intrinsic) {
+	case "ANY":
+		re.WriteString(any_)
+	case "LOWER_CASE":
+		re.WriteString(lowerCase)
+	case "UPPER_CASE":
+		re.WriteString(upperCase)
+	case "DIGIT":
+		re.WriteString(digit)
+	case "SEPARATOR":
+		re.WriteString(separator)
+	case "ESCAPE":
+		re.WriteString(escape)
+	case "EOL":
+		re.WriteString(eol)
+	}
+}
+
 // This method compiles the specified token literal.
-func (v *compiler) compileLITERALToken(literal LITERAL, re *sts.Builder) {
+func (v *compiler) compileTokenLITERAL(literal LITERAL, re *sts.Builder) {
 	var s = string(literal)
 	re.WriteString(s[1 : len(s)-1])
+}
+
+// This method compiles the specified token name.
+func (v *compiler) compileTokenNAME(name NAME, re *sts.Builder) {
+	re.WriteString(string(name))
+}
+
+// This method compiles the specified token precedence.
+func (v *compiler) compileTokenPrecedence(precedence PrecedenceLike, re *sts.Builder) {
+	var expression = precedence.GetExpression()
+	re.WriteString("(?:")
+	v.compileTokenExpression(expression, re)
+	re.WriteString(")")
+}
+
+// This method compiles the specified token predicate.
+func (v *compiler) compileTokenPredicate(predicate PredicateLike, re *sts.Builder) {
+	var factor = predicate.GetFactor()
+	v.compileTokenFactor(factor, re)
+	var cardinality = predicate.GetCardinality()
+	if cardinality != nil {
+		v.compileTokenCardinality(cardinality, re)
+	}
 }
