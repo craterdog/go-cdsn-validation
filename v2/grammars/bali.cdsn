@@ -79,7 +79,7 @@ $IMAGINARY: SIGN? MAGNITUDE? "i"
 
 $INFINITY: SIGN? ("infinity" | "∞")
 
-$INSTRUCTION: (BASE16)4
+$INSTRUCTION: BASE16{4}
 
 $KEYWORD: "accept" | "as" | "at" | "break" | "checkout" | "continue" | "discard" | "do" | "each" | "from" | "if" | "in" | "let" | "level" | "loop" | "matching" | "notarize" | "on" | "post" | "publish" | "reject" | "retrieve" | "return" | "save" | "select" | "throw" | "to" | "while" | "with"
 
@@ -161,7 +161,7 @@ $TIMESPAN: ZERO | ORDINAL FRACTION?
 
 $UNDEFINED: "undefined"
 
-$UNICODE: "u" (BASE16)4 | "U" (BASE16)8
+$UNICODE: "u" BASE16{4} | "U" BASE16{8}
 
 $VERSION: "v" ORDINAL ("." ORDINAL)*
 
@@ -182,11 +182,11 @@ $ZERO: "0"
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
     separated by whitespace which is ignored by the parser.  The expressions within a precedence
     may be limited by one of the following constraints:
-     * (expression)? - Zero or one instances of the specified expression.
-     * (expression)* - Zero or more instances of the specified expression.
-     * (expression)+ - One or more instances of the specified expression.
-     * (expression)N - Exactly N instances of the specified expression.
-     * (expression)M..N - M to N instances of the specified expression.
+     * factor? - Zero or one instances of the specified expression.
+     * factor* - Zero or more instances of the specified expression.
+     * factor+ - One or more instances of the specified expression.
+     * factor{N} - Exactly N instances of the specified expression.
+     * factor{M..N} - M to N instances of the specified expression.
     The following rules are attempted in the order listed below.
 <!
 

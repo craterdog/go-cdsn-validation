@@ -46,11 +46,11 @@ $NAME: (LOWER_CASE | UPPER_CASE) (LOWER_CASE | UPPER_CASE | DIGIT)*
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
     separated by whitespace which is ignored by the parser.  The expressions within a precedence
     may be limited by one of the following constraints:
-     * (expression)? - Zero or one instances of the specified expression.
-     * (expression)* - Zero or more instances of the specified expression.
-     * (expression)+ - One or more instances of the specified expression.
-     * (expression)N - Exactly N instances of the specified expression.
-     * (expression)M..N - M to N instances of the specified expression.
+     * factor? - Zero or one instances of the specified expression.
+     * factor* - Zero or more instances of the specified expression.
+     * factor+ - One or more instances of the specified expression.
+     * factor{N} - Exactly N instances of the specified expression.
+     * factor{M..N} - M to N instances of the specified expression.
     The following rules are attempted in the order listed below.
 <!
 

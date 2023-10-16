@@ -608,10 +608,17 @@ func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 	var repetition RepetitionLike
 	constraint, token, ok = v.parseCONSTRAINT()
 	if !ok {
-		first, token, ok = v.parseNUMBER()
+		_, token, ok = v.parseDELIMITER("{")
 		if !ok {
 			// This is not a repetition.
 			return repetition, token, false
+		}
+		first, token, ok = v.parseNUMBER()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("NUMBER",
+				"$repetition")
+			panic(message)
 		}
 		_, _, ok = v.parseDELIMITER("..")
 		if ok {
@@ -622,6 +629,13 @@ func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 					"$repetition")
 				panic(message)
 			}
+		}
+		_, token, ok = v.parseDELIMITER("}")
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("}",
+				"$repetition")
+			panic(message)
 		}
 	}
 	repetition = Repetition(constraint, first, last)

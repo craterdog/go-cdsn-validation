@@ -193,11 +193,13 @@ func (v *formatter) formatRepetition(repetition RepetitionLike) {
 	case len(constraint) > 0:
 		v.appendString(string(constraint))
 	case len(first) > 0:
+		v.appendString("{")
 		v.appendString(string(first))
 		if len(last) > 0 {
 			v.appendString("..")
 			v.appendString(string(last))
 		}
+		v.appendString("}")
 	default:
 		panic("Attempted to format an empty repetition.")
 	}

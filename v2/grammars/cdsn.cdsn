@@ -42,6 +42,8 @@ $NAME: (LOWER_CASE | UPPER_CASE) (SEPARATOR? (LOWER_CASE | UPPER_CASE | DIGIT))*
 
 $SYMBOL: '$' NAME
 
+$CONSTRAINT: "?" | "*" | "+"
+
 
 !>
     RULE DEFINITIONS
@@ -51,11 +53,11 @@ $SYMBOL: '$' NAME
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
     separated by whitespace which is ignored by the parser.  The expressions within a precedence
     may be limited by one of the following constraints:
-     * (expression)? - Zero or one instances of the specified expression.
-     * (expression)* - Zero or more instances of the specified expression.
-     * (expression)+ - One or more instances of the specified expression.
-     * (expression)N - Exactly N instances of the specified expression.
-     * (expression)M..N - M to N instances of the specified expression.
+     * factor? - Zero or one instances of the specified expression.
+     * factor* - Zero or more instances of the specified expression.
+     * factor+ - One or more instances of the specified expression.
+     * factor{N} - Exactly N instances of the specified expression.
+     * factor{M..N} - M to N instances of the specified expression.
     The following rules are attempted in the order listed below.
 <!
 
@@ -82,8 +84,6 @@ $inversion: "~" factor
 $precedence: "(" expression ")"
 
 $repetition:
-      "?"  ! There may be zero or one instances.
-    | "*"  ! There may be zero or more instances.
-    | "+"  ! There may be one or more instances.
+      CONSTRAINT
     | "{" NUMBER (".." NUMBER)? "}"  ! The number of instances must be in a range.
 
