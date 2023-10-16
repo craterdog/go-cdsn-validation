@@ -37,13 +37,13 @@ $CONTEXT: "array" | "catalog" | "list" | "map" | "queue" | "set" | "stack"
 
 $DELIMITER: "]" | "[" | ")" | "(" | ":" | ","
 
-$EXPONENT: ("e" | "E") SIGN ORDINAL
+$EXPONENT: ('e' | 'E') SIGN ORDINAL
 
 $FLOAT: SIGN? SCALAR EXPONENT?
 
-$FRACTION: "." BASE10+
+$FRACTION: '.' BASE10+
 
-$IGNORED: " "
+$IGNORED: ' '
 
 $INTEGER: ZERO | SIGN? ORDINAL
 
@@ -57,15 +57,15 @@ $RUNE: "'" (ESCAPE | ~("'" | EOL)) "'"
 
 $SCALAR: (ZERO | ORDINAL) FRACTION
 
-$SIGN: "+" | "-"
+$SIGN: '+' | '-'
 
 $STRING: '"' (ESCAPE | ~('"' | EOL))* '"'
 
-$UNICODE: "u" BASE16{4} | "U" BASE16{8}
+$UNICODE: 'u' BASE16{4} | 'U' BASE16{8}
 
 $UNSIGNED: "0x" BASE16+
 
-$ZERO: "0"
+$ZERO: '0'
 
 
 !>

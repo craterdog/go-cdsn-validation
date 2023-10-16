@@ -25,11 +25,11 @@
     The following token types are scanned for in the order listed below.
 <!
 
-$ANGLE: "~" (ZERO | MAGNITUDE)
+$ANGLE: '~' (ZERO | MAGNITUDE)
 
 $ANY: "any"
 
-$AUTHORITY: ~("/" | EOL)+
+$AUTHORITY: ~('/' | EOL)+
 
 $BASE10: '0'..'9'
 
@@ -49,35 +49,35 @@ $CHARACTER: ESCAPE | ~('"' | EOL)
 
 $COMMENT: "!>" EOL (COMMENT | ~"<!")* EOL SPACE* "<!"  ! Allows recursion.
 
-$COMPLEX: "(" (RECTANGULAR | POLAR) ")"
+$COMPLEX: '(' (RECTANGULAR | POLAR) ')'
 
 $DAY: '0'..'2' '1'..'9' | '3' '0'..'1'
 
-$DAYS: TIMESPAN "D"
+$DAYS: TIMESPAN 'D'
 
 $DELIMITER: "~" | "}" | "|" | "{" | "^" | "]" | "[" | "@" | "?=" | ">" | "=" | "≠" | "<-" | "<" | ";" | ":=" | ":" | "/=" | "//" | "/" | ".." | "." | "-=" | "-" | "," | "+=" | "+" | "*=" | "*" | ")" | "(" | "&" | "NOT" | "AND" | "SANS" | "OR" | "XOR" | "IS" | "MATCHES"
 
-$DURATION: "~" SIGN? "P" (WEEKS | YEARS? MONTHS? DAYS? ("T" HOURS? MINUTES? SECONDS?)?)
+$DURATION: '~' SIGN? 'P' (WEEKS | YEARS? MONTHS? DAYS? ('T' HOURS? MINUTES? SECONDS?)?)
 
-$E: "e"
+$E: 'e'
 
-$EXPONENT: "E" SIGN? ORDINAL
+$EXPONENT: 'E' SIGN? ORDINAL
 
 $FLOAT: SIGN? MAGNITUDE
 
-$FRACTION: "." BASE10+
+$FRACTION: '.' BASE10+
 
-$FRAGMENT: ~(">" | EOL)*
+$FRAGMENT: ~('>' | EOL)*
 
 $HOUR: '0'..'1' '0'..'9' | '2' '0'..'3'
 
-$HOURS: TIMESPAN "H"
+$HOURS: TIMESPAN 'H'
 
 $IDENTIFIER: LETTER (LETTER | DIGIT)*
 
-$IMAGINARY: SIGN? MAGNITUDE? "i"
+$IMAGINARY: SIGN? MAGNITUDE? 'i'
 
-$INFINITY: SIGN? ("infinity" | "∞")
+$INFINITY: SIGN? ("infinity" | '∞')
 
 $INSTRUCTION: BASE16{4}
 
@@ -89,15 +89,15 @@ $MAGNITUDE: E | PI | PHI | TAU | SCALAR
 
 $MINUTE: '0'..'5' '0'..'9'
 
-$MINUTES: TIMESPAN "M"
+$MINUTES: TIMESPAN 'M'
 
-$MOMENT: "<" SIGN? YEAR ("-" MONTH ("-" DAY ("T" HOUR (":" MINUTE (":" SECOND FRACTION?)?)?)?)?)? ">"
+$MOMENT: '<' SIGN? YEAR ('-' MONTH ('-' DAY ('T' HOUR (':' MINUTE (':' SECOND FRACTION?)?)?)?)?)? '>'
 
-$MONIKER: ("/" NAME)+
+$MONIKER: ('/' NAME)+
 
 $MONTH: '0' '1'..'9' | '1' '0'..'2'
 
-$MONTHS: TIMESPAN "M"
+$MONTHS: TIMESPAN 'M'
 
 $NAME: LETTER (SEPARATOR? (LETTER | DIGIT))*
 
@@ -113,31 +113,31 @@ $ONE: "1."
 
 $ORDINAL: '1'..'9' '0'..'9'*
 
-$PATH: ~("?" | "#" | ">" | EOL)*
+$PATH: ~('?' | '#' | '>' | EOL)*
 
 $PATTERN: NONE | REGEX | ANY
 
-$PERCENTAGE: REAL "%"
+$PERCENTAGE: REAL '%'
 
-$PHI: "phi" | "φ"
+$PHI: "phi" | 'φ'
 
-$PI: "pi" | "π"
+$PI: "pi" | 'π'
 
-$POLAR: MAGNITUDE "e^" ANGLE "i"
+$POLAR: MAGNITUDE "e^" ANGLE 'i'
 
 $PROBABILITY: FRACTION | ONE
 
-$QUERY: ~("#" | ">" | EOL)*
+$QUERY: ~('#' | '>' | EOL)*
 
 $QUOTE: '"' CHARACTER* '"'
 
 $REAL: ZERO | FLOAT | INFINITY | UNDEFINED
 
-$RECTANGULAR: FLOAT ", " FLOAT "i"
+$RECTANGULAR: FLOAT ", " FLOAT 'i'
 
 $REGEX: '"' CHARACTER+ '"' '?'
 
-$RESOURCE: "<" SCHEME ":" ("//" AUTHORITY)? "/" PATH ("?" QUERY)? ("#" FRAGMENT)? ">"
+$RESOURCE: '<' SCHEME ':' ("//" AUTHORITY)? '/' PATH ('?' QUERY)? ('#' FRAGMENT)? '>'
 
 $SCALAR: (ZERO FRACTION | ORDINAL FRACTION?) EXPONENT?
 
@@ -145,33 +145,33 @@ $SCHEME: ('a'..'z' | 'A'..'Z') ('0'..'9' | 'a'..'z' | 'A'..'Z' | '+' | '-' | '.'
 
 $SECOND: '0'..'5' '0'..'9' | '6' '0'..'1'
 
-$SECONDS: TIMESPAN "S"
+$SECONDS: TIMESPAN 'S'
 
-$SIGN: "+" | "-"
+$SIGN: '+' | '-'
 
-$SPACE: " "
+$SPACE: ' '
 
-$SYMBOL: "$" IDENTIFIER
+$SYMBOL: '$' IDENTIFIER
 
-$TAG: "#" BASE32+
+$TAG: '#' BASE32+
 
-$TAU: "tau" | "τ"
+$TAU: "tau" | 'τ'
 
 $TIMESPAN: ZERO | ORDINAL FRACTION?
 
 $UNDEFINED: "undefined"
 
-$UNICODE: "u" BASE16{4} | "U" BASE16{8}
+$UNICODE: 'u' BASE16{4} | 'U' BASE16{8}
 
-$VERSION: "v" ORDINAL ("." ORDINAL)*
+$VERSION: 'v' ORDINAL ('.' ORDINAL)*
 
-$WEEKS: TIMESPAN "W"
+$WEEKS: TIMESPAN 'W'
 
 $YEAR: ZERO | ORDINAL
 
-$YEARS: TIMESPAN "Y"
+$YEARS: TIMESPAN 'Y'
 
-$ZERO: "0"
+$ZERO: '0'
 
 
 !>

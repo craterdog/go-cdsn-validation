@@ -25,13 +25,13 @@
     The following token types are scanned for in the order listed below.
 <!
 
-$LABEL: (NUMBER ".")+ NAME
+$LABEL: (NUMBER '.')+ NAME
 
 $NUMBER: '1'..'9' '0'..'9'*
 
 $LITERAL: "`" ANY* "`"
 
-$SYMBOL: "$" NAME ("-" NUMBER)?
+$SYMBOL: '$' NAME ('-' NUMBER)?
 
 $NOTE: "! " (~EOL)*
 
@@ -61,7 +61,7 @@ $instructions: instruction*
 
 $instruction: label? action
 
-$label: LABEL ":"
+$label: LABEL ':'
 
 $action: note | jump | push | pull | load | save | drop | call | send
 
