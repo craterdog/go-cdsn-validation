@@ -60,20 +60,20 @@ func ParseDocument(source []byte) DocumentLike {
 // This map captures the syntax expressions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar = map[string]string{
-	"$document":    `tatement+ EOF  ! Terminated with an end-of-file marker.`,
-	"$statement":   `efinition | COMMENT`,
-	"$definition":  `YMBOL ":" expression  ! This works for both tokens and rules.`,
-	"$expression":  `lternative ("|" alternative)*`,
-	"$alternative": `redicate+ NOTE?`,
-	"$predicate":   `actor repetition?`,
-	"$factor":      `lement | glyph | inversion | precedence`,
-	"$element":     `NTRINSIC | NAME | LITERAL`,
-	"$glyph":       `HARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inclusive.`,
-	"$inversion":   `~" predicate`,
-	"$precedence":  `(" expression ")"`,
+	"$document":    `statement+ EOF  ! Terminated with an end-of-file marker.`,
+	"$statement":   `definition | COMMENT`,
+	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
+	"$expression":  `alternative ("|" alternative)*`,
+	"$alternative": `predicate+ NOTE?`,
+	"$predicate":   `factor repetition?`,
+	"$factor":      `element | glyph | inversion | precedence`,
+	"$element":     `INTRINSIC | NAME | LITERAL`,
+	"$glyph":       `CHARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inclusive.`,
+	"$inversion":   `"~" factor`,
+	"$precedence":  `"(" expression ")"`,
 	"$repetition": `
       CONSTRAINT
-    | NUMBER (".." NUMBER)?  ! The range of NUMBERs in a repetition is inclusive.`,
+    | "{" NUMBER (".." NUMBER)? "}"  ! The range of NUMBERs in a repetition is inclusive.`,
 }
 
 func generateGrammar(expected string, symbols ...string) string {

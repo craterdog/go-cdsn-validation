@@ -85,5 +85,5 @@ $precedence: "(" expression ")"
 
 $repetition:
       CONSTRAINT
-    | "{" NUMBER (".." NUMBER)? "}"  ! The number of instances must be in a range.
+    | "{" NUMBER (".." NUMBER)? "}"  ! The range of NUMBERs in a repetition is inclusive.
 
