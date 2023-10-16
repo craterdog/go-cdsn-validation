@@ -337,12 +337,8 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 		comment, token, ok = v.parseCOMMENT()
 	}
 	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("statement",
-			"$statement",
-			"$definition",
-			"$COMMENT")
-		panic(message)
+		// This is not a statement.
+		return statement, token, false
 	}
 	statement = Statement(definition, comment)
 	return statement, token, ok
@@ -367,7 +363,6 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 		var message = v.formatError(token)
 		message += generateGrammar(":",
 			"$definition",
-			"$SYMBOL",
 			"$expression")
 		panic(message)
 	}
@@ -376,7 +371,6 @@ func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
 		var message = v.formatError(token)
 		message += generateGrammar("expression",
 			"$definition",
-			"$SYMBOL",
 			"$expression")
 		panic(message)
 	}
@@ -462,13 +456,8 @@ func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
 		precedence, token, ok = v.parsePrecedence()
 	}
 	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("predicate",
-			"$predicate",
-			"$factor",
-			"$inversion",
-			"$precedence")
-		panic(message)
+		// This is not a predicate.
+		return predicate, token, false
 	}
 	predicate = Predicate(factor, inversion, precedence)
 	return predicate, token, ok
@@ -487,12 +476,8 @@ func (v *parser) parseFactor() (FactorLike, *Token, bool) {
 		glyph, token, ok = v.parseGlyph()
 	}
 	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("factor",
-			"$factor",
-			"$element",
-			"$glyph")
-		panic(message)
+		// This is not a factor.
+		return factor, token, false
 	}
 	factor = Factor(element, glyph)
 	return factor, token, ok
@@ -515,13 +500,8 @@ func (v *parser) parseElement() (ElementLike, *Token, bool) {
 		literal, token, ok = v.parseLITERAL()
 	}
 	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("element",
-			"$element",
-			"$INTRINSIC",
-			"$NAME",
-			"$LITERAL")
-		panic(message)
+		// This is not an element.
+		return element, token, false
 	}
 	element = Element(intrinsic, name, literal)
 	return element, token, ok
@@ -546,8 +526,7 @@ func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
 		if !ok {
 			var message = v.formatError(token)
 			message += generateGrammar("CHARACTER",
-				"$glyph",
-				"$CHARACTER")
+				"$glyph")
 			panic(message)
 		}
 	}
@@ -638,9 +617,7 @@ func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 			if !ok {
 				var message = v.formatError(token)
 				message += generateGrammar("NUMBER",
-					"$repetition",
-					"$CONSTRAINT",
-					"$NUMBER")
+					"$repetition")
 				panic(message)
 			}
 		}

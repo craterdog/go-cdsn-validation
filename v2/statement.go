@@ -47,8 +47,10 @@ func (v *statement) GetDefinition() DefinitionLike {
 
 // This method sets the definition for this statement.
 func (v *statement) SetDefinition(definition DefinitionLike) {
-	v.definition = definition
-	v.comment = ""
+	if definition != nil {
+		v.definition = definition
+		v.comment = ""
+	}
 }
 
 // This method returns the comment for this statement.
@@ -58,6 +60,8 @@ func (v *statement) GetCOMMENT() COMMENT {
 
 // This method sets the comment for this statement.
 func (v *statement) SetCOMMENT(comment COMMENT) {
-	v.definition = nil
-	v.comment = comment
+	if len(comment) > 0 {
+		v.definition = nil
+		v.comment = comment
+	}
 }

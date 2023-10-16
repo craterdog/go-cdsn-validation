@@ -39,19 +39,19 @@ $DELIMITER: "]" | "[" | ")" | "(" | ":" | ","
 
 $EXPONENT: ("e" | "E") SIGN ORDINAL
 
-$FLOAT: (SIGN)? SCALAR (EXPONENT)?
+$FLOAT: SIGN? SCALAR EXPONENT?
 
-$FRACTION: "." (BASE10)+
+$FRACTION: "." BASE10+
 
 $IGNORED: " "
 
-$INTEGER: ZERO | (SIGN)? ORDINAL
+$INTEGER: ZERO | SIGN? ORDINAL
 
 $LETTER: LOWER_CASE | UPPER_CASE
 
 $NIL: "nil"
 
-$ORDINAL: '1'..'9' ('0'..'9')*
+$ORDINAL: '1'..'9' '0'..'9'*
 
 $RUNE: "'" (ESCAPE | ~("'" | EOL)) "'"
 
@@ -61,9 +61,9 @@ $SIGN: "+" | "-"
 
 $STRING: '"' (ESCAPE | ~('"' | EOL))* '"'
 
-$UNICODE: "u" 4(BASE16) | "U" 8(BASE16)
+$UNICODE: "u" (BASE16)4 | "U" (BASE16)8
 
-$UNSIGNED: "0x" (BASE16)+
+$UNSIGNED: "0x" BASE16+
 
 $ZERO: "0"
 

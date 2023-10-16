@@ -30,15 +30,15 @@ $INTRINSIC: "ANY" | "LOWER_CASE" | "UPPER_CASE" | "DIGIT" | "SEPARATOR" | "ESCAP
 
 $NOTE: "! " (~EOL)*
 
-$COMMENT: "!>" (ANY)* "<!"
+$COMMENT: "!>" ANY* "<!"
 
-$NUMBER: (DIGIT)+
+$NUMBER: DIGIT+
 
 $CHARACTER: "'" ~EOL "'"
 
 $LITERAL: '"' (ESCAPE | ~('"' | EOL))+ '"'
 
-$NAME: (LOWER_CASE | UPPER_CASE) ((SEPARATOR)? (LOWER_CASE | UPPER_CASE | DIGIT))*
+$NAME: (LOWER_CASE | UPPER_CASE) (SEPARATOR? (LOWER_CASE | UPPER_CASE | DIGIT))*
 
 $SYMBOL: '$' NAME
 
@@ -61,7 +61,7 @@ $CONSTRAINT: "?" | "*" | "+"
     The following rules are attempted in the order listed below.
 <!
 
-$document: (statement)+ EOF  ! Terminated with an end-of-file marker.
+$document: statement+ EOF  ! Terminated with an end-of-file marker.
 
 $statement: definition | COMMENT
 
@@ -69,11 +69,11 @@ $definition: SYMBOL ":" expression  ! This works for both tokens and rules.
 
 $expression: alternative ("|" alternative)*
 
-$alternative: (predicate)+ (NOTE)?
+$alternative: predicate+ NOTE?
 
-$predicate: factor | inversion | precedence
+$predicate: factor repetition?
 
-$factor: element | glyph
+$factor: element | glyph | inversion | precedence
 
 $element: INTRINSIC | NAME | LITERAL
 
@@ -81,7 +81,9 @@ $glyph: CHARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inc
 
 $inversion: "~" predicate
 
-$precedence: "(" expression ")" (repetition)?
+$precedence: "(" expression ")"
 
-$repetition: CONSTRAINT | NUMBER (".." NUMBER)?  ! The range of NUMBERs in a repetition is inclusive.
+$repetition:
+      CONSTRAINT
+    | NUMBER (".." NUMBER)?  ! The range of NUMBERs in a repetition is inclusive.
 

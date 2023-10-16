@@ -27,9 +27,9 @@
 
 $LABEL: (NUMBER ".")+ NAME
 
-$NUMBER: '1'..'9' ('0'..'9')*
+$NUMBER: '1'..'9' '0'..'9'*
 
-$LITERAL: "`" (ANY)* "`"
+$LITERAL: "`" ANY* "`"
 
 $SYMBOL: "$" NAME ("-" NUMBER)?
 
@@ -56,9 +56,9 @@ $NAME: (LOWER_CASE | UPPER_CASE) (LOWER_CASE | UPPER_CASE | DIGIT)*
 
 $document: instructions EOF
 
-$instructions: (instruction)*
+$instructions: instruction*
 
-$instruction: (label)? action
+$instruction: label? action
 
 $label: LABEL ":"
 

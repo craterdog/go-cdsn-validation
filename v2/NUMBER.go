@@ -17,7 +17,7 @@ import (
 type NUMBER string
 
 const TokenNUMBER TokenType = "NUMBER"
-const number = digit + `+`
+const number = `(?:` + digit + `)+`
 
 // This scanner is used for matching number tokens.
 var numberScanner = reg.MustCompile(`^(?:` + number + `)`)

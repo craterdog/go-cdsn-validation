@@ -99,6 +99,8 @@ func (v *formatter) formatElement(element ElementLike) {
 		v.appendString(string(name))
 	case len(literal) > 0:
 		v.appendString(string(literal))
+	default:
+		panic("Attempted to format an empty element.")
 	}
 }
 
@@ -135,6 +137,8 @@ func (v *formatter) formatFactor(factor FactorLike) {
 		v.formatElement(element)
 	case glyph != nil:
 		v.formatGlyph(glyph)
+	default:
+		panic("Attempted to format an empty factor.")
 	}
 }
 
@@ -162,6 +166,8 @@ func (v *formatter) formatPredicate(predicate PredicateLike) {
 		v.formatInversion(inversion)
 	case precedence != nil:
 		v.formatPrecedence(precedence)
+	default:
+		panic("Attempted to format an empty predicate.")
 	}
 }
 
@@ -197,6 +203,8 @@ func (v *formatter) formatRepetition(repetition RepetitionLike) {
 			v.appendString("..")
 			v.appendString(string(last))
 		}
+	default:
+		panic("Attempted to format an empty repetition.")
 	}
 }
 
@@ -210,6 +218,8 @@ func (v *formatter) formatStatement(statement StatementLike) {
 	case len(comment) > 0:
 		v.appendNewline()
 		v.appendString(string(comment))
+	default:
+		panic("Attempted to format an empty statement.")
 	}
 	v.appendNewline()
 	v.appendNewline()

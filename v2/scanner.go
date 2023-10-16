@@ -147,6 +147,7 @@ func (v *scanner) processToken() bool {
 	case v.scanINTRINSIC():
 	case v.scanNOTE():
 	case v.scanCOMMENT():
+	case v.scanNUMBER():
 	case v.scanCHARACTER():
 	case v.scanLITERAL():
 	case v.scanNAME():
@@ -233,6 +234,20 @@ func (v *scanner) scanCOMMENT() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenCOMMENT)
+		v.line += sts.Count(matches[0], EOL)
+		return true
+	}
+	return false
+}
+
+// This method adds a new number token with the current scanner information
+// to the token channel. It returns true if a new number token was found.
+func (v *scanner) scanNUMBER() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(numberScanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenNUMBER)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
