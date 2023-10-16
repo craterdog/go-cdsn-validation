@@ -72,8 +72,8 @@ var grammar = map[string]string{
 	"$inversion":   `"~" factor`,
 	"$precedence":  `"(" expression ")"`,
 	"$cardinality": `
-      CONSTRAINT
-    | "{" NUMBER (".." NUMBER)? "}"  ! The range of NUMBERs in a cardinality is inclusive.`,
+      LIMIT
+    | "{" NUMBER (".." NUMBER?)? "}"  ! The range of NUMBERs in a cardinality is inclusive.`,
 }
 
 func generateGrammar(expected string, symbols ...string) string {

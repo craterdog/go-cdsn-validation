@@ -29,13 +29,14 @@ $INTEGER: '0' | '-'? '1'..'9' DIGIT*
     scanner.  Each rule name begins with a lower case letter.  The rule definitions may specify the
     names of tokens or other rules and are matched by the parser in the order listed.  Rule
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
-    separated by whitespace which is ignored by the parser.  The expressions within a precedence
-    may be limited by one of the following constraints:
-     * factor? - Zero or one instances of the specified expression.
-     * factor* - Zero or more instances of the specified expression.
-     * factor+ - One or more instances of the specified expression.
-     * factor{N} - Exactly N instances of the specified expression.
+    separated by whitespace which is ignored by the parser.  The factor within a predicate may be
+    constrained by any of the following cardinalities:
+     * factor{M} - Exactly M instances of the specified expression.
+     * factor{M..} - M or more instances of the specified expression.
      * factor{M..N} - M to N instances of the specified expression.
+     * factor? - Zero or one instances of the specified expression (equivalent to factor{0..1}).
+     * factor* - Zero or more instances of the specified expression (equivalent to factor{0..}).
+     * factor+ - One or more instances of the specified expression (equivalent to factor{1..}).
     The following rules are attempted in the order listed below.
 <!
 
