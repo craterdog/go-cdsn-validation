@@ -280,17 +280,17 @@ func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
 	return symbol, token, true
 }
 
-// This method attempts to parse a new constraint token. It returns the token
+// This method attempts to parse a new limit token. It returns the token
 // and whether or not the token was successfully parsed.
-func (v *parser) parseCONSTRAINT() (CONSTRAINT, *Token, bool) {
-	var constraint CONSTRAINT
+func (v *parser) parseLIMIT() (LIMIT, *Token, bool) {
+	var limit LIMIT
 	var token = v.nextToken()
-	if token.Type != TokenCONSTRAINT {
+	if token.Type != TokenLIMIT {
 		v.backupOne(token)
-		return constraint, token, false
+		return limit, token, false
 	}
-	constraint = CONSTRAINT(token.Value)
-	return constraint, token, true
+	limit = LIMIT(token.Value)
+	return limit, token, true
 }
 
 // This method attempts to parse a new document. It returns the document
@@ -600,11 +600,11 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 func (v *parser) parseCardinality() (CardinalityLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var constraint CONSTRAINT
+	var limit LIMIT
 	var first NUMBER
 	var last NUMBER
 	var cardinality CardinalityLike
-	constraint, token, ok = v.parseCONSTRAINT()
+	limit, token, ok = v.parseLIMIT()
 	if !ok {
 		_, token, ok = v.parseDELIMITER("{")
 		if !ok {
@@ -636,6 +636,6 @@ func (v *parser) parseCardinality() (CardinalityLike, *Token, bool) {
 			panic(message)
 		}
 	}
-	cardinality = Cardinality(constraint, first, last)
+	cardinality = Cardinality(limit, first, last)
 	return cardinality, token, true
 }

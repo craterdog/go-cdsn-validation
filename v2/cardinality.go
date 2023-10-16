@@ -15,8 +15,8 @@ package cdsn
 // This interface defines the methods supported by all cardinality-like
 // components.
 type CardinalityLike interface {
-	GetCONSTRAINT() CONSTRAINT
-	SetCONSTRAINT(constraint CONSTRAINT)
+	GetLIMIT() LIMIT
+	SetLIMIT(limit LIMIT)
 	GetFirstNUMBER() NUMBER
 	SetFirstNUMBER(first NUMBER)
 	GetLastNUMBER() NUMBER
@@ -24,12 +24,12 @@ type CardinalityLike interface {
 }
 
 // This constructor creates a new cardinality.
-func Cardinality(constraint CONSTRAINT, first, last NUMBER) CardinalityLike {
-	if len(constraint) == 0 && len(first) == 0 && len(last) == 0 {
+func Cardinality(limit LIMIT, first, last NUMBER) CardinalityLike {
+	if len(limit) == 0 && len(first) == 0 && len(last) == 0 {
 		panic("A cardinality requires at least one of its attributes to be set.")
 	}
 	var v = &cardinality{}
-	v.SetCONSTRAINT(constraint)
+	v.SetLIMIT(limit)
 	v.SetFirstNUMBER(first)
 	v.SetLastNUMBER(last)
 	return v
@@ -39,24 +39,24 @@ func Cardinality(constraint CONSTRAINT, first, last NUMBER) CardinalityLike {
 
 // This type defines the structure and methods associated with a cardinality.
 type cardinality struct {
-	constraint CONSTRAINT
-	first      NUMBER
-	last       NUMBER
+	limit LIMIT
+	first NUMBER
+	last  NUMBER
 }
 
-// This method returns the constraint for this cardinality.
-func (v *cardinality) GetCONSTRAINT() CONSTRAINT {
-	return v.constraint
+// This method returns the limit for this cardinality.
+func (v *cardinality) GetLIMIT() LIMIT {
+	return v.limit
 }
 
-// This method sets the constraint for this cardinality.
-func (v *cardinality) SetCONSTRAINT(constraint CONSTRAINT) {
-	if len(constraint) > 0 {
-		v.constraint = constraint
+// This method sets the limit for this cardinality.
+func (v *cardinality) SetLIMIT(limit LIMIT) {
+	if len(limit) > 0 {
+		v.limit = limit
 		v.first = ""
 		v.last = ""
 	}
-	v.constraint = constraint
+	v.limit = limit
 }
 
 // This method returns the first number in the range for this cardinality.
@@ -67,7 +67,7 @@ func (v *cardinality) GetFirstNUMBER() NUMBER {
 // This method sets the first number in the range for this cardinality.
 func (v *cardinality) SetFirstNUMBER(first NUMBER) {
 	if len(first) > 0 {
-		v.constraint = ""
+		v.limit = ""
 		v.first = first
 		v.last = ""
 	}
@@ -81,7 +81,7 @@ func (v *cardinality) GetLastNUMBER() NUMBER {
 // This method sets the last number in the range for this cardinality.
 func (v *cardinality) SetLastNUMBER(last NUMBER) {
 	if len(last) > 0 {
-		v.constraint = ""
+		v.limit = ""
 		if len(v.first) == 0 {
 			panic("A cardinality requires that the first number be set if the second number is set.")
 		}

@@ -152,7 +152,7 @@ func (v *scanner) processToken() bool {
 	case v.scanLITERAL():
 	case v.scanNAME():
 	case v.scanSYMBOL():
-	case v.scanCONSTRAINT():
+	case v.scanLIMIT():
 	default:
 		// No valid token was found.
 		v.atError()
@@ -310,14 +310,14 @@ func (v *scanner) scanSYMBOL() bool {
 	return false
 }
 
-// This method adds a new constraint token with the current scanner information
-// to the token channel. It returns true if a new constraint token was found.
-func (v *scanner) scanCONSTRAINT() bool {
+// This method adds a new limit token with the current scanner information
+// to the token channel. It returns true if a new limit token was found.
+func (v *scanner) scanLIMIT() bool {
 	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(constraintScanner.FindSubmatch(s))
+	var matches = bytesToStrings(limitScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.emitToken(TokenCONSTRAINT)
+		v.emitToken(TokenLIMIT)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}

@@ -434,12 +434,12 @@ func (v *compiler) compileInversionToken(inversion InversionLike, re *sts.Builde
 
 // This method compiles the specified token cardinality.
 func (v *compiler) compileCardinalityToken(cardinality CardinalityLike, re *sts.Builder) {
-	var constraint = cardinality.GetCONSTRAINT()
+	var limit = cardinality.GetLIMIT()
 	var first = cardinality.GetFirstNUMBER()
 	var last = cardinality.GetLastNUMBER()
 	switch {
-	case len(constraint) > 0:
-		re.WriteString(string(constraint))
+	case len(limit) > 0:
+		re.WriteString(string(limit))
 	case len(first) > 0:
 		re.WriteString("{")
 		re.WriteString(string(first))

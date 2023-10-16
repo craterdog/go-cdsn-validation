@@ -186,12 +186,12 @@ func (v *formatter) formatPredicate(predicate PredicateLike) {
 
 // This private method formats the specified cardinality.
 func (v *formatter) formatCardinality(cardinality CardinalityLike) {
-	var constraint = cardinality.GetCONSTRAINT()
+	var limit = cardinality.GetLIMIT()
 	var first = cardinality.GetFirstNUMBER()
 	var last = cardinality.GetLastNUMBER()
 	switch {
-	case len(constraint) > 0:
-		v.appendString(string(constraint))
+	case len(limit) > 0:
+		v.appendString(string(limit))
 	case len(first) > 0:
 		v.appendString("{")
 		v.appendString(string(first))
