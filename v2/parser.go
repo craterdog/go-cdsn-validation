@@ -65,15 +65,15 @@ var grammar = map[string]string{
 	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
 	"$expression":  `alternative ("|" alternative)*`,
 	"$alternative": `predicate+ NOTE?`,
-	"$predicate":   `factor repetition?`,
+	"$predicate":   `factor cardinality?  ! The default cardinality is one.`,
 	"$factor":      `element | glyph | inversion | precedence`,
 	"$element":     `INTRINSIC | NAME | LITERAL`,
 	"$glyph":       `CHARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inclusive.`,
 	"$inversion":   `"~" factor`,
 	"$precedence":  `"(" expression ")"`,
-	"$repetition": `
+	"$cardinality": `
       CONSTRAINT
-    | "{" NUMBER (".." NUMBER)? "}"  ! The range of NUMBERs in a repetition is inclusive.`,
+    | "{" NUMBER (".." NUMBER)? "}"  ! The range of NUMBERs in a cardinality is inclusive.`,
 }
 
 func generateGrammar(expected string, symbols ...string) string {
@@ -447,15 +447,15 @@ func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var factor FactorLike
-	var repetition RepetitionLike
+	var cardinality CardinalityLike
 	var predicate PredicateLike
 	factor, token, ok = v.parseFactor()
 	if !ok {
 		// This is not a predicate.
 		return predicate, token, false
 	}
-	repetition, token, _ = v.parseRepetition()
-	predicate = Predicate(factor, repetition)
+	cardinality, token, _ = v.parseCardinality()
+	predicate = Predicate(factor, cardinality)
 	return predicate, token, true
 }
 
@@ -579,8 +579,7 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 		var message = v.formatError(token)
 		message += generateGrammar("expression",
 			"$precedence",
-			"$expression",
-			"$repetition")
+			"$expression")
 		panic(message)
 	}
 	expression.SetAnnotated(false)
@@ -589,35 +588,34 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 		var message = v.formatError(token)
 		message += generateGrammar(")",
 			"$precedence",
-			"$expression",
-			"$repetition")
+			"$expression")
 		panic(message)
 	}
 	precedence = Precedence(expression)
 	return precedence, token, true
 }
 
-// This method attempts to parse a new repetition. It returns the repetition
-// and whether or not the repetition was successfully parsed.
-func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
+// This method attempts to parse a new cardinality. It returns the cardinality
+// and whether or not the cardinality was successfully parsed.
+func (v *parser) parseCardinality() (CardinalityLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var constraint CONSTRAINT
 	var first NUMBER
 	var last NUMBER
-	var repetition RepetitionLike
+	var cardinality CardinalityLike
 	constraint, token, ok = v.parseCONSTRAINT()
 	if !ok {
 		_, token, ok = v.parseDELIMITER("{")
 		if !ok {
-			// This is not a repetition.
-			return repetition, token, false
+			// This is not a cardinality.
+			return cardinality, token, false
 		}
 		first, token, ok = v.parseNUMBER()
 		if !ok {
 			var message = v.formatError(token)
 			message += generateGrammar("NUMBER",
-				"$repetition")
+				"$cardinality")
 			panic(message)
 		}
 		_, _, ok = v.parseDELIMITER("..")
@@ -626,7 +624,7 @@ func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 			if !ok {
 				var message = v.formatError(token)
 				message += generateGrammar("NUMBER",
-					"$repetition")
+					"$cardinality")
 				panic(message)
 			}
 		}
@@ -634,10 +632,10 @@ func (v *parser) parseRepetition() (RepetitionLike, *Token, bool) {
 		if !ok {
 			var message = v.formatError(token)
 			message += generateGrammar("}",
-				"$repetition")
+				"$cardinality")
 			panic(message)
 		}
 	}
-	repetition = Repetition(constraint, first, last)
-	return repetition, token, true
+	cardinality = Cardinality(constraint, first, last)
+	return cardinality, token, true
 }

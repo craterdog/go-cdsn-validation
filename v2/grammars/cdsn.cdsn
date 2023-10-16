@@ -71,7 +71,7 @@ $expression: alternative ("|" alternative)*
 
 $alternative: predicate+ NOTE?
 
-$predicate: factor repetition?
+$predicate: factor cardinality?  ! The default cardinality is one.
 
 $factor: element | glyph | inversion | precedence
 
@@ -83,7 +83,7 @@ $inversion: "~" factor
 
 $precedence: "(" expression ")"
 
-$repetition:
+$cardinality:
       CONSTRAINT
-    | "{" NUMBER (".." NUMBER)? "}"  ! The range of NUMBERs in a repetition is inclusive.
+    | "{" NUMBER (".." NUMBER)? "}"  ! The range of NUMBERs in a cardinality is inclusive.
 

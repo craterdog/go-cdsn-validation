@@ -353,11 +353,11 @@ func (v *compiler) compileInvertedPrecedenceToken(precedence PrecedenceLike, re 
 
 // This method compiles the specified token predicate.
 func (v *compiler) compileInvertedPredicateToken(predicate PredicateLike, re *sts.Builder) {
-	var repetition = predicate.GetRepetition()
+	var cardinality = predicate.GetCardinality()
 	var factor = predicate.GetFactor()
 	switch {
-	case repetition != nil:
-		panic("A repetition is not allowed in an inverted predicate.")
+	case cardinality != nil:
+		panic("A cardinality is not allowed in an inverted predicate.")
 	case factor != nil:
 		var precedence = factor.GetPrecedence()
 		var element = factor.GetElement()
@@ -407,9 +407,9 @@ func (v *compiler) compilePrecedenceToken(precedence PrecedenceLike, re *sts.Bui
 func (v *compiler) compilePredicateToken(predicate PredicateLike, re *sts.Builder) {
 	var factor = predicate.GetFactor()
 	v.compileFactorToken(factor, re)
-	var repetition = predicate.GetRepetition()
-	if repetition != nil {
-		v.compileRepetitionToken(repetition, re)
+	var cardinality = predicate.GetCardinality()
+	if cardinality != nil {
+		v.compileCardinalityToken(cardinality, re)
 	}
 }
 
@@ -432,11 +432,11 @@ func (v *compiler) compileInversionToken(inversion InversionLike, re *sts.Builde
 	re.WriteString("]")
 }
 
-// This method compiles the specified token repetition.
-func (v *compiler) compileRepetitionToken(repetition RepetitionLike, re *sts.Builder) {
-	var constraint = repetition.GetCONSTRAINT()
-	var first = repetition.GetFirstNUMBER()
-	var last = repetition.GetLastNUMBER()
+// This method compiles the specified token cardinality.
+func (v *compiler) compileCardinalityToken(cardinality CardinalityLike, re *sts.Builder) {
+	var constraint = cardinality.GetCONSTRAINT()
+	var first = cardinality.GetFirstNUMBER()
+	var last = cardinality.GetLastNUMBER()
 	switch {
 	case len(constraint) > 0:
 		re.WriteString(string(constraint))

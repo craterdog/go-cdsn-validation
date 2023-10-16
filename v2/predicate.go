@@ -17,18 +17,18 @@ package cdsn
 type PredicateLike interface {
 	GetFactor() FactorLike
 	SetFactor(factor FactorLike)
-	GetRepetition() RepetitionLike
-	SetRepetition(repetition RepetitionLike)
+	GetCardinality() CardinalityLike
+	SetCardinality(cardinality CardinalityLike)
 }
 
 // This constructor creates a new predicate.
-func Predicate(factor FactorLike, repetition RepetitionLike) PredicateLike {
+func Predicate(factor FactorLike, cardinality CardinalityLike) PredicateLike {
 	if factor == nil {
 		panic("A predicate requires a factor to be set.")
 	}
 	var v = &predicate{}
 	v.SetFactor(factor)
-	v.SetRepetition(repetition)
+	v.SetCardinality(cardinality)
 	return v
 }
 
@@ -36,8 +36,8 @@ func Predicate(factor FactorLike, repetition RepetitionLike) PredicateLike {
 
 // This type defines the structure and methods associated with a predicate.
 type predicate struct {
-	factor     FactorLike
-	repetition RepetitionLike
+	factor      FactorLike
+	cardinality CardinalityLike
 }
 
 // This method returns the factor for this predicate.
@@ -52,12 +52,12 @@ func (v *predicate) SetFactor(factor FactorLike) {
 	}
 }
 
-// This method returns the repetition for this predicate.
-func (v *predicate) GetRepetition() RepetitionLike {
-	return v.repetition
+// This method returns the cardinality for this predicate.
+func (v *predicate) GetCardinality() CardinalityLike {
+	return v.cardinality
 }
 
-// This method sets the repetition for this predicate.
-func (v *predicate) SetRepetition(repetition RepetitionLike) {
-	v.repetition = repetition
+// This method sets the cardinality for this predicate.
+func (v *predicate) SetCardinality(cardinality CardinalityLike) {
+	v.cardinality = cardinality
 }

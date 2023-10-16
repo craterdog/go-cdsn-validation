@@ -178,17 +178,17 @@ func (v *formatter) formatPrecedence(precedence PrecedenceLike) {
 func (v *formatter) formatPredicate(predicate PredicateLike) {
 	var factor = predicate.GetFactor()
 	v.formatFactor(factor)
-	var repetition = predicate.GetRepetition()
-	if repetition != nil {
-		v.formatRepetition(repetition)
+	var cardinality = predicate.GetCardinality()
+	if cardinality != nil {
+		v.formatCardinality(cardinality)
 	}
 }
 
-// This private method formats the specified repetition.
-func (v *formatter) formatRepetition(repetition RepetitionLike) {
-	var constraint = repetition.GetCONSTRAINT()
-	var first = repetition.GetFirstNUMBER()
-	var last = repetition.GetLastNUMBER()
+// This private method formats the specified cardinality.
+func (v *formatter) formatCardinality(cardinality CardinalityLike) {
+	var constraint = cardinality.GetCONSTRAINT()
+	var first = cardinality.GetFirstNUMBER()
+	var last = cardinality.GetLastNUMBER()
 	switch {
 	case len(constraint) > 0:
 		v.appendString(string(constraint))
@@ -201,7 +201,7 @@ func (v *formatter) formatRepetition(repetition RepetitionLike) {
 		}
 		v.appendString("}")
 	default:
-		panic("Attempted to format an empty repetition.")
+		panic("Attempted to format an empty cardinality.")
 	}
 }
 
