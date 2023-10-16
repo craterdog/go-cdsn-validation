@@ -17,15 +17,12 @@ package cdsn
 type PrecedenceLike interface {
 	GetExpression() ExpressionLike
 	SetExpression(expression ExpressionLike)
-	GetRepetition() RepetitionLike
-	SetRepetition(repetition RepetitionLike)
 }
 
 // This constructor creates a new precedence.
-func Precedence(expression ExpressionLike, repetition RepetitionLike) PrecedenceLike {
+func Precedence(expression ExpressionLike) PrecedenceLike {
 	var v = &precedence{}
 	v.SetExpression(expression)
-	v.SetRepetition(repetition)
 	return v
 }
 
@@ -34,7 +31,6 @@ func Precedence(expression ExpressionLike, repetition RepetitionLike) Precedence
 // This type defines the structure and methods associated with a precedence.
 type precedence struct {
 	expression ExpressionLike
-	repetition RepetitionLike
 }
 
 // This method returns the expression for this precedence.
@@ -48,14 +44,4 @@ func (v *precedence) SetExpression(expression ExpressionLike) {
 		panic("A precedence requires an expression.")
 	}
 	v.expression = expression
-}
-
-// This method returns the repetition for this precedence.
-func (v *precedence) GetRepetition() RepetitionLike {
-	return v.repetition
-}
-
-// This method sets the repetition for this precedence.
-func (v *precedence) SetRepetition(repetition RepetitionLike) {
-	v.repetition = repetition
 }

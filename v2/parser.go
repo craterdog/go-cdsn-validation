@@ -341,7 +341,7 @@ func (v *parser) parseStatement() (StatementLike, *Token, bool) {
 		return statement, token, false
 	}
 	statement = Statement(definition, comment)
-	return statement, token, ok
+	return statement, token, true
 }
 
 // This method attempts to parse a new definition. It returns the definition
@@ -445,22 +445,16 @@ func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var factor FactorLike
-	var inversion InversionLike
-	var precedence PrecedenceLike
+	var repetition RepetitionLike
 	var predicate PredicateLike
 	factor, token, ok = v.parseFactor()
-	if !ok {
-		inversion, token, ok = v.parseInversion()
-	}
-	if !ok {
-		precedence, token, ok = v.parsePrecedence()
-	}
 	if !ok {
 		// This is not a predicate.
 		return predicate, token, false
 	}
-	predicate = Predicate(factor, inversion, precedence)
-	return predicate, token, ok
+	repetition, token, _ = v.parseRepetition()
+	predicate = Predicate(factor, repetition)
+	return predicate, token, true
 }
 
 // This method attempts to parse a new factor. It returns the factor
@@ -470,17 +464,25 @@ func (v *parser) parseFactor() (FactorLike, *Token, bool) {
 	var token *Token
 	var element ElementLike
 	var glyph GlyphLike
+	var inversion InversionLike
+	var precedence PrecedenceLike
 	var factor FactorLike
 	element, token, ok = v.parseElement()
 	if !ok {
 		glyph, token, ok = v.parseGlyph()
 	}
 	if !ok {
+		inversion, token, ok = v.parseInversion()
+	}
+	if !ok {
+		precedence, token, ok = v.parsePrecedence()
+	}
+	if !ok {
 		// This is not a factor.
 		return factor, token, false
 	}
-	factor = Factor(element, glyph)
-	return factor, token, ok
+	factor = Factor(element, glyph, inversion, precedence)
+	return factor, token, true
 }
 
 // This method attempts to parse an element. It returns the element
@@ -504,7 +506,7 @@ func (v *parser) parseElement() (ElementLike, *Token, bool) {
 		return element, token, false
 	}
 	element = Element(intrinsic, name, literal)
-	return element, token, ok
+	return element, token, true
 }
 
 // This method attempts to parse a new glyph. It returns the glyph
@@ -564,7 +566,6 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 	var ok bool
 	var token *Token
 	var expression ExpressionLike
-	var repetition RepetitionLike
 	var precedence PrecedenceLike
 	_, token, ok = v.parseDELIMITER("(")
 	if !ok {
@@ -590,8 +591,7 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 			"$repetition")
 		panic(message)
 	}
-	repetition, token, ok = v.parseRepetition()
-	precedence = Precedence(expression, repetition)
+	precedence = Precedence(expression)
 	return precedence, token, true
 }
 

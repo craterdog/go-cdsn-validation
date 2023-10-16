@@ -19,16 +19,22 @@ type FactorLike interface {
 	SetElement(element ElementLike)
 	GetGlyph() GlyphLike
 	SetGlyph(glyph GlyphLike)
+	GetInversion() InversionLike
+	SetInversion(inversion InversionLike)
+	GetPrecedence() PrecedenceLike
+	SetPrecedence(precedence PrecedenceLike)
 }
 
 // This constructor creates a new factor.
-func Factor(element ElementLike, glyph GlyphLike) FactorLike {
-	if element == nil && glyph == nil {
+func Factor(element ElementLike, glyph GlyphLike, inversion InversionLike, precedence PrecedenceLike) FactorLike {
+	if element == nil && glyph == nil && inversion == nil && precedence == nil {
 		panic("A factor requires at least one of its attributes to be set.")
 	}
 	var v = &factor{}
 	v.SetElement(element)
 	v.SetGlyph(glyph)
+	v.SetInversion(inversion)
+	v.SetPrecedence(precedence)
 	return v
 }
 
@@ -36,8 +42,10 @@ func Factor(element ElementLike, glyph GlyphLike) FactorLike {
 
 // This type defines the structure and methods associated with a factor.
 type factor struct {
-	element ElementLike
-	glyph   GlyphLike
+	element    ElementLike
+	glyph      GlyphLike
+	inversion  InversionLike
+	precedence PrecedenceLike
 }
 
 // This method returns the element for this factor.
@@ -50,6 +58,8 @@ func (v *factor) SetElement(element ElementLike) {
 	if element != nil {
 		v.element = element
 		v.glyph = nil
+		v.inversion = nil
+		v.precedence = nil
 	}
 }
 
@@ -63,5 +73,37 @@ func (v *factor) SetGlyph(glyph GlyphLike) {
 	if glyph != nil {
 		v.element = nil
 		v.glyph = glyph
+		v.inversion = nil
+		v.precedence = nil
+	}
+}
+
+// This method returns the inversion for this factor.
+func (v *factor) GetInversion() InversionLike {
+	return v.inversion
+}
+
+// This method sets the inversion for this factor.
+func (v *factor) SetInversion(inversion InversionLike) {
+	if inversion != nil {
+		v.element = nil
+		v.glyph = nil
+		v.inversion = inversion
+		v.precedence = nil
+	}
+}
+
+// This method returns the precedence for this factor.
+func (v *factor) GetPrecedence() PrecedenceLike {
+	return v.precedence
+}
+
+// This method sets the precedence for this factor.
+func (v *factor) SetPrecedence(precedence PrecedenceLike) {
+	if precedence != nil {
+		v.element = nil
+		v.glyph = nil
+		v.inversion = nil
+		v.precedence = precedence
 	}
 }

@@ -132,11 +132,17 @@ func (v *formatter) formatExpression(expression ExpressionLike) {
 func (v *formatter) formatFactor(factor FactorLike) {
 	var element = factor.GetElement()
 	var glyph = factor.GetGlyph()
+	var inversion = factor.GetInversion()
+	var precedence = factor.GetPrecedence()
 	switch {
 	case element != nil:
 		v.formatElement(element)
 	case glyph != nil:
 		v.formatGlyph(glyph)
+	case inversion != nil:
+		v.formatInversion(inversion)
+	case precedence != nil:
+		v.formatPrecedence(precedence)
 	default:
 		panic("Attempted to format an empty factor.")
 	}
@@ -148,26 +154,15 @@ func (v *formatter) formatPrecedence(precedence PrecedenceLike) {
 	var expression = precedence.GetExpression()
 	v.formatExpression(expression)
 	v.appendString(")")
-	var repetition = precedence.GetRepetition()
-	if repetition != nil {
-		v.formatRepetition(repetition)
-	}
 }
 
 // This private method formats the specified predicate.
 func (v *formatter) formatPredicate(predicate PredicateLike) {
 	var factor = predicate.GetFactor()
-	var inversion = predicate.GetInversion()
-	var precedence = predicate.GetPrecedence()
-	switch {
-	case factor != nil:
-		v.formatFactor(factor)
-	case inversion != nil:
-		v.formatInversion(inversion)
-	case precedence != nil:
-		v.formatPrecedence(precedence)
-	default:
-		panic("Attempted to format an empty predicate.")
+	v.formatFactor(factor)
+	var repetition = predicate.GetRepetition()
+	if repetition != nil {
+		v.formatRepetition(repetition)
 	}
 }
 
