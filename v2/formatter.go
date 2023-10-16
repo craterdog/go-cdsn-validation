@@ -180,8 +180,8 @@ func (v *formatter) formatGlyph(glyph GlyphLike) {
 // This private method formats the specified inversion.
 func (v *formatter) formatInversion(inversion InversionLike) {
 	v.appendString("~")
-	var predicate = inversion.GetPredicate()
-	v.formatPredicate(predicate)
+	var factor = inversion.GetFactor()
+	v.formatFactor(factor)
 }
 
 // This private method formats the specified repetition.

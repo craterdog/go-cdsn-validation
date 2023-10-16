@@ -60,18 +60,20 @@ func ParseDocument(source []byte) DocumentLike {
 // This map captures the syntax expressions for Crater Dog Syntax Notation.
 // It is useful when creating scanner and parser error messages.
 var grammar = map[string]string{
-	"$document":    `(statement)+ EOF  ! Terminated with an end-of-file marker.`,
-	"$statement":   ` definition | COMMENT`,
-	"$definition":  ` SYMBOL ":" expression  ! This works for both tokens and rules.`,
-	"$expression":  `alternative ("|" alternative)*`,
-	"$alternative": `(predicate)+ (NOTE)?`,
-	"$predicate":   `factor | inversion | precedence`,
-	"$factor":      `element | glyph`,
-	"$element":     `INTRINSIC | NAME | LITERAL`,
-	"$glyph":       `CHARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inclusive.`,
-	"$inversion":   `"~" predicate`,
-	"$precedence":  `"(" expression ")" (repetition)?`,
-	"$repetition":  `CONSTRAINT | NUMBER (".." NUMBER)?  ! The range of NUMBERs in a repetition is inclusive.`,
+	"$document":    `tatement+ EOF  ! Terminated with an end-of-file marker.`,
+	"$statement":   `efinition | COMMENT`,
+	"$definition":  `YMBOL ":" expression  ! This works for both tokens and rules.`,
+	"$expression":  `lternative ("|" alternative)*`,
+	"$alternative": `redicate+ NOTE?`,
+	"$predicate":   `actor repetition?`,
+	"$factor":      `lement | glyph | inversion | precedence`,
+	"$element":     `NTRINSIC | NAME | LITERAL`,
+	"$glyph":       `HARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inclusive.`,
+	"$inversion":   `~" predicate`,
+	"$precedence":  `(" expression ")"`,
+	"$repetition": `
+      CONSTRAINT
+    | NUMBER (".." NUMBER)?  ! The range of NUMBERs in a repetition is inclusive.`,
 }
 
 func generateGrammar(expected string, symbols ...string) string {
@@ -541,22 +543,22 @@ func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
 func (v *parser) parseInversion() (InversionLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var predicate PredicateLike
+	var factor FactorLike
 	var inversion InversionLike
 	_, token, ok = v.parseDELIMITER("~")
 	if !ok {
 		// This is not a inversion.
 		return inversion, token, false
 	}
-	predicate, token, ok = v.parsePredicate()
+	factor, token, ok = v.parseFactor()
 	if !ok {
 		var message = v.formatError(token)
-		message += generateGrammar("predicate",
+		message += generateGrammar("factor",
 			"$inversion",
-			"$predicate")
+			"$factor")
 		panic(message)
 	}
-	inversion = Inversion(predicate)
+	inversion = Inversion(factor)
 	return inversion, token, true
 }
 

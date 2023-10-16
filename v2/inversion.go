@@ -15,14 +15,14 @@ package cdsn
 // This interface defines the methods supported by all inversion-like
 // components.
 type InversionLike interface {
-	GetPredicate() PredicateLike
-	SetPredicate(predicate PredicateLike)
+	GetFactor() FactorLike
+	SetFactor(factor FactorLike)
 }
 
 // This constructor creates a new inversion.
-func Inversion(predicate PredicateLike) InversionLike {
+func Inversion(factor FactorLike) InversionLike {
 	var v = &inversion{}
-	v.SetPredicate(predicate)
+	v.SetFactor(factor)
 	return v
 }
 
@@ -30,18 +30,18 @@ func Inversion(predicate PredicateLike) InversionLike {
 
 // This type defines the structure and methods associated with a inversion.
 type inversion struct {
-	predicate PredicateLike
+	factor FactorLike
 }
 
-// This method returns the predicate for this inversion.
-func (v *inversion) GetPredicate() PredicateLike {
-	return v.predicate
+// This method returns the factor for this inversion.
+func (v *inversion) GetFactor() FactorLike {
+	return v.factor
 }
 
-// This method sets the predicate for this inversion.
-func (v *inversion) SetPredicate(predicate PredicateLike) {
-	if predicate == nil {
-		panic("A inversion requires a predicate.")
+// This method sets the factor for this inversion.
+func (v *inversion) SetFactor(factor FactorLike) {
+	if factor == nil {
+		panic("A inversion requires a factor.")
 	}
-	v.predicate = predicate
+	v.factor = factor
 }

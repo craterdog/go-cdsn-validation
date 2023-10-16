@@ -79,7 +79,7 @@ $element: INTRINSIC | NAME | LITERAL
 
 $glyph: CHARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inclusive.
 
-$inversion: "~" predicate
+$inversion: "~" factor
 
 $precedence: "(" expression ")"
 
