@@ -67,15 +67,6 @@ type scanner struct {
 	tokens    chan Token
 }
 
-// This method adds a new error token with the current scanner information
-// to the token channel.
-func (v *scanner) atError() {
-	var bytes = v.source[v.nextByte:]
-	var _, width = utf.DecodeRune(bytes)
-	v.nextByte += width
-	v.emitToken(TokenERROR)
-}
-
 // This method determines whether or not the scanner is at the end of the source
 // bytes and adds an EOF token with the current scanner information to the token
 // channel if it is at the end.
@@ -88,6 +79,15 @@ func (v *scanner) atEOF() bool {
 		}
 	}
 	return false
+}
+
+// This method adds a new error token with the current scanner information
+// to the token channel.
+func (v *scanner) atError() {
+	var bytes = v.source[v.nextByte:]
+	var _, width = utf.DecodeRune(bytes)
+	v.nextByte += width
+	v.emitToken(TokenERROR)
 }
 
 // This method adds a token of the specified type with the current scanner
@@ -161,23 +161,29 @@ func (v *scanner) processToken() bool {
 	return true
 }
 
-// This method tells the scanner to ignore any whitespace.  It returns true if
-// whitespace was found.
-func (v *scanner) scanWHITESPACE() bool {
+// This method adds a new character token with the current scanner information
+// to the token channel. It returns true if a new character token was found.
+func (v *scanner) scanCHARACTER() bool {
 	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(whitespaceScanner.FindSubmatch(s))
+	var matches = bytesToStrings(characterScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
-		v.firstByte = v.nextByte
-		var length = len(matches[0])
-		var eolCount = sts.Count(matches[0], EOL)
-		if eolCount > 0 {
-			v.line += eolCount
-			var index = sts.LastIndex(matches[0], EOL)
-			v.position = length - index
-		} else {
-			v.position += length
-		}
+		v.emitToken(TokenCHARACTER)
+		v.line += sts.Count(matches[0], EOL)
+		return true
+	}
+	return false
+}
+
+// This method adds a new comment token with the current scanner information
+// to the token channel. It returns true if a new comment token was found.
+func (v *scanner) scanCOMMENT() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(commentScanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenCOMMENT)
+		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -205,62 +211,6 @@ func (v *scanner) scanINTRINSIC() bool {
 	if len(matches) > 0 {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenINTRINSIC)
-		v.line += sts.Count(matches[0], EOL)
-		return true
-	}
-	return false
-}
-
-// This method adds a new note token with the current scanner information
-// to the token channel. It returns true if a new note token was found.
-func (v *scanner) scanNOTE() bool {
-	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(noteScanner.FindSubmatch(s))
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenNOTE)
-		v.line += sts.Count(matches[0], EOL)
-		return true
-	}
-	return false
-}
-
-// This method adds a new comment token with the current scanner information
-// to the token channel. It returns true if a new comment token was found.
-func (v *scanner) scanCOMMENT() bool {
-	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(commentScanner.FindSubmatch(s))
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenCOMMENT)
-		v.line += sts.Count(matches[0], EOL)
-		return true
-	}
-	return false
-}
-
-// This method adds a new number token with the current scanner information
-// to the token channel. It returns true if a new number token was found.
-func (v *scanner) scanNUMBER() bool {
-	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(numberScanner.FindSubmatch(s))
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenNUMBER)
-		v.line += sts.Count(matches[0], EOL)
-		return true
-	}
-	return false
-}
-
-// This method adds a new character token with the current scanner information
-// to the token channel. It returns true if a new character token was found.
-func (v *scanner) scanCHARACTER() bool {
-	var s = v.source[v.nextByte:]
-	var matches = bytesToStrings(characterScanner.FindSubmatch(s))
-	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenCHARACTER)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -295,6 +245,34 @@ func (v *scanner) scanNAME() bool {
 	return false
 }
 
+// This method adds a new note token with the current scanner information
+// to the token channel. It returns true if a new note token was found.
+func (v *scanner) scanNOTE() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(noteScanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenNOTE)
+		v.line += sts.Count(matches[0], EOL)
+		return true
+	}
+	return false
+}
+
+// This method adds a new number token with the current scanner information
+// to the token channel. It returns true if a new number token was found.
+func (v *scanner) scanNUMBER() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(numberScanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.emitToken(TokenNUMBER)
+		v.line += sts.Count(matches[0], EOL)
+		return true
+	}
+	return false
+}
+
 // This method adds a new symbol token with the current scanner information
 // to the token channel. It returns true if a new symbol token was found.
 func (v *scanner) scanSYMBOL() bool {
@@ -304,6 +282,28 @@ func (v *scanner) scanSYMBOL() bool {
 		v.nextByte += len(matches[0])
 		v.emitToken(TokenSYMBOL)
 		v.line += sts.Count(matches[0], EOL)
+		return true
+	}
+	return false
+}
+
+// This method tells the scanner to ignore any whitespace.  It returns true if
+// whitespace was found.
+func (v *scanner) scanWHITESPACE() bool {
+	var s = v.source[v.nextByte:]
+	var matches = bytesToStrings(whitespaceScanner.FindSubmatch(s))
+	if len(matches) > 0 {
+		v.nextByte += len(matches[0])
+		v.firstByte = v.nextByte
+		var length = len(matches[0])
+		var eolCount = sts.Count(matches[0], EOL)
+		if eolCount > 0 {
+			v.line += eolCount
+			var index = sts.LastIndex(matches[0], EOL)
+			v.position = length - index
+		} else {
+			v.position += length
+		}
 		return true
 	}
 	return false

@@ -49,14 +49,14 @@ func (v *formatter) appendString(s string) {
 
 // This private method formats the specified alternative.
 func (v *formatter) formatAlternative(alternative AlternativeLike) {
-	var predicates = alternative.GetPredicates()
-	var iterator = col.Iterator(predicates)
-	var predicate = iterator.GetNext()
-	v.formatPredicate(predicate)
+	var factors = alternative.GetFactors()
+	var iterator = col.Iterator(factors)
+	var factor = iterator.GetNext()
+	v.formatFactor(factor)
 	for iterator.HasNext() {
-		predicate = iterator.GetNext()
+		factor = iterator.GetNext()
 		v.appendString(" ")
-		v.formatPredicate(predicate)
+		v.formatFactor(factor)
 	}
 	var note = alternative.GetNOTE()
 	if len(note) > 0 {
@@ -158,21 +158,11 @@ func (v *formatter) formatExpression(expression ExpressionLike) {
 
 // This private method formats the specified factor.
 func (v *formatter) formatFactor(factor FactorLike) {
-	var element = factor.GetElement()
-	var glyph = factor.GetGlyph()
-	var inversion = factor.GetInversion()
-	var precedence = factor.GetPrecedence()
-	switch {
-	case element != nil:
-		v.formatElement(element)
-	case glyph != nil:
-		v.formatGlyph(glyph)
-	case inversion != nil:
-		v.formatInversion(inversion)
-	case precedence != nil:
-		v.formatPrecedence(precedence)
-	default:
-		panic("Attempted to format an empty factor.")
+	var predicate = factor.GetPredicate()
+	v.formatPredicate(predicate)
+	var cardinality = factor.GetCardinality()
+	if cardinality != nil {
+		v.formatCardinality(cardinality)
 	}
 }
 
@@ -190,8 +180,8 @@ func (v *formatter) formatGlyph(glyph GlyphLike) {
 // This private method formats the specified inversion.
 func (v *formatter) formatInversion(inversion InversionLike) {
 	v.appendString("~")
-	var factor = inversion.GetFactor()
-	v.formatFactor(factor)
+	var predicate = inversion.GetPredicate()
+	v.formatPredicate(predicate)
 }
 
 // This private method formats the specified precedence.
@@ -204,11 +194,21 @@ func (v *formatter) formatPrecedence(precedence PrecedenceLike) {
 
 // This private method formats the specified predicate.
 func (v *formatter) formatPredicate(predicate PredicateLike) {
-	var factor = predicate.GetFactor()
-	v.formatFactor(factor)
-	var cardinality = predicate.GetCardinality()
-	if cardinality != nil {
-		v.formatCardinality(cardinality)
+	var element = predicate.GetElement()
+	var glyph = predicate.GetGlyph()
+	var inversion = predicate.GetInversion()
+	var precedence = predicate.GetPrecedence()
+	switch {
+	case element != nil:
+		v.formatElement(element)
+	case glyph != nil:
+		v.formatGlyph(glyph)
+	case inversion != nil:
+		v.formatInversion(inversion)
+	case precedence != nil:
+		v.formatPrecedence(precedence)
+	default:
+		panic("Attempted to format an empty predicate.")
 	}
 }
 

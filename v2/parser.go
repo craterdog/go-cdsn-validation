@@ -64,17 +64,17 @@ var grammar = map[string]string{
 	"$statement":   `definition | COMMENT`,
 	"$definition":  `SYMBOL ":" expression  ! This works for both tokens and rules.`,
 	"$expression":  `alternative ("|" alternative)*`,
-	"$alternative": `predicate+ NOTE?`,
-	"$predicate":   `factor cardinality?  ! The default cardinality is one.`,
-	"$factor":      `glyph | element | precedence | inversion`,
+	"$alternative": `factor+ NOTE?`,
+	"$factor":      `predicate cardinality?  ! The default cardinality is one.`,
+	"$predicate":   `glyph | element | precedence | inversion`,
 	"$glyph":       `CHARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inclusive.`,
 	"$element":     `INTRINSIC | NAME | LITERAL`,
 	"$precedence":  `"(" expression ")"`,
-	"$inversion":   `"~" factor`,
+	"$inversion":   `"~" predicate`,
 	"$cardinality": `
-      "?"  ! Zero or one instance of a factor.
-    | "*"  ! Zero or more instances of a factor.
-    | "+"  ! One or more instances of a factor.
+      "?"  ! Zero or one instance of a predicate.
+    | "*"  ! Zero or more instances of a predicate.
+    | "+"  ! One or more instances of a predicate.
     | "{" NUMBER (".." NUMBER?)? "}"  ! The range of NUMBERs in a cardinality is inclusive.`,
 }
 
@@ -93,7 +93,7 @@ type parser struct {
 	next        col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
 	tokens      chan Token            // The queue of unread tokens coming from the scanner.
 	isToken     bool                  // Whether or not the current definition is a token definition.
-	isInversion bool                  // Whether or not the current factor has been inverted.
+	isInversion bool                  // Whether or not the current predicate has been inverted.
 }
 
 // This method puts back the current token onto the token stream so that it can
@@ -156,25 +156,25 @@ func (v *parser) nextToken() *Token {
 func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var predicate PredicateLike
-	var predicates = col.List[PredicateLike]()
+	var factor FactorLike
+	var factors = col.List[FactorLike]()
 	var note NOTE
 	var alternative AlternativeLike
-	predicate, token, ok = v.parsePredicate()
+	factor, token, ok = v.parseFactor()
 	if !ok {
-		// An alternative must have at least one predicate.
+		// An alternative must have at least one factor.
 		return alternative, token, false
 	}
 	for {
-		predicates.AddValue(predicate)
-		predicate, token, ok = v.parsePredicate()
+		factors.AddValue(factor)
+		factor, token, ok = v.parseFactor()
 		if !ok {
-			// No more predicates.
+			// No more factors.
 			break
 		}
 	}
 	note, _, _ = v.parseNOTE() // The note is optional.
-	alternative = Alternative(predicates, note)
+	alternative = Alternative(factors, note)
 	return alternative, token, true
 }
 
@@ -426,26 +426,16 @@ func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
 func (v *parser) parseFactor() (FactorLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var element ElementLike
-	var glyph GlyphLike
-	var inversion InversionLike
-	var precedence PrecedenceLike
+	var predicate PredicateLike
+	var cardinality CardinalityLike
 	var factor FactorLike
-	glyph, token, ok = v.parseGlyph()
-	if !ok {
-		element, token, ok = v.parseElement()
-	}
-	if !ok {
-		precedence, token, ok = v.parsePrecedence()
-	}
-	if !ok && !v.isInversion {
-		inversion, token, ok = v.parseInversion()
-	}
+	predicate, token, ok = v.parsePredicate()
 	if !ok {
 		// This is not a factor.
 		return factor, token, false
 	}
-	factor = Factor(glyph, element, precedence, inversion)
+	cardinality, token, _ = v.parseCardinality()
+	factor = Factor(predicate, cardinality)
 	return factor, token, true
 }
 
@@ -476,32 +466,6 @@ func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
 	return glyph, token, true
 }
 
-// This method attempts to parse a new inversion. It returns the inversion
-// and whether or not the inversion was successfully parsed.
-func (v *parser) parseInversion() (InversionLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor FactorLike
-	var inversion InversionLike
-	_, token, ok = v.parseDELIMITER("~")
-	if !ok {
-		// This is not a inversion.
-		return inversion, token, false
-	}
-	v.isInversion = true
-	factor, token, ok = v.parseFactor()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("factor",
-			"$inversion",
-			"$factor")
-		panic(message)
-	}
-	v.isInversion = false
-	inversion = Inversion(factor)
-	return inversion, token, true
-}
-
 // This method attempts to parse a new intrinsic token. It returns the token
 // and whether or not the token was successfully parsed.
 func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
@@ -513,6 +477,32 @@ func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
 	}
 	intrinsic = INTRINSIC(token.Value)
 	return intrinsic, token, true
+}
+
+// This method attempts to parse a new inversion. It returns the inversion
+// and whether or not the inversion was successfully parsed.
+func (v *parser) parseInversion() (InversionLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var predicate PredicateLike
+	var inversion InversionLike
+	_, token, ok = v.parseDELIMITER("~")
+	if !ok {
+		// This is not a inversion.
+		return inversion, token, false
+	}
+	v.isInversion = true
+	predicate, token, ok = v.parsePredicate()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("predicate",
+			"$inversion",
+			"$predicate")
+		panic(message)
+	}
+	v.isInversion = false
+	inversion = Inversion(predicate)
+	return inversion, token, true
 }
 
 // This method attempts to parse a new literal token. It returns the token
@@ -610,16 +600,26 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var factor FactorLike
-	var cardinality CardinalityLike
+	var element ElementLike
+	var glyph GlyphLike
+	var inversion InversionLike
+	var precedence PrecedenceLike
 	var predicate PredicateLike
-	factor, token, ok = v.parseFactor()
+	glyph, token, ok = v.parseGlyph()
+	if !ok {
+		element, token, ok = v.parseElement()
+	}
+	if !ok {
+		precedence, token, ok = v.parsePrecedence()
+	}
+	if !ok && !v.isInversion {
+		inversion, token, ok = v.parseInversion()
+	}
 	if !ok {
 		// This is not a predicate.
 		return predicate, token, false
 	}
-	cardinality, token, _ = v.parseCardinality()
-	predicate = Predicate(factor, cardinality)
+	predicate = Predicate(glyph, element, precedence, inversion)
 	return predicate, token, true
 }
 

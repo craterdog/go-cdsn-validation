@@ -64,7 +64,7 @@ func (v *expression) SetAlternatives(alternatives col.Sequential[AlternativeLike
 		var iterator = col.Iterator(alternatives)
 		for iterator.HasNext() {
 			var alternative = iterator.GetNext()
-			if alternative.GetPredicates().GetSize() > 2 || len(alternative.GetNOTE()) > 0 {
+			if alternative.GetFactors().GetSize() > 2 || len(alternative.GetNOTE()) > 0 {
 				v.isAnnotated = true
 				break
 			}

@@ -15,20 +15,26 @@ package cdsn
 // This interface defines the methods supported by all predicate-like
 // components.
 type PredicateLike interface {
-	GetFactor() FactorLike
-	SetFactor(factor FactorLike)
-	GetCardinality() CardinalityLike
-	SetCardinality(cardinality CardinalityLike)
+	GetGlyph() GlyphLike
+	SetGlyph(glyph GlyphLike)
+	GetElement() ElementLike
+	SetElement(element ElementLike)
+	GetPrecedence() PrecedenceLike
+	SetPrecedence(precedence PrecedenceLike)
+	GetInversion() InversionLike
+	SetInversion(inversion InversionLike)
 }
 
 // This constructor creates a new predicate.
-func Predicate(factor FactorLike, cardinality CardinalityLike) PredicateLike {
-	if factor == nil {
-		panic("A predicate requires a factor to be set.")
+func Predicate(glyph GlyphLike, element ElementLike, precedence PrecedenceLike, inversion InversionLike) PredicateLike {
+	if glyph == nil && element == nil && precedence == nil && inversion == nil {
+		panic("A predicate requires at least one of its attributes to be set.")
 	}
 	var v = &predicate{}
-	v.SetFactor(factor)
-	v.SetCardinality(cardinality)
+	v.SetGlyph(glyph)
+	v.SetElement(element)
+	v.SetPrecedence(precedence)
+	v.SetInversion(inversion)
 	return v
 }
 
@@ -36,28 +42,68 @@ func Predicate(factor FactorLike, cardinality CardinalityLike) PredicateLike {
 
 // This type defines the structure and methods associated with a predicate.
 type predicate struct {
-	factor      FactorLike
-	cardinality CardinalityLike
+	glyph      GlyphLike
+	element    ElementLike
+	precedence PrecedenceLike
+	inversion  InversionLike
 }
 
-// This method returns the factor for this predicate.
-func (v *predicate) GetFactor() FactorLike {
-	return v.factor
+// This method returns the glyph for this predicate.
+func (v *predicate) GetGlyph() GlyphLike {
+	return v.glyph
 }
 
-// This method sets the factor for this predicate.
-func (v *predicate) SetFactor(factor FactorLike) {
-	if factor != nil {
-		v.factor = factor
+// This method sets the glyph for this predicate.
+func (v *predicate) SetGlyph(glyph GlyphLike) {
+	if glyph != nil {
+		v.element = nil
+		v.glyph = glyph
+		v.inversion = nil
+		v.precedence = nil
 	}
 }
 
-// This method returns the cardinality for this predicate.
-func (v *predicate) GetCardinality() CardinalityLike {
-	return v.cardinality
+// This method returns the element for this predicate.
+func (v *predicate) GetElement() ElementLike {
+	return v.element
 }
 
-// This method sets the cardinality for this predicate.
-func (v *predicate) SetCardinality(cardinality CardinalityLike) {
-	v.cardinality = cardinality
+// This method sets the element for this predicate.
+func (v *predicate) SetElement(element ElementLike) {
+	if element != nil {
+		v.element = element
+		v.glyph = nil
+		v.inversion = nil
+		v.precedence = nil
+	}
+}
+
+// This method returns the precedence for this predicate.
+func (v *predicate) GetPrecedence() PrecedenceLike {
+	return v.precedence
+}
+
+// This method sets the precedence for this predicate.
+func (v *predicate) SetPrecedence(precedence PrecedenceLike) {
+	if precedence != nil {
+		v.element = nil
+		v.glyph = nil
+		v.inversion = nil
+		v.precedence = precedence
+	}
+}
+
+// This method returns the inversion for this predicate.
+func (v *predicate) GetInversion() InversionLike {
+	return v.inversion
+}
+
+// This method sets the inversion for this predicate.
+func (v *predicate) SetInversion(inversion InversionLike) {
+	if inversion != nil {
+		v.element = nil
+		v.glyph = nil
+		v.inversion = inversion
+		v.precedence = nil
+	}
 }
