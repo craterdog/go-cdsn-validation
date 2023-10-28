@@ -17,7 +17,7 @@ import (
 type DELIMITER string
 
 const TokenDELIMITER TokenType = "DELIMITER"
-const delimiter = `[~:|(){}]|\.\.`
+const delimiter = `[~?*+:|(){}]|\.\.`
 
 // This scanner is used for matching delimiter tokens.
 var delimiterScanner = reg.MustCompile(`^(?:` + delimiter + `)`)

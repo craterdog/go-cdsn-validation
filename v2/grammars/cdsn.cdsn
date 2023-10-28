@@ -15,34 +15,32 @@
     name of another token.  Token definitions cannot be recursive and the scanning of tokens is
     not greedy.  Whitespace within a token definition is not ignored.  The following intrinsic
     token types are environment/language specific:
-     * ANY - any character
+     * ANY - any language specific character
      * LOWER_CASE - any language specific lower case character
      * UPPER_CASE - any language specific upper case character
      * DIGIT - any language specific digit
      * SEPARATOR - any language specific character separator
      * ESCAPE - any environment specific escape sequence
-     * EOL - the environment specific end-of-line sequence
+     * CONTROL - any environment specific (non-printable) control character
      * EOF - the environment specific end-of-file marker
     The following token types are scanned for in the order listed below.
 <!
 
-$INTRINSIC: "ANY" | "LOWER_CASE" | "UPPER_CASE" | "DIGIT" | "SEPARATOR" | "ESCAPE" | "EOL" | "EOF"
+$INTRINSIC: "ANY" | "LOWER_CASE" | "UPPER_CASE" | "DIGIT" | "SEPARATOR" | "ESCAPE" | "CONTROL" | "EOF"
 
-$NOTE: "! " (~EOL)*
+$NOTE: "! " (~CONTROL)*
 
 $COMMENT: "!>" ANY* "<!"
 
 $NUMBER: DIGIT+
 
-$CHARACTER: "'" ~EOL "'"
+$CHARACTER: "'" ~CONTROL "'"  ! Any printable character.
 
-$LITERAL: '"' (ESCAPE | ~('"' | EOL))+ '"'
+$LITERAL: '"' (ESCAPE | ~('"' | CONTROL))+ '"'
 
 $NAME: (LOWER_CASE | UPPER_CASE) (SEPARATOR? (LOWER_CASE | UPPER_CASE | DIGIT))*
 
 $SYMBOL: '$' NAME
-
-$LIMIT: '?' | '*' | '+'
 
 
 !>
@@ -53,12 +51,12 @@ $LIMIT: '?' | '*' | '+'
     definitions may be recursive.  The sequence of predicates within in a rule definition may be
     separated by whitespace which is ignored by the parser.  The factor within a predicate may be
     constrained by any of the following cardinalities:
-     * factor{M} - Exactly M instances of the specified expression.
-     * factor{M..} - M or more instances of the specified expression.
-     * factor{M..N} - M to N instances of the specified expression.
-     * factor? - Zero or one instances of the specified expression (equivalent to factor{0..1}).
-     * factor* - Zero or more instances of the specified expression (equivalent to factor{0..}).
-     * factor+ - One or more instances of the specified expression (equivalent to factor{1..}).
+     * factor{M} - Exactly M instances of the specified factor.
+     * factor{M..} - M or more instances of the specified factor.
+     * factor{M..N} - M to N instances of the specified factor.
+     * factor? - Zero or one instances of the specified factor (equivalent to factor{0..1}).
+     * factor* - Zero or more instances of the specified factor (equivalent to factor{0..}).
+     * factor+ - One or more instances of the specified factor (equivalent to factor{1..}).
     The following rules are attempted in the order listed below.
 <!
 
@@ -74,17 +72,19 @@ $alternative: predicate+ NOTE?
 
 $predicate: factor cardinality?  ! The default cardinality is one.
 
-$factor: element | glyph | inversion | precedence
-
-$element: INTRINSIC | NAME | LITERAL
+$factor: glyph | element | precedence | inversion
 
 $glyph: CHARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inclusive.
 
-$inversion: "~" factor
+$element: INTRINSIC | NAME | LITERAL
 
 $precedence: "(" expression ")"
 
+$inversion: "~" factor
+
 $cardinality:
-      LIMIT
+      "?"  ! Zero or one instance of a factor.
+    | "*"  ! Zero or more instances of a factor.
+    | "+"  ! One or more instances of a factor.
     | "{" NUMBER (".." NUMBER?)? "}"  ! The range of NUMBERs in a cardinality is inclusive.
 

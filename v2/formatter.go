@@ -67,22 +67,29 @@ func (v *formatter) formatAlternative(alternative AlternativeLike) {
 
 // This private method formats the specified cardinality.
 func (v *formatter) formatCardinality(cardinality CardinalityLike) {
-	var limit = cardinality.GetLIMIT()
 	var first = cardinality.GetFirstNUMBER()
 	var last = cardinality.GetLastNUMBER()
 	switch {
-	case len(limit) > 0:
-		v.appendString(string(limit))
+	case first == "1" && last == "1":
+		// This is the default case so do nothing.
+	case first == "0" && last == "1":
+		v.appendString("?")
+	case first == "0" && len(last) == 0:
+		v.appendString("*")
+	case first == "1" && len(last) == 0:
+		v.appendString("+")
 	case len(first) > 0:
 		v.appendString("{")
 		v.appendString(string(first))
-		if len(last) > 0 {
+		if first != last {
 			v.appendString("..")
-			v.appendString(string(last))
+			if len(last) > 0 {
+				v.appendString(string(last))
+			}
 		}
 		v.appendString("}")
 	default:
-		panic("Attempted to format an empty cardinality.")
+		panic("Attempted to format an invalid cardinality.")
 	}
 }
 

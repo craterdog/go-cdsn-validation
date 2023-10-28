@@ -17,7 +17,7 @@ import (
 type CHARACTER string
 
 const TokenCHARACTER TokenType = "CHARACTER"
-const character = `['][^` + eol + `][']`
+const character = `['][^` + control + `][']`
 
 // This scanner is used for matching character tokens.
 var characterScanner = reg.MustCompile(`^(?:` + character + `)`)

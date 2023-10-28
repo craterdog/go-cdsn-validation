@@ -280,19 +280,6 @@ func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
 	return symbol, token, true
 }
 
-// This method attempts to parse a new limit token. It returns the token
-// and whether or not the token was successfully parsed.
-func (v *parser) parseLIMIT() (LIMIT, *Token, bool) {
-	var limit LIMIT
-	var token = v.nextToken()
-	if token.Type != TokenLIMIT {
-		v.backupOne(token)
-		return limit, token, false
-	}
-	limit = LIMIT(token.Value)
-	return limit, token, true
-}
-
 // This method attempts to parse a new document. It returns the document
 // and whether or not the document was successfully parsed.
 func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
@@ -600,42 +587,61 @@ func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
 func (v *parser) parseCardinality() (CardinalityLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var limit LIMIT
 	var first NUMBER
 	var last NUMBER
 	var cardinality CardinalityLike
-	limit, token, ok = v.parseLIMIT()
+	_, token, ok = v.parseDELIMITER("?")
+	if ok {
+		first = "0"
+		last = "1"
+		cardinality = Cardinality(first, last)
+		return cardinality, token, true
+	}
+	_, token, ok = v.parseDELIMITER("*")
+	if ok {
+		first = "0"
+		last = ""
+		cardinality = Cardinality(first, last)
+		return cardinality, token, true
+	}
+	_, token, ok = v.parseDELIMITER("+")
+	if ok {
+		first = "1"
+		last = ""
+		cardinality = Cardinality(first, last)
+		return cardinality, token, true
+	}
+	_, token, ok = v.parseDELIMITER("{")
 	if !ok {
-		_, token, ok = v.parseDELIMITER("{")
-		if !ok {
-			// This is not a cardinality.
-			return cardinality, token, false
-		}
-		first, token, ok = v.parseNUMBER()
+		// This is not a cardinality.
+		return cardinality, token, false
+	}
+	first, token, ok = v.parseNUMBER()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("NUMBER",
+			"$cardinality")
+		panic(message)
+	}
+	_, _, ok = v.parseDELIMITER("..")
+	if ok {
+		last, token, ok = v.parseNUMBER()
 		if !ok {
 			var message = v.formatError(token)
 			message += generateGrammar("NUMBER",
 				"$cardinality")
 			panic(message)
 		}
-		_, _, ok = v.parseDELIMITER("..")
-		if ok {
-			last, token, ok = v.parseNUMBER()
-			if !ok {
-				var message = v.formatError(token)
-				message += generateGrammar("NUMBER",
-					"$cardinality")
-				panic(message)
-			}
-		}
-		_, token, ok = v.parseDELIMITER("}")
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("}",
-				"$cardinality")
-			panic(message)
-		}
+	} else {
+		last = first
 	}
-	cardinality = Cardinality(limit, first, last)
+	_, token, ok = v.parseDELIMITER("}")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("}",
+			"$cardinality")
+		panic(message)
+	}
+	cardinality = Cardinality(first, last)
 	return cardinality, token, true
 }

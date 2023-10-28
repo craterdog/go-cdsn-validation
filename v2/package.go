@@ -33,6 +33,9 @@ const digit = `\p{Nd}`
 // These characters can be used to separate words in names.
 const separator = `_`
 
+// These characters include all non-printable control characters.
+const control = `\p{Cc}`
+
 // This string contains the actual characters `\` and `n`, not EOL.
 const eol = `\n`
 
