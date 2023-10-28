@@ -55,7 +55,7 @@ $NIL: "nil"
 
 $ORDINAL: '1'..'9' '0'..'9'*
 
-$RUNE: "'" (ESCAPE | ~("'" | CONTROL)) "'"
+$RUNE: "'" ~CONTROL "'"  ! Any printable character.
 
 $SCALAR: (ZERO | ORDINAL) FRACTION
 

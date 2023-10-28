@@ -15,26 +15,26 @@ package cdsn
 // This interface defines the methods supported by all factor-like
 // components.
 type FactorLike interface {
-	GetElement() ElementLike
-	SetElement(element ElementLike)
 	GetGlyph() GlyphLike
 	SetGlyph(glyph GlyphLike)
-	GetInversion() InversionLike
-	SetInversion(inversion InversionLike)
+	GetElement() ElementLike
+	SetElement(element ElementLike)
 	GetPrecedence() PrecedenceLike
 	SetPrecedence(precedence PrecedenceLike)
+	GetInversion() InversionLike
+	SetInversion(inversion InversionLike)
 }
 
 // This constructor creates a new factor.
-func Factor(element ElementLike, glyph GlyphLike, inversion InversionLike, precedence PrecedenceLike) FactorLike {
-	if element == nil && glyph == nil && inversion == nil && precedence == nil {
+func Factor(glyph GlyphLike, element ElementLike, precedence PrecedenceLike, inversion InversionLike) FactorLike {
+	if glyph == nil && element == nil && precedence == nil && inversion == nil {
 		panic("A factor requires at least one of its attributes to be set.")
 	}
 	var v = &factor{}
-	v.SetElement(element)
 	v.SetGlyph(glyph)
-	v.SetInversion(inversion)
+	v.SetElement(element)
 	v.SetPrecedence(precedence)
+	v.SetInversion(inversion)
 	return v
 }
 
@@ -42,25 +42,10 @@ func Factor(element ElementLike, glyph GlyphLike, inversion InversionLike, prece
 
 // This type defines the structure and methods associated with a factor.
 type factor struct {
-	element    ElementLike
 	glyph      GlyphLike
-	inversion  InversionLike
+	element    ElementLike
 	precedence PrecedenceLike
-}
-
-// This method returns the element for this factor.
-func (v *factor) GetElement() ElementLike {
-	return v.element
-}
-
-// This method sets the element for this factor.
-func (v *factor) SetElement(element ElementLike) {
-	if element != nil {
-		v.element = element
-		v.glyph = nil
-		v.inversion = nil
-		v.precedence = nil
-	}
+	inversion  InversionLike
 }
 
 // This method returns the glyph for this factor.
@@ -78,17 +63,17 @@ func (v *factor) SetGlyph(glyph GlyphLike) {
 	}
 }
 
-// This method returns the inversion for this factor.
-func (v *factor) GetInversion() InversionLike {
-	return v.inversion
+// This method returns the element for this factor.
+func (v *factor) GetElement() ElementLike {
+	return v.element
 }
 
-// This method sets the inversion for this factor.
-func (v *factor) SetInversion(inversion InversionLike) {
-	if inversion != nil {
-		v.element = nil
+// This method sets the element for this factor.
+func (v *factor) SetElement(element ElementLike) {
+	if element != nil {
+		v.element = element
 		v.glyph = nil
-		v.inversion = inversion
+		v.inversion = nil
 		v.precedence = nil
 	}
 }
@@ -105,5 +90,20 @@ func (v *factor) SetPrecedence(precedence PrecedenceLike) {
 		v.glyph = nil
 		v.inversion = nil
 		v.precedence = precedence
+	}
+}
+
+// This method returns the inversion for this factor.
+func (v *factor) GetInversion() InversionLike {
+	return v.inversion
+}
+
+// This method sets the inversion for this factor.
+func (v *factor) SetInversion(inversion InversionLike) {
+	if inversion != nil {
+		v.element = nil
+		v.glyph = nil
+		v.inversion = inversion
+		v.precedence = nil
 	}
 }

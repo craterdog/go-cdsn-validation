@@ -49,7 +49,7 @@ func ParseDocument(source []byte) DocumentLike {
 		var symbol = association.GetKey()
 		var definition = association.GetValue()
 		if definition == nil {
-			panic(fmt.Sprintf("Missing a definition for symbol: %v\n", symbol))
+			panic(fmt.Sprintf("The grammar is missing a definition for symbol: %v\n", symbol))
 		}
 	}
 	return document
@@ -66,13 +66,15 @@ var grammar = map[string]string{
 	"$expression":  `alternative ("|" alternative)*`,
 	"$alternative": `predicate+ NOTE?`,
 	"$predicate":   `factor cardinality?  ! The default cardinality is one.`,
-	"$factor":      `element | glyph | inversion | precedence`,
-	"$element":     `INTRINSIC | NAME | LITERAL`,
+	"$factor":      `glyph | element | precedence | inversion`,
 	"$glyph":       `CHARACTER (".." CHARACTER)?  ! The range of CHARACTERs in a glyph is inclusive.`,
-	"$inversion":   `"~" factor`,
+	"$element":     `INTRINSIC | NAME | LITERAL`,
 	"$precedence":  `"(" expression ")"`,
+	"$inversion":   `"~" factor`,
 	"$cardinality": `
-      LIMIT
+      "?"  ! Zero or one instance of a factor.
+    | "*"  ! Zero or more instances of a factor.
+    | "+"  ! One or more instances of a factor.
     | "{" NUMBER (".." NUMBER?)? "}"  ! The range of NUMBERs in a cardinality is inclusive.`,
 }
 
@@ -86,11 +88,12 @@ func generateGrammar(expected string, symbols ...string) string {
 
 // This type defines the structure and methods for the parser agent.
 type parser struct {
-	symbols col.CatalogLike[SYMBOL, DefinitionLike]
-	source  []byte
-	next    col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
-	tokens  chan Token            // The queue of unread tokens coming from the scanner.
-	isToken bool                  // Whether or not the current definition is a token definition.
+	symbols     col.CatalogLike[SYMBOL, DefinitionLike]
+	source      []byte
+	next        col.StackLike[*Token] // The stack of the retrieved tokens that have been put back.
+	tokens      chan Token            // The queue of unread tokens coming from the scanner.
+	isToken     bool                  // Whether or not the current definition is a token definition.
+	isInversion bool                  // Whether or not the current factor has been inverted.
 }
 
 // This method puts back the current token onto the token stream so that it can
@@ -148,259 +151,6 @@ func (v *parser) nextToken() *Token {
 	return next
 }
 
-// This method attempts to parse a new end-of-file token. It returns the token
-// and whether or not the token was successfully parsed.
-func (v *parser) parseEOF() (*Token, *Token, bool) {
-	var token = v.nextToken()
-	if token.Type != TokenEOF {
-		v.backupOne(token)
-		return token, token, false
-	}
-	return token, token, true
-}
-
-// This method attempts to parse the specified delimiter token. It returns the
-// token and whether or not the token was successfully parsed.
-func (v *parser) parseDELIMITER(delimiter string) (string, *Token, bool) {
-	var token = v.nextToken()
-	if token.Type != TokenDELIMITER || token.Value != delimiter {
-		v.backupOne(token)
-		return delimiter, token, false
-	}
-	return delimiter, token, true
-}
-
-// This method attempts to parse a new intrinsic token. It returns the token
-// and whether or not the token was successfully parsed.
-func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
-	var intrinsic INTRINSIC
-	var token = v.nextToken()
-	if token.Type != TokenINTRINSIC {
-		v.backupOne(token)
-		return intrinsic, token, false
-	}
-	intrinsic = INTRINSIC(token.Value)
-	return intrinsic, token, true
-}
-
-// This method attempts to parse a new note token. It returns the token
-// and whether or not the token was successfully parsed.
-func (v *parser) parseNOTE() (NOTE, *Token, bool) {
-	var note NOTE
-	var token = v.nextToken()
-	if token.Type != TokenNOTE {
-		v.backupOne(token)
-		return note, token, false
-	}
-	note = NOTE(token.Value)
-	return note, token, true
-}
-
-// This method attempts to parse a new comment token. It returns the token
-// and whether or not the token was successfully parsed.
-func (v *parser) parseCOMMENT() (COMMENT, *Token, bool) {
-	var comment COMMENT
-	var token = v.nextToken()
-	if token.Type != TokenCOMMENT {
-		v.backupOne(token)
-		return comment, token, false
-	}
-	comment = COMMENT(token.Value)
-	return comment, token, true
-}
-
-// This method attempts to parse a new number token. It returns the token
-// and whether or not the token was successfully parsed.
-func (v *parser) parseNUMBER() (NUMBER, *Token, bool) {
-	var number NUMBER
-	var token = v.nextToken()
-	if token.Type != TokenNUMBER {
-		v.backupOne(token)
-		return number, token, false
-	}
-	number = NUMBER(token.Value)
-	return number, token, true
-}
-
-// This method attempts to parse a new character token. It returns the token
-// and whether or not the token was successfully parsed.
-func (v *parser) parseCHARACTER() (CHARACTER, *Token, bool) {
-	var character CHARACTER
-	var token = v.nextToken()
-	if token.Type != TokenCHARACTER {
-		v.backupOne(token)
-		return character, token, false
-	}
-	character = CHARACTER(token.Value)
-	return character, token, true
-}
-
-// This method attempts to parse a new literal token. It returns the token
-// and whether or not the token was successfully parsed.
-func (v *parser) parseLITERAL() (LITERAL, *Token, bool) {
-	var literal LITERAL
-	var token = v.nextToken()
-	if token.Type != TokenLITERAL {
-		v.backupOne(token)
-		return literal, token, false
-	}
-	literal = LITERAL(token.Value)
-	return literal, token, true
-}
-
-// This method attempts to parse a new name token. It returns the token
-// and whether or not the token was successfully parsed.
-func (v *parser) parseNAME() (NAME, *Token, bool) {
-	var name NAME
-	var token = v.nextToken()
-	if token.Type != TokenNAME {
-		v.backupOne(token)
-		return name, token, false
-	}
-	if v.isToken && uni.IsLower(rune(token.Value[0])) {
-		panic(fmt.Sprintf("A token definition contains a rulename: %v\n", token.Value))
-	}
-	name = NAME(token.Value)
-	var symbol = SYMBOL("$" + token.Value)
-	var definition = v.symbols.GetValue(symbol)
-	v.symbols.SetValue(symbol, definition)
-	return name, token, true
-}
-
-// This method attempts to parse a new symbol token. It returns the token
-// and whether or not the token was successfully parsed.
-func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
-	var symbol SYMBOL
-	var token = v.nextToken()
-	if token.Type != TokenSYMBOL {
-		v.backupOne(token)
-		return symbol, token, false
-	}
-	symbol = SYMBOL(token.Value)
-	return symbol, token, true
-}
-
-// This method attempts to parse a new document. It returns the document
-// and whether or not the document was successfully parsed.
-func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var statement StatementLike
-	var statements = col.List[StatementLike]()
-	var document DocumentLike
-	statement, token, ok = v.parseStatement()
-	if !ok {
-		// This is not a document.
-		return document, token, false
-	}
-	for {
-		statements.AddValue(statement)
-		statement, _, ok = v.parseStatement()
-		if !ok {
-			// No more statements.
-			break
-		}
-	}
-	_, token, ok = v.parseEOF()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("EOF",
-			"$document",
-			"$statement")
-		panic(message)
-	}
-	document = Document(statements)
-	return document, token, true
-}
-
-// This method attempts to parse a new statement. It returns the statement
-// and whether or not the statement was successfully parsed.
-func (v *parser) parseStatement() (StatementLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var definition DefinitionLike
-	var comment COMMENT
-	var statement StatementLike
-	definition, token, ok = v.parseDefinition()
-	if !ok {
-		comment, token, ok = v.parseCOMMENT()
-	}
-	if !ok {
-		// This is not a statement.
-		return statement, token, false
-	}
-	statement = Statement(definition, comment)
-	return statement, token, true
-}
-
-// This method attempts to parse a new definition. It returns the definition
-// and whether or not the definition was successfully parsed.
-func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var symbol SYMBOL
-	var expression ExpressionLike
-	var definition DefinitionLike
-	symbol, token, ok = v.parseSYMBOL()
-	if !ok {
-		// This is not a definition.
-		return definition, token, false
-	}
-	v.isToken = uni.IsUpper(rune(symbol[1]))
-	_, token, ok = v.parseDELIMITER(":")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar(":",
-			"$definition",
-			"$expression")
-		panic(message)
-	}
-	expression, token, ok = v.parseExpression()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("expression",
-			"$definition",
-			"$expression")
-		panic(message)
-	}
-	definition = Definition(symbol, expression)
-	v.symbols.SetValue(symbol, definition)
-	return definition, token, true
-}
-
-// This method attempts to parse a new expression. It returns the expression
-// and whether or not the expression was successfully parsed.
-func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var alternative AlternativeLike
-	var alternatives = col.List[AlternativeLike]()
-	var expression ExpressionLike
-	alternative, token, ok = v.parseAlternative()
-	if !ok {
-		// An expression must have at least one alternative.
-		return expression, token, false
-	}
-	for {
-		alternatives.AddValue(alternative)
-		_, _, ok = v.parseDELIMITER("|")
-		if !ok {
-			// No more alternatives.
-			break
-		}
-		alternative, token, ok = v.parseAlternative()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("alternative",
-				"$expression",
-				"$alternative")
-			panic(message)
-		}
-	}
-	expression = Expression(alternatives)
-	return expression, token, true
-}
-
 // This method attempts to parse a new alternative. It returns the alternative
 // and whether or not the alternative was successfully parsed.
 func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
@@ -426,160 +176,6 @@ func (v *parser) parseAlternative() (AlternativeLike, *Token, bool) {
 	note, _, _ = v.parseNOTE() // The note is optional.
 	alternative = Alternative(predicates, note)
 	return alternative, token, true
-}
-
-// This method attempts to parse a new predicate. It returns the predicate
-// and whether or not the predicate was successfully parsed.
-func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor FactorLike
-	var cardinality CardinalityLike
-	var predicate PredicateLike
-	factor, token, ok = v.parseFactor()
-	if !ok {
-		// This is not a predicate.
-		return predicate, token, false
-	}
-	cardinality, token, _ = v.parseCardinality()
-	predicate = Predicate(factor, cardinality)
-	return predicate, token, true
-}
-
-// This method attempts to parse a new factor. It returns the factor
-// and whether or not the factor was successfully parsed.
-func (v *parser) parseFactor() (FactorLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var element ElementLike
-	var glyph GlyphLike
-	var inversion InversionLike
-	var precedence PrecedenceLike
-	var factor FactorLike
-	element, token, ok = v.parseElement()
-	if !ok {
-		glyph, token, ok = v.parseGlyph()
-	}
-	if !ok {
-		inversion, token, ok = v.parseInversion()
-	}
-	if !ok {
-		precedence, token, ok = v.parsePrecedence()
-	}
-	if !ok {
-		// This is not a factor.
-		return factor, token, false
-	}
-	factor = Factor(element, glyph, inversion, precedence)
-	return factor, token, true
-}
-
-// This method attempts to parse an element. It returns the element
-// and whether or not the element was successfully parsed.
-func (v *parser) parseElement() (ElementLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var intrinsic INTRINSIC
-	var name NAME
-	var literal LITERAL
-	var element ElementLike
-	intrinsic, token, ok = v.parseINTRINSIC()
-	if !ok {
-		name, token, ok = v.parseNAME()
-	}
-	if !ok {
-		literal, token, ok = v.parseLITERAL()
-	}
-	if !ok {
-		// This is not an element.
-		return element, token, false
-	}
-	element = Element(intrinsic, name, literal)
-	return element, token, true
-}
-
-// This method attempts to parse a new glyph. It returns the glyph
-// and whether or not the glyph was successfully parsed.
-func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var first CHARACTER
-	var last CHARACTER
-	var glyph GlyphLike
-	first, token, ok = v.parseCHARACTER()
-	if !ok {
-		// This is not a glyph.
-		return glyph, token, false
-	}
-	_, _, ok = v.parseDELIMITER("..")
-	if ok {
-		last, token, ok = v.parseCHARACTER()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("CHARACTER",
-				"$glyph")
-			panic(message)
-		}
-	}
-	glyph = Glyph(first, last)
-	return glyph, token, true
-}
-
-// This method attempts to parse a new inversion. It returns the inversion
-// and whether or not the inversion was successfully parsed.
-func (v *parser) parseInversion() (InversionLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var factor FactorLike
-	var inversion InversionLike
-	_, token, ok = v.parseDELIMITER("~")
-	if !ok {
-		// This is not a inversion.
-		return inversion, token, false
-	}
-	factor, token, ok = v.parseFactor()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("factor",
-			"$inversion",
-			"$factor")
-		panic(message)
-	}
-	inversion = Inversion(factor)
-	return inversion, token, true
-}
-
-// This method attempts to parse a new precedence. It returns the precedence
-// and whether or not the precedence was successfully parsed.
-func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
-	var ok bool
-	var token *Token
-	var expression ExpressionLike
-	var precedence PrecedenceLike
-	_, token, ok = v.parseDELIMITER("(")
-	if !ok {
-		// This is not a precedence.
-		return precedence, token, false
-	}
-	expression, token, ok = v.parseExpression()
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar("expression",
-			"$precedence",
-			"$expression")
-		panic(message)
-	}
-	expression.SetAnnotated(false)
-	_, token, ok = v.parseDELIMITER(")")
-	if !ok {
-		var message = v.formatError(token)
-		message += generateGrammar(")",
-			"$precedence",
-			"$expression")
-		panic(message)
-	}
-	precedence = Precedence(expression)
-	return precedence, token, true
 }
 
 // This method attempts to parse a new cardinality. It returns the cardinality
@@ -644,4 +240,437 @@ func (v *parser) parseCardinality() (CardinalityLike, *Token, bool) {
 	}
 	cardinality = Cardinality(first, last)
 	return cardinality, token, true
+}
+
+// This method attempts to parse a new character token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parseCHARACTER() (CHARACTER, *Token, bool) {
+	var character CHARACTER
+	var token = v.nextToken()
+	if token.Type != TokenCHARACTER {
+		v.backupOne(token)
+		return character, token, false
+	}
+	character = CHARACTER(token.Value)
+	return character, token, true
+}
+
+// This method attempts to parse a new comment token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parseCOMMENT() (COMMENT, *Token, bool) {
+	var comment COMMENT
+	var token = v.nextToken()
+	if token.Type != TokenCOMMENT {
+		v.backupOne(token)
+		return comment, token, false
+	}
+	comment = COMMENT(token.Value)
+	return comment, token, true
+}
+
+// This method attempts to parse a new definition. It returns the definition
+// and whether or not the definition was successfully parsed.
+func (v *parser) parseDefinition() (DefinitionLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var symbol SYMBOL
+	var expression ExpressionLike
+	var definition DefinitionLike
+	symbol, token, ok = v.parseSYMBOL()
+	if !ok {
+		// This is not a definition.
+		return definition, token, false
+	}
+	if v.symbols.GetValue(symbol) != nil {
+		var message = v.formatError(token)
+		message += "This symbol has already been defined in this grammar.\n\n"
+		panic(message)
+	}
+	v.isToken = uni.IsUpper(rune(symbol[1]))
+	_, token, ok = v.parseDELIMITER(":")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar(":",
+			"$definition",
+			"$expression")
+		panic(message)
+	}
+	expression, token, ok = v.parseExpression()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("expression",
+			"$definition",
+			"$expression")
+		panic(message)
+	}
+	v.isToken = false
+	definition = Definition(symbol, expression)
+	v.symbols.SetValue(symbol, definition)
+	return definition, token, true
+}
+
+// This method attempts to parse the specified delimiter token. It returns the
+// token and whether or not the token was successfully parsed.
+func (v *parser) parseDELIMITER(delimiter string) (string, *Token, bool) {
+	var token = v.nextToken()
+	if token.Type != TokenDELIMITER || token.Value != delimiter {
+		v.backupOne(token)
+		return delimiter, token, false
+	}
+	return delimiter, token, true
+}
+
+// This method attempts to parse a new document. It returns the document
+// and whether or not the document was successfully parsed.
+func (v *parser) parseDocument() (DocumentLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var statement StatementLike
+	var statements = col.List[StatementLike]()
+	var document DocumentLike
+	statement, token, ok = v.parseStatement()
+	if !ok {
+		// This is not a document.
+		return document, token, false
+	}
+	for {
+		statements.AddValue(statement)
+		statement, _, ok = v.parseStatement()
+		if !ok {
+			// No more statements.
+			break
+		}
+	}
+	_, token, ok = v.parseEOF()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("EOF",
+			"$document",
+			"$statement")
+		panic(message)
+	}
+	document = Document(statements)
+	return document, token, true
+}
+
+// This method attempts to parse an element. It returns the element
+// and whether or not the element was successfully parsed.
+func (v *parser) parseElement() (ElementLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var intrinsic INTRINSIC
+	var name NAME
+	var literal LITERAL
+	var element ElementLike
+	intrinsic, token, ok = v.parseINTRINSIC()
+	if !ok {
+		name, token, ok = v.parseNAME()
+	}
+	if !ok && !v.isInversion {
+		literal, token, ok = v.parseLITERAL()
+	}
+	if !ok {
+		// This is not an element.
+		return element, token, false
+	}
+	element = Element(intrinsic, name, literal)
+	return element, token, true
+}
+
+// This method attempts to parse a new end-of-file token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parseEOF() (*Token, *Token, bool) {
+	var token = v.nextToken()
+	if token.Type != TokenEOF {
+		v.backupOne(token)
+		return token, token, false
+	}
+	return token, token, true
+}
+
+// This method attempts to parse a new expression. It returns the expression
+// and whether or not the expression was successfully parsed.
+func (v *parser) parseExpression() (ExpressionLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var alternative AlternativeLike
+	var alternatives = col.List[AlternativeLike]()
+	var expression ExpressionLike
+	alternative, token, ok = v.parseAlternative()
+	if !ok {
+		// An expression must have at least one alternative.
+		return expression, token, false
+	}
+	for {
+		alternatives.AddValue(alternative)
+		_, _, ok = v.parseDELIMITER("|")
+		if !ok {
+			// No more alternatives.
+			break
+		}
+		alternative, token, ok = v.parseAlternative()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("alternative",
+				"$expression",
+				"$alternative")
+			panic(message)
+		}
+	}
+	expression = Expression(alternatives)
+	return expression, token, true
+}
+
+// This method attempts to parse a new factor. It returns the factor
+// and whether or not the factor was successfully parsed.
+func (v *parser) parseFactor() (FactorLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var element ElementLike
+	var glyph GlyphLike
+	var inversion InversionLike
+	var precedence PrecedenceLike
+	var factor FactorLike
+	ok = v.isToken
+	if ok {
+		glyph, token, ok = v.parseGlyph()
+	}
+	if !ok {
+		element, token, ok = v.parseElement()
+	}
+	if !ok {
+		precedence, token, ok = v.parsePrecedence()
+	}
+	if !ok && !v.isInversion {
+		inversion, token, ok = v.parseInversion()
+	}
+	if !ok {
+		// This is not a factor.
+		return factor, token, false
+	}
+	factor = Factor(glyph, element, precedence, inversion)
+	return factor, token, true
+}
+
+// This method attempts to parse a new glyph. It returns the glyph
+// and whether or not the glyph was successfully parsed.
+func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var first CHARACTER
+	var last CHARACTER
+	var glyph GlyphLike
+	first, token, ok = v.parseCHARACTER()
+	if !ok {
+		// This is not a glyph.
+		return glyph, token, false
+	}
+	_, _, ok = v.parseDELIMITER("..")
+	if ok {
+		last, token, ok = v.parseCHARACTER()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("CHARACTER",
+				"$glyph")
+			panic(message)
+		}
+	}
+	glyph = Glyph(first, last)
+	return glyph, token, true
+}
+
+// This method attempts to parse a new inversion. It returns the inversion
+// and whether or not the inversion was successfully parsed.
+func (v *parser) parseInversion() (InversionLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var element ElementLike
+	var factor FactorLike
+	var inversion InversionLike
+	_, token, ok = v.parseDELIMITER("~")
+	if !ok {
+		// This is not a inversion.
+		return inversion, token, false
+	}
+	v.isInversion = true
+	if v.isToken {
+		factor, token, ok = v.parseFactor()
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("factor",
+				"$inversion",
+				"$factor")
+			panic(message)
+		}
+	} else {
+		v.isToken = true
+		element, token, ok = v.parseElement()
+		v.isToken = false
+		if !ok {
+			var message = v.formatError(token)
+			message += generateGrammar("element",
+				"$inversion",
+				"$factor",
+				"$element")
+			panic(message)
+		}
+		factor = Factor(nil, element, nil, nil)
+	}
+	v.isInversion = false
+	inversion = Inversion(factor)
+	return inversion, token, true
+}
+
+// This method attempts to parse a new intrinsic token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parseINTRINSIC() (INTRINSIC, *Token, bool) {
+	var intrinsic INTRINSIC
+	var token = v.nextToken()
+	if token.Type != TokenINTRINSIC {
+		v.backupOne(token)
+		return intrinsic, token, false
+	}
+	intrinsic = INTRINSIC(token.Value)
+	return intrinsic, token, true
+}
+
+// This method attempts to parse a new literal token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parseLITERAL() (LITERAL, *Token, bool) {
+	var literal LITERAL
+	var token = v.nextToken()
+	if token.Type != TokenLITERAL {
+		v.backupOne(token)
+		return literal, token, false
+	}
+	literal = LITERAL(token.Value)
+	return literal, token, true
+}
+
+// This method attempts to parse a new name token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parseNAME() (NAME, *Token, bool) {
+	var name NAME
+	var token = v.nextToken()
+	if token.Type != TokenNAME {
+		v.backupOne(token)
+		return name, token, false
+	}
+	if (v.isToken || v.isInversion) && uni.IsLower(rune(token.Value[0])) {
+		var message = v.formatError(token)
+		message += "A token definition cannot contain a rule name.\n\n"
+		panic(message)
+	}
+	name = NAME(token.Value)
+	return name, token, true
+}
+
+// This method attempts to parse a new note token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parseNOTE() (NOTE, *Token, bool) {
+	var note NOTE
+	var token = v.nextToken()
+	if token.Type != TokenNOTE {
+		v.backupOne(token)
+		return note, token, false
+	}
+	note = NOTE(token.Value)
+	return note, token, true
+}
+
+// This method attempts to parse a new number token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parseNUMBER() (NUMBER, *Token, bool) {
+	var number NUMBER
+	var token = v.nextToken()
+	if token.Type != TokenNUMBER {
+		v.backupOne(token)
+		return number, token, false
+	}
+	number = NUMBER(token.Value)
+	return number, token, true
+}
+
+// This method attempts to parse a new precedence. It returns the precedence
+// and whether or not the precedence was successfully parsed.
+func (v *parser) parsePrecedence() (PrecedenceLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var expression ExpressionLike
+	var precedence PrecedenceLike
+	_, token, ok = v.parseDELIMITER("(")
+	if !ok {
+		// This is not a precedence.
+		return precedence, token, false
+	}
+	expression, token, ok = v.parseExpression()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("expression",
+			"$precedence",
+			"$expression")
+		panic(message)
+	}
+	expression.SetAnnotated(false)
+	_, token, ok = v.parseDELIMITER(")")
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar(")",
+			"$precedence",
+			"$expression")
+		panic(message)
+	}
+	precedence = Precedence(expression)
+	return precedence, token, true
+}
+
+// This method attempts to parse a new predicate. It returns the predicate
+// and whether or not the predicate was successfully parsed.
+func (v *parser) parsePredicate() (PredicateLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var factor FactorLike
+	var cardinality CardinalityLike
+	var predicate PredicateLike
+	factor, token, ok = v.parseFactor()
+	if !ok {
+		// This is not a predicate.
+		return predicate, token, false
+	}
+	cardinality, token, _ = v.parseCardinality()
+	predicate = Predicate(factor, cardinality)
+	return predicate, token, true
+}
+
+// This method attempts to parse a new statement. It returns the statement
+// and whether or not the statement was successfully parsed.
+func (v *parser) parseStatement() (StatementLike, *Token, bool) {
+	var ok bool
+	var token *Token
+	var definition DefinitionLike
+	var comment COMMENT
+	var statement StatementLike
+	definition, token, ok = v.parseDefinition()
+	if !ok {
+		comment, token, ok = v.parseCOMMENT()
+	}
+	if !ok {
+		// This is not a statement.
+		return statement, token, false
+	}
+	statement = Statement(definition, comment)
+	return statement, token, true
+}
+
+// This method attempts to parse a new symbol token. It returns the token
+// and whether or not the token was successfully parsed.
+func (v *parser) parseSYMBOL() (SYMBOL, *Token, bool) {
+	var symbol SYMBOL
+	var token = v.nextToken()
+	if token.Type != TokenSYMBOL {
+		v.backupOne(token)
+		return symbol, token, false
+	}
+	symbol = SYMBOL(token.Value)
+	return symbol, token, true
 }

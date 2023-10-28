@@ -47,7 +47,7 @@ $BYTECODE: "'" (INSTRUCTION (SPACE INSTRUCTION)*)* "'"
 
 $CHARACTER: ESCAPE | ~('"' | CONTROL)
 
-$COMMENT: "!>" EOL (COMMENT | ~"<!")* EOL SPACE* "<!"  ! Allows recursion.
+$COMMENT: "!>" ANY* "<!"
 
 $COMPLEX: '(' (RECTANGULAR | POLAR) ')'
 

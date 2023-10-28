@@ -61,7 +61,7 @@ $instructions: instruction*
 
 $instruction: label? action
 
-$label: LABEL ':'
+$label: LABEL ":"
 
 $action: note | jump | push | pull | load | save | drop | call | send
 
