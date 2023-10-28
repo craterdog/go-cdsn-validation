@@ -363,10 +363,10 @@ func (v *parser) parseElement() (ElementLike, *Token, bool) {
 	var literal LITERAL
 	var element ElementLike
 	intrinsic, token, ok = v.parseINTRINSIC()
-	if !ok && (!v.isToken || !v.isInversion) {
+	if !ok && !(v.isToken && v.isInversion) {
 		name, token, ok = v.parseNAME()
 	}
-	if !ok && (!v.isToken || !v.isInversion) {
+	if !ok && !(v.isToken && v.isInversion) {
 		literal, token, ok = v.parseLITERAL()
 	}
 	if !ok {
@@ -431,10 +431,7 @@ func (v *parser) parseFactor() (FactorLike, *Token, bool) {
 	var inversion InversionLike
 	var precedence PrecedenceLike
 	var factor FactorLike
-	ok = v.isToken
-	if ok {
-		glyph, token, ok = v.parseGlyph()
-	}
+	glyph, token, ok = v.parseGlyph()
 	if !ok {
 		element, token, ok = v.parseElement()
 	}

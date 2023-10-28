@@ -18,6 +18,8 @@
     The following token types are scanned for in the order listed below.
 <!
 
+$CHARACTER: "'" ~CONTROL "'"  ! Any printable character.
+
 $TEXT: '"' (ESCAPE | ~('"' | CONTROL))+ '"'
 
 $INTEGER:
@@ -46,7 +48,7 @@ $document: component EOF  ! Terminated with an end-of-file marker.
 
 $component: primitive | list
 
-$primitive: TEXT | INTEGER
+$primitive: CHARACTER | TEXT | INTEGER
 
-$list: "[" component* "]"
+$list: "[" component (',' component)* "]"
 
