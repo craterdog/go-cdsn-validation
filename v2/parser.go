@@ -363,10 +363,10 @@ func (v *parser) parseElement() (ElementLike, *Token, bool) {
 	var literal LITERAL
 	var element ElementLike
 	intrinsic, token, ok = v.parseINTRINSIC()
-	if !ok {
+	if !ok && (!v.isToken || !v.isInversion) {
 		name, token, ok = v.parseNAME()
 	}
-	if !ok && !v.isInversion {
+	if !ok && (!v.isToken || !v.isInversion) {
 		literal, token, ok = v.parseLITERAL()
 	}
 	if !ok {
@@ -503,9 +503,7 @@ func (v *parser) parseInversion() (InversionLike, *Token, bool) {
 			panic(message)
 		}
 	} else {
-		v.isToken = true
 		element, token, ok = v.parseElement()
-		v.isToken = false
 		if !ok {
 			var message = v.formatError(token)
 			message += generateGrammar("element",
