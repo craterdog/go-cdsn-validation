@@ -484,7 +484,6 @@ func (v *parser) parseGlyph() (GlyphLike, *Token, bool) {
 func (v *parser) parseInversion() (InversionLike, *Token, bool) {
 	var ok bool
 	var token *Token
-	var element ElementLike
 	var factor FactorLike
 	var inversion InversionLike
 	_, token, ok = v.parseDELIMITER("~")
@@ -493,26 +492,13 @@ func (v *parser) parseInversion() (InversionLike, *Token, bool) {
 		return inversion, token, false
 	}
 	v.isInversion = true
-	if v.isToken {
-		factor, token, ok = v.parseFactor()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("factor",
-				"$inversion",
-				"$factor")
-			panic(message)
-		}
-	} else {
-		element, token, ok = v.parseElement()
-		if !ok {
-			var message = v.formatError(token)
-			message += generateGrammar("element",
-				"$inversion",
-				"$factor",
-				"$element")
-			panic(message)
-		}
-		factor = Factor(nil, element, nil, nil)
+	factor, token, ok = v.parseFactor()
+	if !ok {
+		var message = v.formatError(token)
+		message += generateGrammar("factor",
+			"$inversion",
+			"$factor")
+		panic(message)
 	}
 	v.isInversion = false
 	inversion = Inversion(factor)
