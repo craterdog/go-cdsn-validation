@@ -34,7 +34,7 @@ $INTRINSIC: "ANY" | "LOWER_CASE" | "UPPER_CASE" | "DIGIT" | "SEPARATOR" | "ESCAP
 
 $NOTE: "! " (~CONTROL)*
 
-$COMMENT: "!>" ANY* "<!"
+$COMMENT: "!>" ANY* "<!"  ! Chooses the shortest possible match.
 
 $NUMBER: DIGIT+
 
