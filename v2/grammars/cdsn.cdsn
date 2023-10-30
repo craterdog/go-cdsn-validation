@@ -41,7 +41,9 @@ $CHARACTER: "'" ~CONTROL "'"  ! Any printable character.
 
 $LITERAL: '"' (ESCAPE | ~('"' | CONTROL))+ '"'
 
-$NAME: (LOWER_CASE | UPPER_CASE) ('_'? (LOWER_CASE | UPPER_CASE | DIGIT))*
+$NAME: LETTER ('_'? (LETTER | DIGIT))*
+
+$LETTER: LOWER_CASE | UPPER_CASE
 
 $SYMBOL: '$' NAME
 

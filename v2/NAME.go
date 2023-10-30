@@ -17,7 +17,8 @@ import (
 type NAME string
 
 const TokenNAME TokenType = "NAME"
-const name = `(?:` + lowerCase + `|` + upperCase + `)(?:_?(?:` + lowerCase + `|` + upperCase + `|` + digit + `))*`
+const name = `(?:` + letter + `)(?:_?(?:` + letter + `|` + digit + `))*`
+const letter = lowerCase + `|` + upperCase
 
 // This scanner is used for matching name tokens.
 var nameScanner = reg.MustCompile(`^(?:` + name + `)`)
