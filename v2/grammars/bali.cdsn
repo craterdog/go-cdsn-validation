@@ -19,7 +19,6 @@
      * LOWER_CASE - any language specific lower case character
      * UPPER_CASE - any language specific upper case character
      * DIGIT - any language specific digit
-     * SEPARATOR - any language specific character separator
      * ESCAPE - any environment specific escape sequence
      * CONTROL - any environment specific (non-printable) control character
      * EOF - the environment specific end-of-file marker
@@ -54,6 +53,8 @@ $CHARACTER: ESCAPE | ~('"' | CONTROL)
 $COMMENT: "!>" ANY* "<!"
 
 $COMPLEX: '(' (RECTANGULAR | POLAR) ')'
+
+$CONNECTOR: '+' | '-' | '.'
 
 $DAY: '0'..'2' '1'..'9' | '3' '0'..'1'
 
@@ -105,7 +106,7 @@ $MONTH: '0' '1'..'9' | '1' '0'..'2'
 
 $MONTHS: TIMESPAN 'M'
 
-$NAME: LETTER (SEPARATOR? (LETTER | DIGIT))*
+$NAME: LETTER (CONNECTOR? (LETTER | DIGIT))*
 
 $NARRATIVE: '"' '>' EOL (NARRATIVE | ~('<' '"'))* EOL SPACE* '<' '"'
 

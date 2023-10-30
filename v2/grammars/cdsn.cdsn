@@ -20,7 +20,6 @@
      * LOWER_CASE - any language specific lower case character
      * UPPER_CASE - any language specific upper case character
      * DIGIT - any language specific digit
-     * SEPARATOR - any language specific character separator
      * ESCAPE - any environment specific escape sequence
      * CONTROL - any environment specific (non-printable) control character
      * EOF - the environment specific end-of-file marker
@@ -30,7 +29,7 @@
     in the order listed below.
 <!
 
-$INTRINSIC: "ANY" | "LOWER_CASE" | "UPPER_CASE" | "DIGIT" | "SEPARATOR" | "ESCAPE" | "CONTROL" | "EOF"
+$INTRINSIC: "ANY" | "LOWER_CASE" | "UPPER_CASE" | "DIGIT" | "ESCAPE" | "CONTROL" | "EOF"
 
 $NOTE: "! " (~CONTROL)*
 
@@ -42,7 +41,7 @@ $CHARACTER: "'" ~CONTROL "'"  ! Any printable character.
 
 $LITERAL: '"' (ESCAPE | ~('"' | CONTROL))+ '"'
 
-$NAME: (LOWER_CASE | UPPER_CASE) (SEPARATOR? (LOWER_CASE | UPPER_CASE | DIGIT))*
+$NAME: (LOWER_CASE | UPPER_CASE) ('_'? (LOWER_CASE | UPPER_CASE | DIGIT))*
 
 $SYMBOL: '$' NAME
 

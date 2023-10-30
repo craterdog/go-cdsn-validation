@@ -19,7 +19,6 @@
      * LOWER_CASE - any language specific lower case character
      * UPPER_CASE - any language specific upper case character
      * DIGIT - any language specific digit
-     * SEPARATOR - any language specific character separator
      * ESCAPE - any environment specific escape sequence
      * CONTROL - any environment specific (non-printable) control character
      * EOF - the environment specific end-of-file marker
