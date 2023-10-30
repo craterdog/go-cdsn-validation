@@ -214,11 +214,6 @@ $assignment: letClause  ! ("let" recipient (":=" | "?=" | "+=" | "-=" | "*=" | "
 
 $association: key ":" value
 
-$associations:
-      association ("," association)*
-    | EOL (association EOL)+
-    | ":"  ! No associations.
-
 $attribute: variable indices
 
 $bag: expression
@@ -229,18 +224,13 @@ $chaining: expression "&" expression
 
 $checkoutClause: "checkout" recipient ("at" "level" ordinal)? "from" moniker
 
-$collection: "[" components | associations "]"
+$collection: "[" (series | mapping) "]"
 
 $comparison: expression ("<" | "=" | ">" | "≠" | "IS" | "MATCHES") expression
 
 $complement: "NOT" expression
 
 $component: entity context? NOTE?
-
-$components:
-      component ("," component)*
-    | EOL (component EOL)+
-    | " "  ! No components.
 
 $composite: expression
 
@@ -319,6 +309,11 @@ $magnitude: "|" expression "|"
 
 $mainClause: control | assignment | messaging | repository
 
+$mapping:
+      association ("," association)*
+    | EOL (association EOL)+
+    | ":"  ! No associations.
+
 $message: expression
 
 $messaging:
@@ -381,6 +376,11 @@ $saveClause: "save" document "as" recipient
 $selectClause: "select" target ("matching" pattern "do" procedure)+
 
 $sequence: expression
+
+$series:
+      component ("," component)*
+    | EOL (component EOL)+
+    | " "  ! No components.
 
 $source: component EOF  ! EOF is the end-of-file marker.
 
