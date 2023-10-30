@@ -30,9 +30,6 @@ const upperCase = `\p{Lu}`
 // These characters include all unicode digits.
 const digit = `\p{Nd}`
 
-// These characters can be used to separate words in names.
-const separator = `_`
-
 // These characters include all non-printable control characters.
 const control = `\p{Cc}`
 
