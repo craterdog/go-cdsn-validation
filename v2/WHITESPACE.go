@@ -14,5 +14,11 @@ import (
 	reg "regexp"
 )
 
+type WHITESPACE string
+
+const TokenWHITESPACE TokenType = "WHITESPACE"
+const space = ` `
+const whitespace = `[` + space + eol + `]+`
+
 // This scanner is used for matching whitespace tokens.
 var whitespaceScanner = reg.MustCompile(`^(?:` + whitespace + `)`)

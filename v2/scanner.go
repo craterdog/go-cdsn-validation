@@ -98,34 +98,36 @@ func (v *scanner) emitToken(tValue string, tType TokenType) {
 	var runeCount = sts.Count(tValue, "") - 1 // Empty string adds one to count.
 	var eolCount = sts.Count(tValue, EOL)
 	var lastEOL = sts.LastIndex(tValue, EOL) + 1 // Convert to ordinal indexing.
-	if tType == TokenEOF {
-		tValue = "<EOFL>"
-	}
-	if tType == TokenERROR {
-		switch tValue {
-		case "\a":
-			tValue = "<BELL>"
-		case "\b":
-			tValue = "<BKSP>"
-		case "\t":
-			tValue = "<HTAB>"
-		case "\f":
-			tValue = "<FMFD>"
-		case "\n":
-			tValue = "<EOLN>"
-		case "\r":
-			tValue = "<CRTN>"
-		case "\v":
-			tValue = "<VTAB>"
+	if tType != TokenWHITESPACE {
+		if tType == TokenEOF {
+			tValue = "<EOFL>"
 		}
+		if tType == TokenERROR {
+			switch tValue {
+			case "\a":
+				tValue = "<BELL>"
+			case "\b":
+				tValue = "<BKSP>"
+			case "\t":
+				tValue = "<HTAB>"
+			case "\f":
+				tValue = "<FMFD>"
+			case "\n":
+				tValue = "<EOLN>"
+			case "\r":
+				tValue = "<CRTN>"
+			case "\v":
+				tValue = "<VTAB>"
+			}
+		}
+		var token = Token{tType, tValue, v.line, v.position}
+		//fmt.Println(token)
+		v.tokens <- token
 	}
-	var token = Token{tType, tValue, v.line, v.position}
-	//fmt.Println(token)
-	v.tokens <- token
 	v.nextByte += byteCount
 	v.firstByte = v.nextByte
+	v.line += eolCount
 	if eolCount > 0 {
-		v.line += eolCount
 		v.position = runeCount - lastEOL + 1
 	} else {
 		v.position += runeCount
@@ -283,18 +285,7 @@ func (v *scanner) scanWHITESPACE() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(whitespaceScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		var byteCount = len(matches[0])
-		var runeCount = sts.Count(matches[0], "") - 1 // Empty string adds one to count.
-		var eolCount = sts.Count(matches[0], EOL)
-		var lastEOL = sts.LastIndex(matches[0], EOL) + 1 // Convert to ordinal indexing.
-		v.nextByte += byteCount
-		v.firstByte = v.nextByte
-		if eolCount > 0 {
-			v.line += eolCount
-			v.position = runeCount - lastEOL + 1
-		} else {
-			v.position += runeCount
-		}
+		v.emitToken(matches[0], TokenWHITESPACE)
 		return true
 	}
 	return false

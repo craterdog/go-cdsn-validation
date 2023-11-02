@@ -42,9 +42,3 @@ const (
 	unicode = `u` + base16 + `{4}|U` + base16 + `{8}`
 	base16  = `[0-9a-f]`
 )
-
-// These characters are treated as whitespace by the scanner and ignored.
-const (
-	whitespace = `[` + space + eol + `]+`
-	space      = ` `
-)
