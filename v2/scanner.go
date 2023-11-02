@@ -94,7 +94,10 @@ func (v *scanner) atError() {
 // next byte index position. It returns the token type of the type added to the
 // channel.
 func (v *scanner) emitToken(tValue string, tType TokenType) {
-	v.nextByte += len(tValue)
+	var byteCount = len(tValue)
+	var runeCount = sts.Count(tValue, "") - 1 // Empty string adds one to count.
+	var eolCount = sts.Count(tValue, EOL)
+	var lastEOL = sts.LastIndex(tValue, EOL) + 1 // Convert to ordinal indexing.
 	if tType == TokenEOF {
 		tValue = "<EOFL>"
 	}
@@ -119,8 +122,14 @@ func (v *scanner) emitToken(tValue string, tType TokenType) {
 	var token = Token{tType, tValue, v.line, v.position}
 	//fmt.Println(token)
 	v.tokens <- token
+	v.nextByte += byteCount
 	v.firstByte = v.nextByte
-	v.position += sts.Count(tValue, "") - 1 // Add the number of runes in the token.
+	if eolCount > 0 {
+		v.line += eolCount
+		v.position = runeCount - lastEOL + 1
+	} else {
+		v.position += runeCount
+	}
 }
 
 // This method continues scanning tokens from the source bytes until an error
@@ -167,7 +176,6 @@ func (v *scanner) scanCHARACTER() bool {
 	var matches = bytesToStrings(characterScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.emitToken(matches[0], TokenCHARACTER)
-		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -180,7 +188,6 @@ func (v *scanner) scanCOMMENT() bool {
 	var matches = bytesToStrings(commentScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.emitToken(matches[0], TokenCOMMENT)
-		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -193,7 +200,6 @@ func (v *scanner) scanDELIMITER() bool {
 	var matches = bytesToStrings(delimiterScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.emitToken(matches[0], TokenDELIMITER)
-		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -206,7 +212,6 @@ func (v *scanner) scanINTRINSIC() bool {
 	var matches = bytesToStrings(intrinsicScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.emitToken(matches[0], TokenINTRINSIC)
-		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -219,7 +224,6 @@ func (v *scanner) scanLITERAL() bool {
 	var matches = bytesToStrings(literalScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.emitToken(matches[0], TokenLITERAL)
-		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -232,7 +236,6 @@ func (v *scanner) scanNAME() bool {
 	var matches = bytesToStrings(nameScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.emitToken(matches[0], TokenNAME)
-		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -245,7 +248,6 @@ func (v *scanner) scanNOTE() bool {
 	var matches = bytesToStrings(noteScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.emitToken(matches[0], TokenNOTE)
-		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -258,7 +260,6 @@ func (v *scanner) scanNUMBER() bool {
 	var matches = bytesToStrings(numberScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.emitToken(matches[0], TokenNUMBER)
-		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -271,7 +272,6 @@ func (v *scanner) scanSYMBOL() bool {
 	var matches = bytesToStrings(symbolScanner.FindSubmatch(s))
 	if len(matches) > 0 {
 		v.emitToken(matches[0], TokenSYMBOL)
-		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
 	return false
@@ -283,16 +283,17 @@ func (v *scanner) scanWHITESPACE() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(whitespaceScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		var length = len(matches[0])
-		v.nextByte += length
-		v.firstByte = v.nextByte
+		var byteCount = len(matches[0])
+		var runeCount = sts.Count(matches[0], "") - 1 // Empty string adds one to count.
 		var eolCount = sts.Count(matches[0], EOL)
+		var lastEOL = sts.LastIndex(matches[0], EOL) + 1 // Convert to ordinal indexing.
+		v.nextByte += byteCount
+		v.firstByte = v.nextByte
 		if eolCount > 0 {
 			v.line += eolCount
-			var index = sts.LastIndex(matches[0], EOL)
-			v.position = length - index
+			v.position = runeCount - lastEOL + 1
 		} else {
-			v.position += length
+			v.position += runeCount
 		}
 		return true
 	}
