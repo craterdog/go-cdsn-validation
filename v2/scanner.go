@@ -74,7 +74,7 @@ func (v *scanner) atEOF() bool {
 	if v.nextByte == len(v.source) {
 		// The last byte in a POSIX standard file must be an EOL character.
 		if byt.HasPrefix(v.source[v.nextByte-1:], []byte(EOL)) {
-			v.emitToken(TokenEOF)
+			v.emitToken("", TokenEOF)
 			return true
 		}
 	}
@@ -85,17 +85,16 @@ func (v *scanner) atEOF() bool {
 // to the token channel.
 func (v *scanner) atError() {
 	var bytes = v.source[v.nextByte:]
-	var _, width = utf.DecodeRune(bytes)
-	v.nextByte += width
-	v.emitToken(TokenERROR)
+	var character, _ = utf.DecodeRune(bytes)
+	v.emitToken(string(character), TokenERROR)
 }
 
 // This method adds a token of the specified type with the current scanner
 // information to the token channel. It then resets the first byte index to the
 // next byte index position. It returns the token type of the type added to the
 // channel.
-func (v *scanner) emitToken(tType TokenType) {
-	var tValue = string(v.source[v.firstByte:v.nextByte])
+func (v *scanner) emitToken(tValue string, tType TokenType) {
+	v.nextByte += len(tValue)
 	if tType == TokenEOF {
 		tValue = "<EOFL>"
 	}
@@ -167,8 +166,7 @@ func (v *scanner) scanCHARACTER() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(characterScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenCHARACTER)
+		v.emitToken(matches[0], TokenCHARACTER)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -181,8 +179,7 @@ func (v *scanner) scanCOMMENT() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(commentScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenCOMMENT)
+		v.emitToken(matches[0], TokenCOMMENT)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -195,8 +192,7 @@ func (v *scanner) scanDELIMITER() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(delimiterScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenDELIMITER)
+		v.emitToken(matches[0], TokenDELIMITER)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -209,8 +205,7 @@ func (v *scanner) scanINTRINSIC() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(intrinsicScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenINTRINSIC)
+		v.emitToken(matches[0], TokenINTRINSIC)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -223,8 +218,7 @@ func (v *scanner) scanLITERAL() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(literalScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenLITERAL)
+		v.emitToken(matches[0], TokenLITERAL)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -237,8 +231,7 @@ func (v *scanner) scanNAME() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(nameScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenNAME)
+		v.emitToken(matches[0], TokenNAME)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -251,8 +244,7 @@ func (v *scanner) scanNOTE() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(noteScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenNOTE)
+		v.emitToken(matches[0], TokenNOTE)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -265,8 +257,7 @@ func (v *scanner) scanNUMBER() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(numberScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenNUMBER)
+		v.emitToken(matches[0], TokenNUMBER)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -279,8 +270,7 @@ func (v *scanner) scanSYMBOL() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(symbolScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.emitToken(TokenSYMBOL)
+		v.emitToken(matches[0], TokenSYMBOL)
 		v.line += sts.Count(matches[0], EOL)
 		return true
 	}
@@ -293,9 +283,9 @@ func (v *scanner) scanWHITESPACE() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(whitespaceScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.nextByte += len(matches[0])
-		v.firstByte = v.nextByte
 		var length = len(matches[0])
+		v.nextByte += length
+		v.firstByte = v.nextByte
 		var eolCount = sts.Count(matches[0], EOL)
 		if eolCount > 0 {
 			v.line += eolCount
