@@ -14,6 +14,7 @@ import (
 	byt "bytes"
 	//fmt "fmt"
 	sts "strings"
+	uni "unicode"
 	utf "unicode/utf8"
 )
 
@@ -213,8 +214,12 @@ func (v *scanner) scanINTRINSIC() bool {
 	var s = v.source[v.nextByte:]
 	var matches = bytesToStrings(intrinsicScanner.FindSubmatch(s))
 	if len(matches) > 0 {
-		v.emitToken(matches[0], TokenINTRINSIC)
-		return true
+		// Check to see if the match is part of an identifier.
+		var r, _ = utf.DecodeRune(v.source[v.nextByte+len(matches[0]):])
+		if !uni.IsLetter(r) {
+			v.emitToken(matches[0], TokenINTRINSIC)
+			return true
+		}
 	}
 	return false
 }
