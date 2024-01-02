@@ -1,4 +1,4 @@
-module github.com/craterdog/go-cdsn-validation/v2
+module github.com/craterdog/go-cdsn-validation/v3
 
 go 1.21
 

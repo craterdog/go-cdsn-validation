@@ -12,7 +12,7 @@ package cdsn_test
 
 import (
 	fmt "fmt"
-	cds "github.com/craterdog/go-cdsn-validation/v2"
+	cds "github.com/craterdog/go-cdsn-validation/v3"
 	ass "github.com/stretchr/testify/assert"
 	osx "os"
 	sts "strings"
