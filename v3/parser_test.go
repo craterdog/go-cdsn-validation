@@ -156,7 +156,7 @@ $bad: "worse"
 		if e := recover(); e != nil {
 			ass.Equal(
 				t,
-				"An unexpected token was received by the parser: Token [type: Symbol, line: 2, position: 1]: \"$bad\"\n\x1b[36m0001: $bad: \"bad\"\n0002: $bad: \"worse\"\n \x1b[32m>>>──⌃\x1b[36m\n0003: \n\x1b[0m\nThis symbol has already been defined in this grammar.\n",
+				"An unexpected token was received by the parser: Token [type: Symbol, line: 2, position: 1]: \"$bad\"\n\x1b[36m0001: $bad: \"bad\"\n0002: $bad: \"worse\"\n \x1b[32m>>>──⌃\x1b[36m\n0003: \n\x1b[0m\nThis symbol has already been defined in this grammar:\n    $bad: \"bad\"\n",
 				e,
 			)
 		} else {

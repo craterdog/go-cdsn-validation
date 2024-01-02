@@ -191,6 +191,7 @@ type FormatterClassLike interface {
 // This abstract type defines the set of abstract interfaces that must be
 // supported by all formatter-like types.
 type FormatterLike interface {
+	FormatDefinition(definition DefinitionLike) string
 	FormatDocument(document DocumentLike) string
 }
 
