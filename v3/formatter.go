@@ -51,6 +51,11 @@ type formatter_ struct {
 
 // Public Interface
 
+func (v *formatter_) FormatDefinition(definition DefinitionLike) string {
+	v.formatDefinition(definition)
+	return v.getResult()
+}
+
 func (v *formatter_) FormatDocument(document DocumentLike) string {
 	v.formatDocument(document)
 	return v.getResult()

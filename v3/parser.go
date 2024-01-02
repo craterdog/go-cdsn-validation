@@ -42,7 +42,7 @@ func ParserClass() ParserClassLike {
 
 func (c *parserClass_) Default() ParserLike {
 	var parser = &parser_{
-		names: col.CatalogClass[string, ExpressionLike]().Empty(),
+		names: col.CatalogClass[string, string]().Empty(),
 		next:  col.StackClass[*token_]().WithCapacity(c.stackSize),
 	}
 	return parser
@@ -54,7 +54,7 @@ func (c *parserClass_) Default() ParserLike {
 
 type parser_ struct {
 	document string
-	names    col.CatalogLike[string, ExpressionLike]
+	names    col.CatalogLike[string, string]
 	next     col.StackLike[*token_] // A stack of unprocessed retrieved tokens.
 	tokens   chan *token_           // A queue of unread tokens from the scanner.
 }
@@ -86,12 +86,14 @@ func (v *parser_) ParseDocument(document string) DocumentLike {
 		)
 		panic(message)
 	}
+
+	// Make sure all names have associated definitions.
 	var iterator = v.names.GetIterator()
 	for iterator.HasNext() {
 		var association = iterator.GetNext()
 		var name = association.GetKey()
-		var expression = association.GetValue()
-		if expression == nil {
+		var definition = association.GetValue()
+		if len(definition) == 0 {
 			var message = fmt.Sprintf(
 				"The grammar is missing a definition for name: %v\n",
 				name,
@@ -99,6 +101,7 @@ func (v *parser_) ParseDocument(document string) DocumentLike {
 			panic(message)
 		}
 	}
+
 	return DocumentClass().FromGrammar(grammar)
 }
 
@@ -325,10 +328,11 @@ func (v *parser_) parseDefinition() (DefinitionLike, *token_, bool) {
 		return definition, token, false
 	}
 	var name = symbol[1:]
-	expression = v.names.GetValue(name)
-	if expression != nil {
+	var existing = v.names.GetValue(name)
+	if len(existing) > 0 {
 		var message = v.formatError(token)
-		message += "This symbol has already been defined in this grammar.\n"
+		message += "This symbol has already been defined in this grammar:\n"
+		message += "    " + existing + "\n"
 		panic(message)
 	}
 	_, token, ok = v.parseDelimiter(":")
@@ -349,8 +353,9 @@ func (v *parser_) parseDefinition() (DefinitionLike, *token_, bool) {
 		)
 		panic(message)
 	}
-	v.names.SetValue(name, expression)
 	definition = DefinitionClass().FromSymbolAndExpression(symbol, expression)
+	var formatter = FormatterClass().Default()
+	v.names.SetValue(name, formatter.FormatDefinition(definition))
 	return definition, token, true
 }
 
@@ -544,8 +549,8 @@ func (v *parser_) parseName() (string, *token_, bool) {
 		return name, token, false
 	}
 	name = token.GetValue()
-	var expression = v.names.GetValue(name)
-	v.names.SetValue(name, expression)
+	var definition = v.names.GetValue(name) // Returns "" if not found.
+	v.names.SetValue(name, definition)
 	return name, token, true
 }
 
