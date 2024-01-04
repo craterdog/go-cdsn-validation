@@ -414,37 +414,66 @@ func (v *parser_) parseEOL() (*token_, *token_, bool) {
 func (v *parser_) parseExpression() (ExpressionLike, *token_, bool) {
 	var ok bool
 	var token *token_
-	var _, _, isMultilined = v.parseEOL()
 	var expression ExpressionLike
 	var alternative AlternativeLike
 	var alternatives = col.ListClass[AlternativeLike]().Empty()
+
+	// Handle in-line case.
 	alternative, token, ok = v.parseAlternative()
+	if ok {
+		for {
+			alternatives.AppendValue(alternative)
+			_, token, ok = v.parseDelimiter("|")
+			if !ok {
+				// No more alternatives.
+				expression = ExpressionClass().FromAlternatives(alternatives)
+				expression.SetMultilined(false)
+				return expression, token, true
+			}
+			alternative, token, ok = v.parseAlternative()
+			if !ok {
+				var message = v.formatError(token)
+				message += v.generateGrammar("alternative",
+					"$expression",
+					"$alternative",
+				)
+				panic(message)
+			}
+		}
+	}
+
+	// Handle multi-line case.
+	_, _, ok = v.parseEOL()
 	if !ok {
 		// This is not an expression.
 		return expression, token, false
 	}
+	alternative, token, ok = v.parseAlternative()
+	if !ok {
+		var message = v.formatError(token)
+		message += v.generateGrammar("alternative",
+			"$expression",
+			"$alternative",
+		)
+		panic(message)
+	}
 	for {
 		alternatives.AppendValue(alternative)
-		var _, eolToken, eolFound = v.parseEOL()
-		_, token, ok = v.parseDelimiter("|")
-		if !ok {
-			// No more alternatives.
-			if eolFound {
-				v.putBack(eolToken)
-			}
-			expression = ExpressionClass().FromAlternatives(alternatives)
-			expression.SetMultilined(isMultilined)
-			return expression, token, true
-		}
-		isMultilined = isMultilined || eolFound
-		alternative, token, ok = v.parseAlternative()
+		var _, token, ok = v.parseEOL()
 		if !ok {
 			var message = v.formatError(token)
-			message += v.generateGrammar("alternative",
+			message += v.generateGrammar("EOL",
 				"$expression",
 				"$alternative",
 			)
 			panic(message)
+		}
+		alternative, token, ok = v.parseAlternative()
+		if !ok {
+			// No more alternatives.
+			expression = ExpressionClass().FromAlternatives(alternatives)
+			expression.SetMultilined(true)
+			return expression, token, true
 		}
 	}
 }
@@ -503,18 +532,26 @@ func (v *parser_) parseGrammar() (GrammarLike, *token_, bool) {
 	var grammar GrammarLike
 	var statement StatementLike
 	var statements = col.ListClass[StatementLike]().Empty()
-	statement, token, ok = v.parseStatement()
-	if !ok {
-		// This is not a grammar.
-		return grammar, token, false
-	}
 	for {
-		statements.AppendValue(statement)
 		statement, token, ok = v.parseStatement()
 		if !ok {
 			// There are no more statements.
 			grammar = GrammarClass().FromStatements(statements)
 			return grammar, token, true
+		}
+		statements.AppendValue(statement)
+		_, token, ok = v.parseEOL()
+		if !ok {
+			var message = v.formatError(token)
+			message += v.generateGrammar("EOL",
+				"$grammar",
+				"$statement",
+			)
+			panic(message)
+		}
+		for ok {
+			// Absorb any blank lines.
+			_, _, ok = v.parseEOL()
 		}
 	}
 }
@@ -617,24 +654,23 @@ func (v *parser_) parsePredicate() (PredicateLike, *token_, bool) {
 	_, _, isInverted = v.parseDelimiter("~")
 	if isInverted {
 		assertion, token, ok = v.parseAssertion()
-		if !ok {
-			var message = v.formatError(token)
-			message += v.generateGrammar("assertion",
-				"$predicate",
-				"$assertion",
-			)
-			panic(message)
+		if ok {
+			predicate = PredicateClass().FromAssertion(assertion, isInverted)
+			return predicate, token, true
 		}
+		var message = v.formatError(token)
+		message += v.generateGrammar("assertion",
+			"$predicate",
+			"$assertion",
+		)
+		panic(message)
+	}
+	assertion, token, ok = v.parseAssertion()
+	if ok {
 		predicate = PredicateClass().FromAssertion(assertion, isInverted)
 		return predicate, token, true
 	}
-	assertion, token, ok = v.parseAssertion()
-	if !ok {
-		// This is not a predicate.
-		return predicate, token, false
-	}
-	predicate = PredicateClass().FromAssertion(assertion, isInverted)
-	return predicate, token, true
+	return predicate, token, false
 }
 
 func (v *parser_) parseStatement() (StatementLike, *token_, bool) {
@@ -643,29 +679,17 @@ func (v *parser_) parseStatement() (StatementLike, *token_, bool) {
 	var statement StatementLike
 	var comment string
 	var definition DefinitionLike
-	comment, _, ok = v.parseComment()
-	if !ok {
-		definition, token, ok = v.parseDefinition()
-		if !ok {
-			// This is not a statement.
-			return statement, token, false
-		}
-		statement = StatementClass().FromDefinition(definition)
-	} else {
+	comment, token, ok = v.parseComment()
+	if ok {
 		statement = StatementClass().FromComment(comment)
+		return statement, token, true
 	}
-	_, token, ok = v.parseEOL()
-	if !ok {
-		var message = v.formatError(token)
-		message += v.generateGrammar("EOL",
-			"$statement",
-		)
-		panic(message)
+	definition, token, ok = v.parseDefinition()
+	if ok {
+		statement = StatementClass().FromDefinition(definition)
+		return statement, token, true
 	}
-	for ok {
-		_, token, ok = v.parseEOL()
-	}
-	return statement, token, true
+	return statement, token, false
 }
 
 func (v *parser_) parseSymbol() (string, *token_, bool) {

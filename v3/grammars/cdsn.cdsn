@@ -11,7 +11,7 @@
     stream of tokens that are processed by the parser.  Each token name begins
     with an upper case letter.  Unlike with rule definitions, a token definition
     cannot specify the name of a rule within its definition but it can specify
-	the name of other tokens.
+    the name of other tokens.
 
     The following intrinsic token types are environment or language specific:
      * ANY - Any language specific character.
@@ -26,25 +26,15 @@
     Token definitions cannot be recursive and the scanning of tokens is not
     greedy.  Any spaces within a token definition are NOT ignored.
 <!
-
 $CHARACTER: "'" ~CONTROL "'"  ! Any printable character.
-
 $COMMENT: "!>" ANY* "<!"  ! Chooses the shortest possible match.
-
 $DELIMITER: "~" | "?" | "*" | "+" | ":" | "|" | "(" | ")" | "{" | "}" | ".."
-
 $INTRINSIC: "ANY" | "LOWER" | "UPPER" | "DIGIT" | "ESCAPE" | "CONTROL" | "EOL" | "EOF"
-
 $LETTER: LOWER | UPPER
-
 $LITERAL: '"' (ESCAPE | ~('"' | CONTROL))+ '"'
-
 $NAME: LETTER ('_'? (LETTER | DIGIT))*
-
 $NOTE: "! " (~CONTROL)*
-
 $NUMBER: DIGIT+
-
 $SYMBOL: '$' NAME
 
 !>
@@ -68,36 +58,25 @@ $SYMBOL: '$' NAME
     Inversion within a rule definition may only be applied to an assertion
     resulting in a single character or glyph.
 <!
-
 $document: grammar EOF  ! Terminated with an end-of-file marker.
-
-$grammar: statement+
-
-$statement: (COMMENT | definition) EOL+
-
+$grammar: (statement EOL+)*
+$statement: COMMENT | definition
 $definition: SYMBOL ":" expression  ! This works for tokens and rules.
-
-$expression: EOL? alternative (EOL? "|" alternative)*
+$expression:
+    alternative ("|" alternative)*
+    EOL (alternative EOL)+
 
 $alternative: factor+ NOTE?
-
 $factor: predicate cardinality?  ! The default cardinality is one.
-
 $predicate: "~"? assertion
-
 $assertion: element | glyph | precedence
-
 $element: INTRINSIC | LITERAL | NAME
-
 $glyph: CHARACTER (".." CHARACTER)?  ! The range of characters is inclusive.
-
 $precedence: "(" expression ")"
-
 $cardinality:
-      "?"  ! Zero or one instance of a predicate.
-    | "*"  ! Zero or more instances of a predicate.
-    | "+"  ! One or more instances of a predicate.
-    | "{" constraint "}"  ! Constrains the number of instances of a predicate.
+    "?"  ! Zero or one instance of a predicate.
+    "*"  ! Zero or more instances of a predicate.
+    "+"  ! One or more instances of a predicate.
+    "{" constraint "}"  ! Constrains the number of instances of a predicate.
 
 $constraint: NUMBER (".." NUMBER?)?  ! The range of numbers is inclusive.
-
