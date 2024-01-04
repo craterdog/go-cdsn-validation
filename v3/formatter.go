@@ -46,6 +46,7 @@ func (c *formatterClass_) Default() FormatterLike {
 // Private Class Type Definition
 
 type formatter_ struct {
+	depth  int
 	result sts.Builder
 }
 
@@ -63,20 +64,32 @@ func (v *formatter_) FormatDocument(document DocumentLike) string {
 
 // Private Interface
 
+func (v *formatter_) appendNewline() {
+	var separator = "\n"
+	for level := 0; level < v.depth; level++ {
+		separator += "    "
+	}
+	v.appendString(separator)
+}
+
+func (v *formatter_) appendString(s string) {
+	v.result.WriteString(s)
+}
+
 func (v *formatter_) formatAlternative(alternative AlternativeLike) {
 	var factors = alternative.GetFactors()
 	var iterator = factors.GetIterator()
 	var factor = iterator.GetNext()
 	v.formatFactor(factor)
 	for iterator.HasNext() {
-		v.result.WriteString(" ")
+		v.appendString(" ")
 		factor = iterator.GetNext()
 		v.formatFactor(factor)
 	}
 	var note = alternative.GetNote()
 	if len(note) > 0 {
-		v.result.WriteString("  ")
-		v.result.WriteString(note)
+		v.appendString("  ")
+		v.appendString(note)
 	}
 }
 
@@ -104,11 +117,11 @@ func (v *formatter_) formatCardinality(cardinality CardinalityLike) {
 	case first == "1" && last == "1":
 		// This is the default case so do nothing.
 	case first == "0" && last == "1":
-		v.result.WriteString("?")
+		v.appendString("?")
 	case first == "0" && len(last) == 0:
-		v.result.WriteString("*")
+		v.appendString("*")
 	case first == "1" && len(last) == 0:
-		v.result.WriteString("+")
+		v.appendString("+")
 	case len(first) > 0:
 		v.formatConstraint(constraint)
 	default:
@@ -119,24 +132,24 @@ func (v *formatter_) formatCardinality(cardinality CardinalityLike) {
 func (v *formatter_) formatConstraint(constraint ConstraintLike) {
 	var first = constraint.GetFirst()
 	var last = constraint.GetLast()
-	v.result.WriteString("{")
-	v.result.WriteString(first)
+	v.appendString("{")
+	v.appendString(first)
 	if first != last {
-		v.result.WriteString("..")
+		v.appendString("..")
 		if len(last) > 0 {
-			v.result.WriteString(last)
+			v.appendString(last)
 		}
 	}
-	v.result.WriteString("}")
+	v.appendString("}")
 }
 
 func (v *formatter_) formatDefinition(definition DefinitionLike) {
 	var symbol = definition.GetSymbol()
-	v.result.WriteString(symbol)
-	v.result.WriteString(":")
+	v.appendString(symbol)
+	v.appendString(":")
 	var expression = definition.GetExpression()
 	if !expression.IsMultilined() {
-		v.result.WriteString(" ")
+		v.appendString(" ")
 	}
 	v.formatExpression(expression)
 }
@@ -152,34 +165,40 @@ func (v *formatter_) formatElement(element ElementLike) {
 	var literal = element.GetLiteral()
 	switch {
 	case len(intrinsic) > 0:
-		v.result.WriteString(intrinsic)
+		v.appendString(intrinsic)
 	case len(name) > 0:
-		v.result.WriteString(name)
+		v.appendString(name)
 	case len(literal) > 0:
-		v.result.WriteString(literal)
+		v.appendString(literal)
 	default:
 		panic("Attempted to format an empty element.")
 	}
 }
 
 func (v *formatter_) formatExpression(expression ExpressionLike) {
-	if expression.IsMultilined() {
-		// Indent additional two spaces to align with subsequent alternatives.
-		v.result.WriteString("\n      ")
-	}
+	var alternative AlternativeLike
 	var alternatives = expression.GetAlternatives()
 	var iterator = alternatives.GetIterator()
-	var alternative = iterator.GetNext()
-	v.formatAlternative(alternative)
-	for iterator.HasNext() {
-		alternative = iterator.GetNext()
-		if expression.IsMultilined() {
-			v.result.WriteString("\n    ")
-		} else {
-			v.result.WriteString(" ")
+	if expression.IsMultilined() {
+		v.depth++
+		v.appendNewline()
+		for iterator.HasNext() {
+			alternative = iterator.GetNext()
+			v.formatAlternative(alternative)
+			if iterator.GetSlot() == alternatives.GetSize() {
+				// The last newline must be out-dented by one.
+				v.depth--
+			}
+			v.appendNewline()
 		}
-		v.result.WriteString("| ")
+	} else {
+		alternative = iterator.GetNext()
 		v.formatAlternative(alternative)
+		for iterator.HasNext() {
+			v.appendString(" | ")
+			alternative = iterator.GetNext()
+			v.formatAlternative(alternative)
+		}
 	}
 }
 
@@ -194,11 +213,11 @@ func (v *formatter_) formatFactor(factor FactorLike) {
 
 func (v *formatter_) formatGlyph(glyph GlyphLike) {
 	var first = glyph.GetFirst()
-	v.result.WriteString(first)
+	v.appendString(first)
 	var last = glyph.GetLast()
 	if len(last) > 0 {
-		v.result.WriteString("..")
-		v.result.WriteString(last)
+		v.appendString("..")
+		v.appendString(last)
 	}
 }
 
@@ -207,22 +226,27 @@ func (v *formatter_) formatGrammar(grammar GrammarLike) {
 	var iterator = statements.GetIterator()
 	for iterator.HasNext() {
 		var statement = iterator.GetNext()
+		// Prepend a newline before all comments unless the first line is a comment.
+		if iterator.GetSlot() > 1 && len(statement.GetComment()) > 0 {
+			v.appendNewline()
+		}
 		v.formatStatement(statement)
+		v.appendNewline()
 	}
 }
 
 func (v *formatter_) formatPrecedence(precedence PrecedenceLike) {
-	v.result.WriteString("(")
+	v.appendString("(")
 	var expression = precedence.GetExpression()
 	v.formatExpression(expression)
-	v.result.WriteString(")")
+	v.appendString(")")
 }
 
 func (v *formatter_) formatPredicate(predicate PredicateLike) {
 	var assertion = predicate.GetAssertion()
 	var isInverted = predicate.IsInverted()
 	if isInverted {
-		v.result.WriteString("~")
+		v.appendString("~")
 	}
 	v.formatAssertion(assertion)
 }
@@ -230,7 +254,7 @@ func (v *formatter_) formatPredicate(predicate PredicateLike) {
 func (v *formatter_) formatStatement(statement StatementLike) {
 	var comment = statement.GetComment()
 	if len(comment) > 0 {
-		v.result.WriteString(comment)
+		v.appendString(comment)
 	} else {
 		var definition = statement.GetDefinition()
 		if definition == nil {
@@ -238,7 +262,6 @@ func (v *formatter_) formatStatement(statement StatementLike) {
 		}
 		v.formatDefinition(definition)
 	}
-	v.result.WriteString("\n\n")
 }
 
 func (v *formatter_) getResult() string {

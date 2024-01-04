@@ -4,7 +4,7 @@
     stream of tokens that are processed by the parser.  Each token name begins
     with an upper case letter.  Unlike with rule definitions, a token definition
     cannot specify the name of a rule within its definition but it can specify
-	the name of other tokens.
+    the name of other tokens.
 
     The following intrinsic token types are environment or language specific:
      * ANY - Any language specific character.
@@ -19,14 +19,18 @@
     Token definitions cannot be recursive and the scanning of tokens is not
     greedy.  Any spaces within a token definition are NOT ignored.
 <!
-
 $CHARACTER: "'" ~CONTROL "'"  ! Any printable character.
-
-$TEXT: '"' (ESCAPE | ~('"' | CONTROL))+ '"'
-
+$TEXT: '"' (
+    ESCAPE
+    ~(
+        '"'
+        CONTROL{2..}
+    )
+)+ '"'
 $INTEGER:
-      '0'
-    | '-'? '1'..'9' DIGIT*
+    '0'{4}
+    '-'? '1'..'9' DIGIT*
+
 
 !>
     RULE DEFINITIONS
@@ -49,12 +53,7 @@ $INTEGER:
     Inversion within a rule definition may only be applied to a token predicate
     resulting in a single token.  Rule inversions cannot be nested.
 <!
-
 $document: component EOF  ! Terminated with an end-of-file marker.
-
-$component: primitive | list
-
+$component: primitive | list{3..5}
 $primitive: CHARACTER | TEXT | INTEGER
-
 $list: "[" component (',' component)* "]"
-
